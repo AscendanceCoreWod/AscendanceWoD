@@ -19,10 +19,6 @@
 #define ScenePackets_h__
 
 #include "Packet.h"
-<<<<<<< HEAD
-=======
-#include "Object.h"
->>>>>>> upstream/6.x
 
 namespace WorldPackets
 {

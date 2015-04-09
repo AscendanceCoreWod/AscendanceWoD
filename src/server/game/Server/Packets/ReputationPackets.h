@@ -15,8 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ReputationPackets_h__
-#define ReputationPackets_h__
+#pragma once
 
 #include "Packet.h"
 
@@ -45,31 +44,5 @@ namespace WorldPackets
             bool FactionHasBonus[FactionCount]; ///< @todo: implement faction bonus
             uint8 FactionFlags[FactionCount]; ///< @see enum FactionFlags
         };
-
-        class RequestForcedReactions final : public ClientPacket
-        {
-        public:
-            RequestForcedReactions(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_FORCED_REACTIONS, std::move(packet)) { }
-
-            void Read() override { }
-        };
-
-        struct ForcedReaction
-        {
-            int32 Faction = 0;
-            int32 Reaction = 0;
-        };
-
-        class SetForcedReactions final : public ServerPacket
-        {
-        public:
-            SetForcedReactions() : ServerPacket(SMSG_SET_FORCED_REACTIONS) { }
-
-            WorldPacket const* Write() override;
-
-            std::vector<ForcedReaction> Reactions;
-        };
     }
 }
-
-#endif // ReputationPackets_h__
