@@ -53,8 +53,6 @@
 #include "Spell.h"
 #include "SpellPackets.h"
 #include "BattlegroundMgr.h"
-#include "Battlefield.h"
-#include "BattlefieldMgr.h"
 #include "DB2Stores.h"
 #include "CharacterPackets.h"
 #include "ClientConfigPackets.h"
@@ -455,19 +453,6 @@ void WorldSession::HandleTogglePvP(WorldPacket& recvData)
 
     //if (OutdoorPvP* pvp = _player->GetOutdoorPvP())
     //    pvp->HandlePlayerActivityChanged(_player);
-}
-
-void WorldSession::HandleZoneUpdateOpcode(WorldPacket& recvData)
-{
-    uint32 newZone;
-    recvData >> newZone;
-
-    TC_LOG_DEBUG("network", "WORLD: Recvd ZONE_UPDATE: %u", newZone);
-
-    // use server side data, but only after update the player position. See Player::UpdatePosition().
-    GetPlayer()->SetNeedsZoneUpdate(true);
-
-    //GetPlayer()->SendInitWorldStates(true, newZone);
 }
 
 void WorldSession::HandlePortGraveyard(WorldPackets::Misc::PortGraveyard& /*packet*/)
@@ -900,7 +885,7 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recvData)
 
     MovementInfo movementInfo;
     movementInfo.guid = guid;
-    ReadMovementInfo(recvData, &movementInfo);
+    ValidateMovementInfo(recvData, &movementInfo);
     recvData.read_skip<float>();                           // unk2
 */
 }
@@ -925,7 +910,7 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recvData)
     recvData.read_skip<uint32>();                          // unk
 
     MovementInfo movementInfo;
-    ReadMovementInfo(recvData, &movementInfo);
+    ValidateMovementInfo(recvData, &movementInfo);
 */
 }
 
@@ -941,7 +926,7 @@ void WorldSession::HandleSetActionBarToggles(WorldPackets::Character::SetActionB
     GetPlayer()->SetByteValue(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_ACTION_BAR_TOGGLES, packet.Mask);
 }
 
-void WorldSession::HandlePlayedTime(WorldPackets::Character::PlayedTimeClient& packet)
+void WorldSession::HandlePlayedTime(WorldPackets::Character::RequestPlayedTime& packet)
 {
     WorldPackets::Character::PlayedTime playedTime;
     playedTime.TotalTime = _player->GetTotalPlayedTime();
@@ -1353,13 +1338,13 @@ void WorldSession::HandleCancelMountAuraOpcode(WorldPacket& /*recvData*/)
     _player->RemoveAurasByType(SPELL_AURA_MOUNTED); // Calls Dismount()
 }
 
-void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& recvData)
+void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& /*recvData*/)
 {
     // fly mode on/off
     TC_LOG_DEBUG("network", "WORLD: CMSG_MOVE_SET_CAN_FLY_ACK");
 
     MovementInfo movementInfo;
-    _player->ReadMovementInfo(recvData, &movementInfo);
+    _player->ValidateMovementInfo(&movementInfo);
 
     _player->m_mover->m_movementInfo.flags = movementInfo.GetMovementFlags();
 }
@@ -1406,73 +1391,6 @@ void WorldSession::SendSetPhaseShift(std::set<uint32> const& phaseIds, std::set<
     phaseShift.VisibleMapIDs = terrainswaps;
     phaseShift.UiWorldMapAreaIDSwaps = worldMapAreaSwaps;
     SendPacket(phaseShift.Write());
-}
-
-// Battlefield and Battleground
-void WorldSession::HandleAreaSpiritHealerQueryOpcode(WorldPacket& recvData)
-{
-    TC_LOG_DEBUG("network", "WORLD: CMSG_AREA_SPIRIT_HEALER_QUERY");
-
-    Battleground* bg = _player->GetBattleground();
-
-    ObjectGuid guid;
-    recvData >> guid;
-
-    Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
-    if (!unit)
-        return;
-
-    if (!unit->IsSpiritService())                            // it's not spirit service
-        return;
-
-    if (bg)
-        sBattlegroundMgr->SendAreaSpiritHealerQueryOpcode(_player, bg, guid);
-
-    if (Battlefield* bf = sBattlefieldMgr->GetBattlefieldToZoneId(_player->GetZoneId()))
-        bf->SendAreaSpiritHealerQueryOpcode(_player, guid);
-}
-
-void WorldSession::HandleAreaSpiritHealerQueueOpcode(WorldPacket& recvData)
-{
-    TC_LOG_DEBUG("network", "WORLD: CMSG_AREA_SPIRIT_HEALER_QUEUE");
-
-    Battleground* bg = _player->GetBattleground();
-
-    ObjectGuid guid;
-    recvData >> guid;
-
-    Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
-    if (!unit)
-        return;
-
-    if (!unit->IsSpiritService())                            // it's not spirit service
-        return;
-
-    if (bg)
-        bg->AddPlayerToResurrectQueue(guid, _player->GetGUID());
-
-    if (Battlefield* bf = sBattlefieldMgr->GetBattlefieldToZoneId(_player->GetZoneId()))
-        bf->AddPlayerToResurrectQueue(guid, _player->GetGUID());
-}
-
-void WorldSession::HandleHearthAndResurrect(WorldPacket& /*recvData*/)
-{
-    if (_player->IsInFlight())
-        return;
-
-    if (/*Battlefield* bf = */sBattlefieldMgr->GetBattlefieldToZoneId(_player->GetZoneId()))
-    {
-        // bf->PlayerAskToLeave(_player); FIXME
-        return;
-    }
-
-    AreaTableEntry const* atEntry = GetAreaEntryByAreaID(_player->GetAreaId());
-    if (!atEntry || !(atEntry->Flags[0] & AREA_FLAG_WINTERGRASP_2))
-        return;
-
-    _player->BuildPlayerRepop();
-    _player->ResurrectPlayer(1.0f);
-    _player->TeleportTo(_player->m_homebindMapId, _player->m_homebindX, _player->m_homebindY, _player->m_homebindZ, _player->GetOrientation());
 }
 
 void WorldSession::HandleInstanceLockResponse(WorldPacket& recvPacket)

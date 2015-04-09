@@ -297,6 +297,7 @@ enum WorldIntConfigs
     CONFIG_DEATH_SICKNESS_LEVEL,
     CONFIG_INSTANT_LOGOUT,
     CONFIG_DISABLE_BREATHING,
+	CONFIG_DISABLE_FATIGUE,
     CONFIG_BATTLEGROUND_INVITATION_TYPE,
     CONFIG_BATTLEGROUND_PREMATURE_FINISH_TIMER,
     CONFIG_BATTLEGROUND_PREMADE_GROUP_WAIT_FOR_MATCH,
@@ -771,7 +772,8 @@ class World
         void LoadDBVersion();
         char const* GetDBVersion() const { return m_DBVersion.c_str(); }
 
-        void RecordTimeDiff(const char * text, ...);
+        void ResetTimeDiffRecord();
+        void RecordTimeDiff(std::string const& text);
 
         void LoadAutobroadcasts();
 

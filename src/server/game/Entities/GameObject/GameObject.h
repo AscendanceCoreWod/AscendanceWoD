@@ -30,8 +30,6 @@ class GameObjectAI;
 class Group;
 class Transport;
 
-#define MAX_GAMEOBJECT_QUEST_ITEMS 6
-
 // from `gameobject_template`
 struct GameObjectTemplate
 {
@@ -45,7 +43,6 @@ struct GameObjectTemplate
     uint32  faction;
     uint32  flags;
     float   size;
-    uint32  questItems[MAX_GAMEOBJECT_QUEST_ITEMS];
     int32   unkInt32;
     union
     {
@@ -798,6 +795,15 @@ struct GameObjectLocale
     StringVector CastBarCaption;
 };
 
+// `gameobject_addon` table
+struct GameObjectAddon
+{
+    InvisibilityType invisibilityType;
+    uint32 InvisibilityValue;
+};
+
+typedef std::unordered_map<ObjectGuid::LowType, GameObjectAddon> GameObjectAddonContainer;
+
 // client side GO show states
 enum GOState
 {
@@ -837,6 +843,9 @@ struct GameObjectData
     uint32 phaseGroup;
     bool dbData;
 };
+
+typedef std::vector<uint32> GameObjectQuestItemList;
+typedef std::unordered_map<uint32, GameObjectQuestItemList> GameObjectQuestItemMap;
 
 // For containers:  [GO_NOT_READY]->GO_READY (close)->GO_ACTIVATED (open) ->GO_JUST_DEACTIVATED->GO_READY        -> ...
 // For bobber:      GO_NOT_READY  ->GO_READY (close)->GO_ACTIVATED (open) ->GO_JUST_DEACTIVATED-><deleted>
@@ -952,7 +961,7 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Map
         void SetGoAnimProgress(uint8 animprogress) { SetByteValue(GAMEOBJECT_BYTES_1, 3, animprogress); }
         static void SetGoArtKit(uint8 artkit, GameObject* go, ObjectGuid::LowType lowguid = UI64LIT(0));
 
-        bool SetInPhase(uint32 id, bool update, bool apply);
+        bool SetInPhase(uint32 id, bool update, bool apply) override;
         void EnableCollision(bool enable);
 
         void Use(Unit* user);

@@ -58,7 +58,6 @@ namespace WorldPackets
             int32 MailID = 0;
             uint8 SenderType = 0;
             Optional<ObjectGuid> SenderCharacter;
-            Query::PlayerGuidLookupHint SenderHint;
             Optional<uint32> AltSenderID;
             int64 Cod = 0;
             int32 PackageID = 0;
@@ -75,7 +74,7 @@ namespace WorldPackets
         class MailGetList final : public ClientPacket
         {
         public:
-            MailGetList(WorldPacket&& packet) : ClientPacket(CMSG_GET_MAIL_LIST, std::move(packet)) { }
+            MailGetList(WorldPacket&& packet) : ClientPacket(CMSG_MAIL_GET_LIST, std::move(packet)) { }
 
             void Read() override;
 

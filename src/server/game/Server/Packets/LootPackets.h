@@ -29,14 +29,14 @@ namespace WorldPackets
         class LootUnit final : public ClientPacket
         {
         public:
-            LootUnit(WorldPacket&& packet) : ClientPacket(CMSG_LOOT, std::move(packet)) { }
+            LootUnit(WorldPacket&& packet) : ClientPacket(CMSG_LOOT_UNIT, std::move(packet)) { }
 
             void Read() override;
 
             ObjectGuid Unit;
         };
 
-        struct LootItem
+        struct LootItemData
         {
             uint8 Type              = 2;
             uint8 UIType            = 4;
@@ -69,7 +69,7 @@ namespace WorldPackets
             uint8 AcquireReason  = 0;
             uint8 FailureReason  = 17; // Most common value
             uint32 Coins         = 0;
-            std::vector<LootItem> Items;
+            std::vector<LootItemData> Items;
             std::vector<LootCurrency> Currencies;
             bool PersonalLooting = false;
             bool Acquired        = false;
@@ -83,10 +83,10 @@ namespace WorldPackets
         };
 
         // PlayerCliLootItem
-        class AutoStoreLootItem final : public ClientPacket
+        class LootItem final : public ClientPacket
         {
         public:
-            AutoStoreLootItem(WorldPacket&& packet) : ClientPacket(CMSG_AUTOSTORE_LOOT_ITEM, std::move(packet)) { }
+            LootItem(WorldPacket&& packet) : ClientPacket(CMSG_LOOT_ITEM, std::move(packet)) { }
 
             void Read() override;
 
@@ -142,6 +142,29 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid LootObj;
+        };
+
+        class LootRoll final : public ClientPacket
+        {
+        public:
+            LootRoll(WorldPacket&& packet) : ClientPacket(CMSG_LOOT_ROLL, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid LootObj;
+            uint8 LootListID = 0;
+            uint8 RollType = 0;
+        };
+
+        class LootReleaseResponse final : public ServerPacket
+        {
+        public:
+            LootReleaseResponse() : ServerPacket(SMSG_LOOT_RELEASE, 32) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid LootObj;
+            ObjectGuid Owner;
         };
     }
 }

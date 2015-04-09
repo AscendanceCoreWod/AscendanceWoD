@@ -434,11 +434,8 @@ void ObjectMgr::LoadCreatureTemplates()
                                              "spell1, spell2, spell3, spell4, spell5, spell6, spell7, spell8, PetSpellDataId, VehicleId, mingold, maxgold, AIName, MovementType, "
     //                                        64           65           66              67                   68            69                 70             71              72
                                              "InhabitType, HoverHeight, HealthModifier, HealthModifierExtra, ManaModifier, ManaModifierExtra, ArmorModifier, DamageModifier, ExperienceModifier, "
-    //                                        73            74          75          76          77          78          79
-                                             "RacialLeader, questItem1, questItem2, questItem3, questItem4, questItem5, questItem6, "
-    //                                        80          81           82                    83           84
-                                             "movementId, RegenHealth, mechanic_immune_mask, flags_extra, ScriptName "
-                                             "FROM creature_template");
+    //                                        73            74          75           76                    77           78
+                                             "RacialLeader, movementId, RegenHealth, mechanic_immune_mask, flags_extra, ScriptName FROM creature_template");
 
     if (!result)
     {
@@ -539,14 +536,11 @@ void ObjectMgr::LoadCreatureTemplate(Field* fields)
     creatureTemplate.ModExperience  = fields[72].GetFloat();
     creatureTemplate.RacialLeader   = fields[73].GetBool();
 
-    for (uint8 i = 0; i < MAX_CREATURE_QUEST_ITEMS; ++i)
-        creatureTemplate.questItems[i] = fields[74 + i].GetUInt32();
-
-    creatureTemplate.movementId         = fields[80].GetUInt32();
-    creatureTemplate.RegenHealth        = fields[81].GetBool();
-    creatureTemplate.MechanicImmuneMask = fields[82].GetUInt32();
-    creatureTemplate.flags_extra        = fields[83].GetUInt32();
-    creatureTemplate.ScriptID           = GetScriptId(fields[84].GetCString());
+    creatureTemplate.movementId         = fields[74].GetUInt32();
+    creatureTemplate.RegenHealth        = fields[75].GetBool();
+    creatureTemplate.MechanicImmuneMask = fields[76].GetUInt32();
+    creatureTemplate.flags_extra        = fields[77].GetUInt32();
+    creatureTemplate.ScriptID           = GetScriptId(fields[78].GetCString());
 }
 
 void ObjectMgr::LoadCreatureTemplateAddons()
@@ -1080,6 +1074,66 @@ void ObjectMgr::LoadCreatureAddons()
     while (result->NextRow());
 
     TC_LOG_INFO("server.loading", ">> Loaded %u creature addons in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+}
+
+void ObjectMgr::LoadGameObjectAddons()
+{
+    uint32 oldMSTime = getMSTime();
+
+    //                                               0     1                 2
+    QueryResult result = WorldDatabase.Query("SELECT guid, invisibilityType, invisibilityValue FROM gameobject_addon");
+
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 gameobject addon definitions. DB table `gameobject_addon` is empty.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+
+        ObjectGuid::LowType guid = fields[0].GetUInt64();
+
+        const GameObjectData* goData = GetGOData(guid);
+        if (!goData)
+        {
+            TC_LOG_ERROR("sql.sql", "GameObject (GUID: " UI64FMTD ") does not exist but has a record in `gameobject_addon`", guid);
+            continue;
+        }
+
+        GameObjectAddon& gameObjectAddon = _gameObjectAddonStore[guid];
+        gameObjectAddon.invisibilityType = InvisibilityType(fields[1].GetUInt8());
+        gameObjectAddon.InvisibilityValue = fields[2].GetUInt32();
+
+        if (gameObjectAddon.invisibilityType >= TOTAL_INVISIBILITY_TYPES)
+        {
+            TC_LOG_ERROR("sql.sql", "GameObject (GUID: " UI64FMTD ") has invalid InvisibilityType in `gameobject_addon`", guid);
+            gameObjectAddon.invisibilityType = INVISIBILITY_GENERAL;
+            gameObjectAddon.InvisibilityValue = 0;
+        }
+
+        if (gameObjectAddon.invisibilityType && !gameObjectAddon.InvisibilityValue)
+        {
+            TC_LOG_ERROR("sql.sql", "GameObject (GUID: " UI64FMTD ") has InvisibilityType set but has no InvisibilityValue in `gameobject_addon`, set to 1", guid);
+            gameObjectAddon.InvisibilityValue = 1;
+        }
+
+        ++count;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u gameobject addons in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+}
+
+GameObjectAddon const* ObjectMgr::GetGameObjectAddon(ObjectGuid::LowType lowguid)
+{
+    GameObjectAddonContainer::const_iterator itr = _gameObjectAddonStore.find(lowguid);
+    if (itr != _gameObjectAddonStore.end())
+        return &(itr->second);
+
+    return NULL;
 }
 
 CreatureAddon const* ObjectMgr::GetCreatureAddon(ObjectGuid::LowType lowguid)
@@ -6134,13 +6188,13 @@ void ObjectMgr::LoadGameObjectTemplate()
 {
     uint32 oldMSTime = getMSTime();
 
-    //                                                 0      1      2        3       4             5          6      7       8     9        10         11          12
-    QueryResult result = WorldDatabase.Query("SELECT entry, type, displayId, name, IconName, castBarCaption, unk1, faction, flags, size, questItem1, questItem2, questItem3, "
-    //                                            13          14          15       16     17     18     19     20     21     22     23     24     25      26      27      28
-                                             "questItem4, questItem5, questItem6, Data0, Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10, Data11, Data12, "
-    //                                          29      30      31      32      33      34      35      36      37      38      39      40      41      42      43      44
+    //                                               0      1     2          3     4         5               6     7        8      9
+    QueryResult result = WorldDatabase.Query("SELECT entry, type, displayId, name, IconName, castBarCaption, unk1, faction, flags, size, "
+    //                                        10     11     12     13     14     15     16     17     18     19     20      21      22
+                                             "Data0, Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10, Data11, Data12, "
+    //                                        23      24      25      26      27      28      29      30      31      32      33      34      35      36      37      38
                                              "Data13, Data14, Data15, Data16, Data17, Data18, Data19, Data20, Data21, Data22, Data23, Data24, Data25, Data26, Data27, Data28, "
-    //                                          45      46      47      48       49       50        51
+    //                                        39      40       41     42      43        44      45
                                              "Data29, Data30, Data31, Data32, unkInt32, AIName, ScriptName "
                                              "FROM gameobject_template");
 
@@ -6171,15 +6225,12 @@ void ObjectMgr::LoadGameObjectTemplate()
         got.flags          = fields[8].GetUInt32();
         got.size           = fields[9].GetFloat();
 
-        for (uint8 i = 0; i < MAX_GAMEOBJECT_QUEST_ITEMS; ++i)
-            got.questItems[i] = fields[10 + i].GetUInt32();
-
         for (uint8 i = 0; i < MAX_GAMEOBJECT_DATA; ++i)
-            got.raw.data[i] = fields[16 + i].GetUInt32();
+            got.raw.data[i] = fields[10 + i].GetUInt32();
 
-        got.unkInt32 = fields[49].GetInt32();
-        got.AIName = fields[50].GetString();
-        got.ScriptId = GetScriptId(fields[51].GetCString());
+        got.unkInt32 = fields[43].GetInt32();
+        got.AIName = fields[44].GetString();
+        got.ScriptId = GetScriptId(fields[45].GetCString());
 
         // Checks
 
@@ -6802,45 +6853,44 @@ void ObjectMgr::LoadQuestPOI()
 {
     uint32 oldMSTime = getMSTime();
 
-    _questPOIStore.clear();                              // need for reload case
+    _questPOIStore.clear(); // need for reload case
 
     uint32 count = 0;
 
-    //                                               0        1   2         3      4               5        6     7
-    QueryResult result = WorldDatabase.Query("SELECT questId, id, objIndex, mapid, WorldMapAreaId, FloorId, unk3, unk4 FROM quest_poi order by questId");
-
+    //                                                   0        1        2            3           4                 5           6         7            8       9       10         11              12             13
+    QueryResult result = WorldDatabase.Query("SELECT QuestID, BlobIndex, Idx1, ObjectiveIndex, QuestObjectiveID, QuestObjectID, MapID, WorldMapAreaId, Floor, Priority, Flags, WorldEffectID, PlayerConditionID, WoDUnk1 FROM quest_poi order by QuestID, Idx1");
     if (!result)
     {
         TC_LOG_ERROR("server.loading", ">> Loaded 0 quest POI definitions. DB table `quest_poi` is empty.");
         return;
     }
 
-    //                                                0       1   2  3
-    QueryResult points = WorldDatabase.Query("SELECT questId, id, x, y FROM quest_poi_points ORDER BY questId DESC, idx");
+    //                                                0        1    2  3
+    QueryResult points = WorldDatabase.Query("SELECT QuestID, Idx1, X, Y FROM quest_poi_points ORDER BY QuestID DESC, Idx1, Idx2");
 
-    std::vector<std::vector<std::vector<QuestPOIPoint> > > POIs;
+    std::vector<std::vector<std::vector<QuestPOIPoint>>> POIs;
 
     if (points)
     {
         // The first result should have the highest questId
         Field* fields = points->Fetch();
-        uint32 questIdMax = fields[0].GetUInt32();
+        uint32 questIdMax = fields[0].GetInt32();
         POIs.resize(questIdMax + 1);
 
         do
         {
             fields = points->Fetch();
 
-            uint32 questId            = fields[0].GetUInt32();
-            uint32 id                 = fields[1].GetUInt32();
-            int32  x                  = fields[2].GetInt32();
-            int32  y                  = fields[3].GetInt32();
+            int32 QuestID             = fields[0].GetInt32();
+            int32 Idx1                = fields[1].GetInt32();
+            int32 X                   = fields[2].GetInt32();
+            int32 Y                   = fields[3].GetInt32();
 
-            if (POIs[questId].size() <= id + 1)
-                POIs[questId].resize(id + 10);
+            if (POIs[QuestID].size() <= Idx1 + 1)
+                POIs[QuestID].resize(Idx1 + 10);
 
-            QuestPOIPoint point(x, y);
-            POIs[questId][id].push_back(point);
+            QuestPOIPoint point(X, Y);
+            POIs[QuestID][Idx1].push_back(point);
         } while (points->NextRow());
     }
 
@@ -6848,23 +6898,29 @@ void ObjectMgr::LoadQuestPOI()
     {
         Field* fields = result->Fetch();
 
-        uint32 questId            = fields[0].GetUInt32();
-        uint32 id                 = fields[1].GetUInt32();
-        int32 objIndex            = fields[2].GetInt32();
-        uint32 mapId              = fields[3].GetUInt32();
-        uint32 WorldMapAreaId     = fields[4].GetUInt32();
-        uint32 FloorId            = fields[5].GetUInt32();
-        uint32 unk3               = fields[6].GetUInt32();
-        uint32 unk4               = fields[7].GetUInt32();
+        int32 QuestID               = fields[0].GetInt32();
+        int32 BlobIndex             = fields[1].GetInt32();
+        int32 Idx1                  = fields[2].GetInt32();
+        int32 ObjectiveIndex        = fields[3].GetInt32();
+        int32 QuestObjectiveID      = fields[4].GetInt32();
+        int32 QuestObjectID         = fields[5].GetInt32();
+        int32 MapID                 = fields[6].GetInt32();
+        int32 WorldMapAreaId        = fields[7].GetInt32();
+        int32 Floor                 = fields[8].GetInt32();
+        int32 Priority              = fields[9].GetInt32();
+        int32 Flags                 = fields[10].GetInt32();
+        int32 WorldEffectID         = fields[11].GetInt32();
+        int32 PlayerConditionID     = fields[12].GetInt32();
+        int32 WoDUnk1               = fields[13].GetInt32();
 
-        QuestPOI POI(id, objIndex, mapId, WorldMapAreaId, FloorId, unk3, unk4);
-        if (questId < POIs.size() && id < POIs[questId].size())
+        QuestPOI POI(BlobIndex, ObjectiveIndex, QuestObjectiveID, QuestObjectID, MapID, WorldMapAreaId, Floor, Priority, Flags, WorldEffectID, PlayerConditionID, WoDUnk1);
+        if (QuestID < POIs.size() && Idx1 < POIs[QuestID].size())
         {
-            POI.points = POIs[questId][id];
-            _questPOIStore[questId].push_back(POI);
+            POI.points = POIs[QuestID][Idx1];
+            _questPOIStore[QuestID].push_back(POI);
         }
         else
-            TC_LOG_ERROR("server.loading", "Table quest_poi references unknown quest points for quest %u POI id %u", questId, id);
+            TC_LOG_ERROR("server.loading", "Table quest_poi references unknown quest points for quest %i POI id %i", QuestID, BlobIndex);
 
         ++count;
     } while (result->NextRow());
@@ -8854,4 +8910,64 @@ std::string ObjectMgr::GetRealmName(uint32 realm) const
 {
     RealmNameContainer::const_iterator iter = _realmNameStore.find(realm);
     return iter != _realmNameStore.end() ? iter->second : "";
+}
+
+void ObjectMgr::LoadGameObjectQuestItems()
+{
+    uint32 oldMSTime = getMSTime();
+
+    //                                               0                1
+    QueryResult result = WorldDatabase.Query("SELECT GameObjectEntry, ItemId FROM gameobject_questitem ORDER BY Idx ASC");
+
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 gameobject quest items. DB table `gameobject_questitem` is empty.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 entry = fields[0].GetUInt32();
+        uint32 item = fields[1].GetUInt32();
+
+        _gameObjectQuestItemStore[entry].push_back(item);
+
+        ++count;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u gameobject quest items in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+}
+
+void ObjectMgr::LoadCreatureQuestItems()
+{
+    uint32 oldMSTime = getMSTime();
+
+    //                                               0              1
+    QueryResult result = WorldDatabase.Query("SELECT CreatureEntry, ItemId FROM creature_questitem ORDER BY Idx ASC");
+
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 creature quest items. DB table `creature_questitem` is empty.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 entry = fields[0].GetUInt32();
+        uint32 item = fields[1].GetUInt32();
+
+        _creatureQuestItemStore[entry].push_back(item);
+
+        ++count;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u creature quest items in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }

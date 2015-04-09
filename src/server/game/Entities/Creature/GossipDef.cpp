@@ -333,15 +333,12 @@ void QuestMenu::ClearMenu()
 
 void PlayerMenu::SendQuestGiverQuestList(QEmote const& eEmote, const std::string& Title, ObjectGuid npcGUID)
 {
-    WorldPacket data(SMSG_QUEST_GIVER_QUEST_LIST_MESSAGE, 100);    // guess size
-    data << npcGUID;
-    data << Title;
-    data << uint32(eEmote._Delay);                         // player emote
-    data << uint32(eEmote._Emote);                         // NPC emote
+    WorldPackets::Quest::QuestGiverQuestList questList;
 
-    size_t count_pos = data.wpos();
-    data << uint8 (0);
-    uint32 count = 0;
+    questList.QuestGiverGUID = npcGUID;
+    questList.Greeting = Title;
+    questList.GreetEmoteDelay = eEmote._Delay;
+    questList.GreetEmoteType = eEmote._Emote;
 
     // Store this instead of checking the Singleton every loop iteration
     bool questLevelInTitle = sWorld->getBoolConfig(CONFIG_UI_QUESTLEVELS_IN_DIALOGS);
@@ -354,7 +351,6 @@ void PlayerMenu::SendQuestGiverQuestList(QEmote const& eEmote, const std::string
 
         if (Quest const* quest = sObjectMgr->GetQuestTemplate(questID))
         {
-            ++count;
             std::string title = quest->GetLogTitle();
 
             int32 locale = _session->GetSessionDbLocaleIndex();
@@ -365,18 +361,14 @@ void PlayerMenu::SendQuestGiverQuestList(QEmote const& eEmote, const std::string
             if (questLevelInTitle)
                 AddQuestLevelToTitle(title, quest->GetQuestLevel());
 
-            data << uint32(questID);
-            data << uint32(qmi.QuestIcon);
-            data << int32(quest->GetQuestLevel());
-            data << uint32(quest->GetFlags());             // 3.3.3 quest flags
-            data << uint8(0);                               // 3.3.3 changes icon: blue question or yellow exclamation
-            data << title;
+            bool repeatable = false; // NYI
+
+            questList.GossipTexts.push_back(WorldPackets::Quest::GossipTextData(questID, qmi.QuestIcon, quest->GetQuestLevel(), quest->GetFlags(), quest->GetFlagsEx(), repeatable, title));
         }
     }
 
-    data.put<uint8>(count_pos, count);
-    _session->SendPacket(&data);
-    TC_LOG_DEBUG("network", "WORLD: Sent SMSG_QUESTGIVER_QUEST_LIST NPC=%s", npcGUID.ToString().c_str());
+    _session->SendPacket(questList.Write());
+    TC_LOG_DEBUG("network", "WORLD: Sent SMSG_QUEST_GIVER_QUEST_LIST_MESSAGE NPC=%s", npcGUID.ToString().c_str());
 }
 
 void PlayerMenu::SendQuestGiverStatus(uint32 questStatus, ObjectGuid npcGUID) const
@@ -540,6 +532,12 @@ void PlayerMenu::SendQuestQueryResponse(Quest const* quest) const
     packet.Info.RewardFactionFlags = quest->GetRewardReputationMask();
     packet.Info.PortraitGiver = quest->GetQuestGiverPortrait();
     packet.Info.PortraitTurnIn = quest->GetQuestTurnInPortrait();
+
+    for (uint8 i = 0; i < QUEST_ITEM_DROP_COUNT; ++i)
+    {
+        packet.Info.ItemDrop[i] = quest->ItemDrop[i];
+        packet.Info.ItemDropQuantity[i] = quest->ItemDropQuantity[i];
+    }
 
     if (!quest->HasFlag(QUEST_FLAGS_HIDDEN_REWARDS))
     {

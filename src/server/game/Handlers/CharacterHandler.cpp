@@ -257,6 +257,20 @@ void WorldSession::HandleCharEnum(PreparedQueryResult result)
 
             TC_LOG_INFO("network", "Loading char guid %s from account %u.", charInfo.Guid.ToString().c_str(), GetAccountId());
 
+            if (!Player::ValidateAppearance(charInfo.Race, charInfo.Class, charInfo.Sex, charInfo.HairStyle, charInfo.HairColor, charInfo.Face, charInfo.FacialHair, charInfo.Skin))
+            {
+                TC_LOG_ERROR("entities.player.loading", "Player %s has wrong Appearance values (Hair/Skin/Color), forcing recustomize", charInfo.Guid.ToString().c_str());
+
+                if (!(charInfo.CustomizationFlag == CHAR_CUSTOMIZE_FLAG_CUSTOMIZE))
+                {
+                    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+                    stmt->setUInt16(0, uint16(AT_LOGIN_CUSTOMIZE));
+                    stmt->setUInt64(1, charInfo.Guid.GetCounter());
+                    CharacterDatabase.Execute(stmt);
+                    charInfo.CustomizationFlag = CHAR_CUSTOMIZE_FLAG_CUSTOMIZE;
+                }
+            }
+
             // Do not allow locked characters to login
             if (!(charInfo.Flags & (CHARACTER_FLAG_LOCKED_FOR_TRANSFER | CHARACTER_FLAG_LOCKED_BY_BILLING)))
                 _legitCharacters.insert(charInfo.Guid);
@@ -334,7 +348,7 @@ void WorldSession::HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCha
     _charEnumCallback.SetFutureResult(CharacterDatabase.AsyncQuery(stmt));
 }
 
-void WorldSession::HandleCharCreateOpcode(WorldPackets::Character::CreateChar& charCreate)
+void WorldSession::HandleCharCreateOpcode(WorldPackets::Character::CreateCharacter& charCreate)
 {
     if (!HasPermission(rbac::RBAC_PERM_SKIP_CHECK_CHARACTER_CREATION_TEAMMASK))
     {
@@ -702,7 +716,7 @@ void WorldSession::HandleCharCreateCallback(PreparedQueryResult result, WorldPac
     }
 }
 
-void WorldSession::HandleCharDeleteOpcode(WorldPackets::Character::DeleteChar& charDelete)
+void WorldSession::HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& charDelete)
 {
     // Initiating
     uint32 initAccountId = GetAccountId();
@@ -1038,6 +1052,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_RESET_TALENTS))
     {
         pCurrChar->ResetTalents(true);
+        pCurrChar->ResetTalentSpecialization();
         pCurrChar->SendTalentsInfoData(); // original talents send already in to SendInitialPacketsBeforeAddToMap, resend reset state
         SendNotification(LANG_RESET_TALENTS);
     }
@@ -1384,6 +1399,9 @@ void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance
     if (bs_skinColor && (bs_skinColor->Type != 3 || bs_skinColor->Race != _player->getRace() || bs_skinColor->Sex != _player->getGender()))
         return;
 
+    if (!Player::ValidateAppearance(_player->getRace(), _player->getClass(), _player->getGender(), bs_hair->ID, packet.NewHairColor, uint8(_player->GetUInt32Value(PLAYER_FLAGS) >> 8), bs_facialHair->ID, bs_skinColor ? bs_skinColor->ID : 0))
+        return;
+
     GameObject* go = _player->FindNearestGameObjectOfType(GAMEOBJECT_TYPE_BARBER_CHAIR, 5.0f);
     if (!go)
     {
@@ -1476,8 +1494,17 @@ void WorldSession::HandleCharCustomizeCallback(PreparedQueryResult result, World
     Field* fields = result->Fetch();
 
     std::string oldName = fields[0].GetString();
-    uint16 atLoginFlags = fields[1].GetUInt16();
-    uint32 playerBytes2 = fields[2].GetUInt32();
+    uint8 plrRace = fields[1].GetUInt8();
+    uint8 plrClass = fields[2].GetUInt8();
+    uint8 plrGender = fields[3].GetUInt8();
+    uint16 atLoginFlags = fields[4].GetUInt16();
+    uint32 playerBytes2 = fields[5].GetUInt32();
+
+    if (!Player::ValidateAppearance(plrRace, plrClass, plrGender, customizeInfo->HairStyleID, customizeInfo->HairColorID, customizeInfo->FaceID, customizeInfo->FacialHairStyleID, customizeInfo->SkinID, true))
+    {
+        SendCharCustomize(CHAR_CREATE_ERROR, customizeInfo);
+        return;
+    }
 
     if (!(atLoginFlags & AT_LOGIN_CUSTOMIZE))
     {
@@ -2312,7 +2339,7 @@ void WorldSession::HandleOpeningCinematic(WorldPacket& /*recvData*/)
     }
 }
 
-void WorldSession::HandleGetUndeleteCooldownStatus(WorldPackets::Character::GetUndeleteCooldownStatus& /*getCooldown*/)
+void WorldSession::HandleGetUndeleteCooldownStatus(WorldPackets::Character::GetUndeleteCharacterCooldownStatus& /*getCooldown*/)
 {
     /// empty result to force wait
     PreparedQueryResultPromise result;
@@ -2488,7 +2515,7 @@ void WorldSession::HandleCharUndeleteCallback(PreparedQueryResult result, WorldP
 
 void WorldSession::SendCharCreate(ResponseCodes result)
 {
-    WorldPackets::Character::CharacterCreateResponse response;
+    WorldPackets::Character::CreateChar response;
     response.Code = result;
 
     SendPacket(response.Write());
@@ -2496,7 +2523,7 @@ void WorldSession::SendCharCreate(ResponseCodes result)
 
 void WorldSession::SendCharDelete(ResponseCodes result)
 {
-    WorldPackets::Character::CharacterDeleteResponse response;
+    WorldPackets::Character::DeleteChar response;
     response.Code = result;
 
     SendPacket(response.Write());
