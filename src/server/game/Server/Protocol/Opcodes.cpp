@@ -43,11 +43,8 @@
 #include "Packets/QueryPackets.h"
 #include "Packets/QuestPackets.h"
 #include "Packets/ReferAFriendPackets.h"
-<<<<<<< HEAD
-=======
 #include "Packets/ReputationPackets.h"
 #include "Packets/ScenePackets.h"
->>>>>>> upstream/6.x
 #include "Packets/SocialPackets.h"
 #include "Packets/TalentPackets.h"
 #include "Packets/TradePackets.h"

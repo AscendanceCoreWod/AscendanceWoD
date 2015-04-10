@@ -370,8 +370,6 @@ namespace WorldPackets
         class GrantLevel;
     }
 
-<<<<<<< HEAD
-=======
     namespace Reputation
     {
         class RequestForcedReactions;
@@ -384,7 +382,6 @@ namespace WorldPackets
         class ScenePlaybackCanceled;
     }
 
->>>>>>> upstream/6.x
     namespace Social
     {
         class AddFriend;
