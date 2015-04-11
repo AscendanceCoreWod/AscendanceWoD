@@ -129,19 +129,19 @@ namespace WorldPackets
             uint32 PageTextID = 0;
         };
 
-        struct PageTextInfo
-        {
-            uint32 ID           = 0;
-            uint32 NextPageID   = 0;
-            std::string Text;
-        };
-
         class QueryPageTextResponse final : public ServerPacket
         {
         public:
             QueryPageTextResponse() : ServerPacket(SMSG_QUERY_PAGE_TEXT_RESPONSE, 15) { }
 
             WorldPacket const* Write() override;
+
+            struct PageTextInfo
+            {
+                uint32 ID = 0;
+                uint32 NextPageID = 0;
+                std::string Text;
+            };
 
             bool Allow = false;
             PageTextInfo Info;
@@ -168,8 +168,8 @@ namespace WorldPackets
 
             uint32 TextID = 0;
             bool Allow = false;
-            float Probabilities[MAX_GOSSIP_TEXT_OPTIONS];
-            uint32 BroadcastTextID[MAX_GOSSIP_TEXT_OPTIONS];
+            float Probabilities[MAX_NPC_TEXT_OPTIONS];
+            uint32 BroadcastTextID[MAX_NPC_TEXT_OPTIONS];
         };
 
         class DBQueryBulk final : public ClientPacket

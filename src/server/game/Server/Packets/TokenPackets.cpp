@@ -15,26 +15,26 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "GameObjectPackets.h"
+#include "TokenPackets.h"
 
-void WorldPackets::GameObject::GameObjUse::Read()
+void WorldPackets::Token::UpdateListedAuctionableTokens::Read()
 {
-    _worldPacket >> Guid;
+    _worldPacket >> UnkInt;
 }
 
-void WorldPackets::GameObject::GameObjReportUse::Read()
+WorldPacket const* WorldPackets::Token::UpdateListedAuctionableTokensResponse::Write()
 {
-    _worldPacket >> Guid;
-}
+    _worldPacket << UnkInt;
+    _worldPacket << Result;
+    _worldPacket << uint32(AuctionableTokenAuctionableList.size());
+    for (AuctionableTokenAuctionable const& auctionableTokenAuctionable : AuctionableTokenAuctionableList)
+    {
+        _worldPacket << auctionableTokenAuctionable.UnkInt1;
+        _worldPacket << auctionableTokenAuctionable.UnkInt2;
+        _worldPacket << auctionableTokenAuctionable.UnkInt3;
+        _worldPacket << auctionableTokenAuctionable.UnkInt4;
+        _worldPacket << auctionableTokenAuctionable.UnkInt5;
+    }
 
-WorldPacket const* WorldPackets::GameObject::GameObjectDespawn::Write()
-{
-    _worldPacket << ObjectGUID;
-    return &_worldPacket;
-}
-
-WorldPacket const* WorldPackets::GameObject::PageText::Write()
-{
-    _worldPacket << GameObjectGUID;
     return &_worldPacket;
 }

@@ -253,12 +253,14 @@ namespace WorldPackets
     namespace Item
     {
         class AutoEquipItem;
+        class AutoEquipItemSlot;
         class AutoStoreBagItem;
         class BuyItem;
         class BuyBackItem;
         class DestroyItem;
         class GetItemPurchaseData;
         class RepairItem;
+        class ReadItem;
         class SellItem;
         class SplitItem;
         class SwapInvItem;
@@ -426,6 +428,11 @@ namespace WorldPackets
         class SupportTicketSubmitBug;
         class SupportTicketSubmitSuggestion;
         class SupportTicketSubmitComplaint;
+    }
+
+    namespace Token
+    {
+        class UpdateListedAuctionableTokens;
     }
 
     namespace Trade
@@ -1152,8 +1159,8 @@ class WorldSession
         void HandleBuyItemOpcode(WorldPackets::Item::BuyItem& packet);
         void HandleListInventoryOpcode(WorldPackets::NPC::Hello& packet);
         void HandleAutoStoreBagItemOpcode(WorldPackets::Item::AutoStoreBagItem& packet);
-        void HandleReadItem(WorldPacket& recvPacket);
-        void HandleAutoEquipItemSlotOpcode(WorldPacket& recvPacket);
+        void HandleReadItem(WorldPackets::Item::ReadItem& readItem);
+        void HandleAutoEquipItemSlotOpcode(WorldPackets::Item::AutoEquipItemSlot& autoEquipItemSlot);
         void HandleSwapItem(WorldPackets::Item::SwapItem& swapItem);
         void HandleBuybackItem(WorldPackets::Item::BuyBackItem& packet);
         void HandleWrapItemOpcode(WorldPacket& recvPacket);
@@ -1233,7 +1240,7 @@ class WorldSession
         void HandleCompleteCinematic(WorldPacket& recvPacket);
         void HandleNextCinematicCamera(WorldPacket& recvPacket);
 
-        void HandlePageTextQueryOpcode(WorldPackets::Query::QueryPageText& packet);
+        void HandleQueryPageText(WorldPackets::Query::QueryPageText& packet);
 
         void HandleTutorialFlag(WorldPackets::Misc::TutorialSetFlag& packet);
 
@@ -1409,6 +1416,9 @@ class WorldSession
         void HandleSceneTriggerEvent(WorldPackets::Scenes::SceneTriggerEvent& sceneTriggerEvent);
         void HandleScenePlaybackComplete(WorldPackets::Scenes::ScenePlaybackComplete& scenePlaybackComplete);
         void HandleScenePlaybackCanceled(WorldPackets::Scenes::ScenePlaybackCanceled& scenePlaybackCanceled);
+
+        // Token
+        void HandleUpdateListedAuctionableTokens(WorldPackets::Token::UpdateListedAuctionableTokens& updateListedAuctionableTokens);
 
         void SendSpellCategoryCooldowns();
 

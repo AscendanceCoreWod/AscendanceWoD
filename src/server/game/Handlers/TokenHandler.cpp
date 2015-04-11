@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -16,26 +15,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NPCHANDLER_H
-#define __NPCHANDLER_H
+#include "Common.h"
+#include "TokenPackets.h"
+#include "WorldSession.h"
 
-struct NpcTextData
+void WorldSession::HandleUpdateListedAuctionableTokens(WorldPackets::Token::UpdateListedAuctionableTokens& updateListedAuctionableTokens)
 {
-    float Probability;
-    uint32 BroadcastTextID;
-};
+    WorldPackets::Token::UpdateListedAuctionableTokensResponse response;
 
-#define MAX_NPC_TEXT_OPTIONS 8
+    /// @todo: fix 6.x implementation
+    response.UnkInt = updateListedAuctionableTokens.UnkInt;
+    response.Result = TOKEN_RESULT_ERROR_DISABLED;
 
-struct NpcText
-{
-    NpcTextData Data[MAX_NPC_TEXT_OPTIONS];
-};
-
-struct PageTextLocale
-{
-    StringVector Text;
-};
-
-#endif
-
+    SendPacket(response.Write());
+}

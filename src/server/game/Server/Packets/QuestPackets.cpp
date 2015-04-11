@@ -462,3 +462,21 @@ WorldPacket const* WorldPackets::Quest::QuestGiverQuestList::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* WorldPackets::Quest::QuestUpdateComplete::Write()
+{
+    _worldPacket << int32(QuestID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Quest::QuestConfirmAccept::Write()
+{
+    _worldPacket << uint32(QuestID);
+    _worldPacket << InitiatedBy;
+
+    _worldPacket.WriteBits(QuestTitle.size(), 10);
+    _worldPacket.WriteString(QuestTitle);
+
+    return &_worldPacket;
+}

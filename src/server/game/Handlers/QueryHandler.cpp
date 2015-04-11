@@ -203,35 +203,34 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPackets::Query::QueryNPCText& p
 {
     TC_LOG_DEBUG("network", "WORLD: CMSG_NPC_TEXT_QUERY TextId: %u", packet.TextID);
 
-    GossipText const* gossip = sObjectMgr->GetGossipText(packet.TextID);
+    NpcText const* npcText = sObjectMgr->GetNpcText(packet.TextID);
 
     WorldPackets::Query::QueryNPCTextResponse response;
     response.TextID = packet.TextID;
 
-    bool hasText = false;
-    if (gossip)
+    if (npcText)
     {
-        for (uint8 i = 0; i < MAX_GOSSIP_TEXT_OPTIONS; ++i)
+        for (uint8 i = 0; i < MAX_NPC_TEXT_OPTIONS; ++i)
         {
-            response.Probabilities[i] = gossip->Options[i].Probability;
-            response.BroadcastTextID[i] = gossip->Options[i].BroadcastTextID;
-            if (!hasText && gossip->Options[i].BroadcastTextID)
-                hasText = true;
+            response.Probabilities[i] = npcText->Data[i].Probability;
+            response.BroadcastTextID[i] = npcText->Data[i].BroadcastTextID;
+            if (!response.Allow && npcText->Data[i].BroadcastTextID)
+                response.Allow = true;
         }
-
-        response.Allow = true;
     }
-    if (hasText)
-        SendPacket(response.Write());
-    else
+
+    if (!response.Allow)
         TC_LOG_ERROR("sql.sql", "HandleNpcTextQueryOpcode: no BroadcastTextID found for text %u in `npc_text table`", packet.TextID);
+
     TC_LOG_DEBUG("network", "WORLD: Sent SMSG_NPC_TEXT_UPDATE");
+
+    SendPacket(response.Write());
 }
 
 /// Only _static_ data is sent in this packet !!!
-void WorldSession::HandlePageTextQueryOpcode(WorldPackets::Query::QueryPageText& packet)
+void WorldSession::HandleQueryPageText(WorldPackets::Query::QueryPageText& packet)
 {
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_PAGE_TEXT_QUERY");
+    TC_LOG_DEBUG("network", "WORLD: Received CMSG_QUERY_PAGE_TEXT");
 
     uint32 pageID = packet.PageTextID;
 
@@ -251,19 +250,20 @@ void WorldSession::HandlePageTextQueryOpcode(WorldPackets::Query::QueryPageText&
         {
             response.Allow = true;
             response.Info.ID = pageID;
-
-            int loc_idx = GetSessionDbLocaleIndex();
-            if (loc_idx >= 0)
-                if (PageTextLocale const* player = sObjectMgr->GetPageTextLocale(pageID))
-                    ObjectMgr::GetLocaleString(player->Text, loc_idx, response.Info.Text);
-
             response.Info.NextPageID = pageText->NextPageID;
+            response.Info.Text = pageText->Text;
+
+            LocaleConstant localeConstant = GetSessionDbLocaleIndex();
+            if (localeConstant >= LOCALE_enUS)
+                if (PageTextLocale const* pageTextLocale = sObjectMgr->GetPageTextLocale(pageID))
+                    ObjectMgr::GetLocaleString(pageTextLocale->Text, localeConstant, response.Info.Text);
+
             pageID = pageText->NextPageID;
         }
 
         SendPacket(response.Write());
 
-        TC_LOG_DEBUG("network", "WORLD: Sent SMSG_PAGE_TEXT_QUERY_RESPONSE");
+        TC_LOG_DEBUG("network", "WORLD: Sent SMSG_QUERY_PAGE_TEXT_RESPONSE");
     }
 }
 
