@@ -1,35 +1,24 @@
-Skip to content
-Sign up Sign in This repository
-Explore
-Features
-Enterprise
-Blog
-Watch 540  Star 2, 795  Fork 2, 881 TrinityCore / TrinityCore
-branch : 6.x  TrinityCore / src / server / game / Server / Protocol / Opcodes.h
-		 @Vincent - MichaelVincent - Michael 2 days ago Core / Token: Fix freeze at opening game time windows
-		 45 contributors @Shauren @DDuarte @Vincent - Michael @kaelima @joschiwald @tq2020 @streetrat @Intel @DJScias @Spp - @Subv @Carbenium @invalid - email - address @Epicurus4 @Luzifix @MitchesD @horn @runningnak3d @DrakeFish @ProjectcoreDevs @Tuxity @Machiavell1 @Gigi1237 @Kiperr @Mogadischu @Warpten and others
-		 RawBlameHistory     1802 lines(1762 sloc)  108.256 kb
-		 /*
-		 * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
-		 * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
-		 *
-		 * This program is free software; you can redistribute it and/or modify it
-		 * under the terms of the GNU General Public License as published by the
-		 * Free Software Foundation; either version 2 of the License, or (at your
-		 * option) any later version.
-		 *
-		 * This program is distributed in the hope that it will be useful, but WITHOUT
-		 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-		 * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-		 * more details.
-		 *
-		 * You should have received a copy of the GNU General Public License along
-		 * with this program. If not, see <http://www.gnu.org/licenses/>.
-		 */
+/*
+* Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
-		 /// \addtogroup u2w
-		 /// @{
-		 /// \file
+/// \addtogroup u2w
+/// @{
+/// \file
 
 #ifndef _OPCODES_H
 #define _OPCODES_H
@@ -1809,6 +1798,3 @@ inline std::string GetOpcodeNameForLogging(T id)
 
 #endif
 /// @}
-
-Status API Training Shop Blog About
-© 2015 GitHub, Inc.Terms Privacy Security Contact
