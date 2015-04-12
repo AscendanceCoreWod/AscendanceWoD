@@ -46,7 +46,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 SceneInstanceID;
+            uint32 SceneInstanceID = 0;
             std::string _Event;
         };
         
@@ -57,7 +57,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 SceneInstanceID;
+            uint32 SceneInstanceID = 0;
         };
         
         class ScenePlaybackCanceled final : public ClientPacket
@@ -67,7 +67,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 SceneInstanceID;
+            uint32 SceneInstanceID = 0;
         };
     }
 }

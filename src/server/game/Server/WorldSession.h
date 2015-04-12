@@ -109,6 +109,7 @@ namespace WorldPackets
         class AreaSpiritHealerQuery;
         class AreaSpiritHealerQueue;
         class HearthAndResurrect;
+        class PVPLogDataRequest;
     }
 
     namespace BlackMarket
@@ -168,6 +169,7 @@ namespace WorldPackets
         class ChatMessageChannel;
         class ChatAddonMessage;
         class ChatAddonMessageWhisper;
+        class ChatAddonMessageChannel;
         class ChatMessageAFK;
         class ChatMessageDND;
         class ChatMessageEmote;
@@ -191,6 +193,8 @@ namespace WorldPackets
     namespace EquipmentSet
     {
         class SaveEquipmentSet;
+        class DeleteEquipmentSet;
+        class UseEquipmentSet;
     }
 
     namespace GameObject
@@ -317,6 +321,7 @@ namespace WorldPackets
         class MovementSpeedAck;
         class SetActiveMover;
         class MoveSetCollisionHeightAck;
+        class MoveTimeSkipped;
     }
 
     namespace NPC
@@ -350,6 +355,7 @@ namespace WorldPackets
         class QueryCorpseTransport;
         class QueryTime;
         class QuestPOIQuery;
+        class QueryQuestCompletionNPCs;
     }
 
     namespace Quest
@@ -886,8 +892,6 @@ class WorldSession
         void HandlePlayedTime(WorldPackets::Character::RequestPlayedTime& packet);
 
         // new
-        void HandleMoveUnRootAck(WorldPacket& recvPacket);
-        void HandleMoveRootAck(WorldPacket& recvPacket);
         void HandleLookingForGroup(WorldPacket& recvPacket);
 
         // cemetery/graveyard related
@@ -899,11 +903,6 @@ class WorldSession
         void HandleRequestHonorStatsOpcode(WorldPackets::Inspect::RequestHonorStats& request);
         void HandleInspectPVP(WorldPackets::Inspect::InspectPVPRequest& request);
         void HandleQueryInspectAchievements(WorldPackets::Inspect::QueryInspectAchievements& inspect);
-
-        void HandleMoveWaterWalkAck(WorldPacket& recvPacket);
-        void HandleFeatherFallAck(WorldPacket& recvData);
-
-        void HandleMoveHoverAck(WorldPacket& recvData);
 
         void HandleMountSpecialAnimOpcode(WorldPacket& recvdata);
 
@@ -999,7 +998,8 @@ class WorldSession
         void HandleEjectPassenger(WorldPackets::Vehicle::EjectPassenger& ejectPassenger);
         void HandleRequestVehicleExit(WorldPackets::Vehicle::RequestVehicleExit& requestVehicleExit);
         void HandleMoveSetVehicleRecAck(WorldPackets::Vehicle::MoveSetVehicleRecIdAck& setVehicleRecIdAck);
-        void HandleMoveTimeSkippedOpcode(WorldPacket& recvData);
+        void HandleMoveTimeSkippedOpcode(WorldPackets::Movement::MoveTimeSkipped& moveTimeSkipped);
+        void HandleMovementAckMessage(WorldPackets::Movement::MovementAckMessage& movementAck);
 
         void HandleRequestRaidInfoOpcode(WorldPacket& recvData);
 
@@ -1200,16 +1200,17 @@ class WorldSession
         void HandlePushQuestToParty(WorldPacket& recvPacket);
         void HandleQuestPushResult(WorldPacket& recvPacket);
 
-        void HandleChatMessageOpcode(WorldPackets::Chat::ChatMessage& packet);
-        void HandleChatMessageWhisperOpcode(WorldPackets::Chat::ChatMessageWhisper& packet);
-        void HandleChatMessageChannelOpcode(WorldPackets::Chat::ChatMessageChannel& packet);
+        void HandleChatMessageOpcode(WorldPackets::Chat::ChatMessage& chatMessage);
+        void HandleChatMessageWhisperOpcode(WorldPackets::Chat::ChatMessageWhisper& chatMessageWhisper);
+        void HandleChatMessageChannelOpcode(WorldPackets::Chat::ChatMessageChannel& chatMessageChannel);
         void HandleChatMessage(ChatMsg type, uint32 lang, std::string msg, std::string target = "");
-        void HandleChatAddonMessageOpcode(WorldPackets::Chat::ChatAddonMessage& packet);
-        void HandleChatAddonMessageWhisperOpcode(WorldPackets::Chat::ChatAddonMessageWhisper& packet);
+        void HandleChatAddonMessageOpcode(WorldPackets::Chat::ChatAddonMessage& chatAddonMessage);
+        void HandleChatAddonMessageWhisperOpcode(WorldPackets::Chat::ChatAddonMessageWhisper& chatAddonMessageWhisper);
+        void HandleChatAddonMessageChannelOpcode(WorldPackets::Chat::ChatAddonMessageChannel& chatAddonMessageChannel);
         void HandleChatAddonMessage(ChatMsg type, std::string prefix, std::string text, std::string target = "");
-        void HandleChatMessageAFKOpcode(WorldPackets::Chat::ChatMessageAFK& packet);
-        void HandleChatMessageDNDOpcode(WorldPackets::Chat::ChatMessageDND& packet);
-        void HandleChatMessageEmoteOpcode(WorldPackets::Chat::ChatMessageEmote& packet);
+        void HandleChatMessageAFKOpcode(WorldPackets::Chat::ChatMessageAFK& chatMessageAFK);
+        void HandleChatMessageDNDOpcode(WorldPackets::Chat::ChatMessageDND& chatMessageDND);
+        void HandleChatMessageEmoteOpcode(WorldPackets::Chat::ChatMessageEmote& chatMessageEmote);
         void SendPlayerNotFoundNotice(std::string const& name);
         void SendPlayerAmbiguousNotice(std::string const& name);
         void SendChatRestrictedNotice(ChatRestrictionType restriction);
@@ -1265,7 +1266,7 @@ class WorldSession
         void HandleBattlemasterHelloOpcode(WorldPacket& recvData);
         void HandleBattlemasterJoinOpcode(WorldPacket& recvData);
         void HandleBattlegroundPlayerPositionsOpcode(WorldPacket& recvData);
-        void HandlePVPLogDataOpcode(WorldPacket& recvData);
+        void HandlePVPLogDataOpcode(WorldPackets::Battleground::PVPLogDataRequest& pvpLogDataRequest);
         void HandleBattleFieldPortOpcode(WorldPacket& recvData);
         void HandleBattlefieldListOpcode(WorldPacket& recvData);
         void HandleBattlefieldLeaveOpcode(WorldPacket& recvData);
@@ -1401,10 +1402,10 @@ class WorldSession
         void HandleRemoveGlyph(WorldPacket& recvData);
         void HandleGuildSetFocusedAchievement(WorldPackets::Achievement::GuildSetFocusedAchievement& setFocusedAchievement);
         void HandleEquipmentSetSave(WorldPackets::EquipmentSet::SaveEquipmentSet& packet);
-        void HandleEquipmentSetDelete(WorldPacket& recvData);
-        void HandleEquipmentSetUse(WorldPacket& recvData);
+        void HandleDeleteEquipmentSet(WorldPackets::EquipmentSet::DeleteEquipmentSet& packet);
+        void HandleUseEquipmentSet(WorldPackets::EquipmentSet::UseEquipmentSet& packet);
         void HandleUITimeRequest(WorldPackets::Misc::UITimeRequest& /*request*/);
-        void HandleQuestNPCQuery(WorldPacket& recvData);
+        void HandleQueryQuestCompletionNPCs(WorldPackets::Query::QueryQuestCompletionNPCs& queryQuestCompletionNPCs);
         void HandleQuestPOIQuery(WorldPackets::Query::QuestPOIQuery& packet);
         void HandleUpdateProjectilePosition(WorldPacket& recvPacket);
         void HandleUpdateMissileTrajectory(WorldPacket& recvPacket);
