@@ -13623,7 +13623,7 @@ void Player::SendNewItem(Item* item, uint32 quantity, bool pushed, bool created,
     packet.Slot = item->GetBagSlot();
     packet.SlotInBag = item->GetCount() == quantity ? item->GetSlot() : -1;
 
-    packet.Item.Initalize(item);
+    packet.Item.Initialize(item);
 
     //packet.ReadUInt32("WodUnk");
     packet.Quantity = quantity;
@@ -14418,13 +14418,16 @@ bool Player::CanRewardQuest(Quest const* quest, uint32 reward, bool msg)
     ItemPosCountVec dest;
     if (quest->GetRewChoiceItemsCount() > 0)
     {
-        if (quest->RewardChoiceItemId[reward])
+        for (uint32 i = 0; i < quest->GetRewChoiceItemsCount(); ++i)
         {
-            InventoryResult res = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, quest->RewardChoiceItemId[reward], quest->RewardChoiceItemCount[reward]);
-            if (res != EQUIP_ERR_OK)
+            if (quest->RewardChoiceItemId[i] && quest->RewardChoiceItemId[i] == reward)
             {
-                SendEquipError(res, NULL, NULL, quest->RewardChoiceItemId[reward]);
-                return false;
+                InventoryResult res = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, quest->RewardChoiceItemId[i], quest->RewardChoiceItemCount[i]);
+                if (res != EQUIP_ERR_OK)
+                {
+                    SendEquipError(res, NULL, NULL, quest->RewardChoiceItemId[i]);
+                    return false;
+                }
             }
         }
     }
@@ -14440,6 +14443,30 @@ bool Player::CanRewardQuest(Quest const* quest, uint32 reward, bool msg)
                 {
                     SendEquipError(res, NULL, NULL, quest->RewardItemId[i]);
                     return false;
+                }
+            }
+        }
+    }
+    
+    // QuestPackageItem.db2
+    if (quest->GetQuestPackageID())
+    {
+        if (sQuestPackageItemStoreMap.find(quest->GetQuestPackageID()) != sQuestPackageItemStoreMap.end())
+        {
+            QuestPackageItemList itemList = sQuestPackageItemStoreMap[quest->GetQuestPackageID()];
+            for (QuestPackageItemList::const_iterator itr = itemList.begin(); itr != itemList.end(); ++itr)
+            {
+                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate((*itr)->ItemID))
+                {
+                    if (rewardProto->CanWinForPlayer(this))
+                    {
+                        InventoryResult res = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, (*itr)->ItemID, (*itr)->ItemCount);
+                        if (res != EQUIP_ERR_OK)
+                        {
+                            SendEquipError(res, NULL, NULL, (*itr)->ItemID);
+                            return false;
+                        }
+                    }
                 }
             }
         }
@@ -14596,7 +14623,8 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
         switch (obj.Type)
         {
             case QUEST_OBJECTIVE_ITEM:
-                DestroyItemCount(obj.ObjectID, obj.Amount, true);
+                if (!(quest->GetFlagsEx() & QUEST_FLAGS_EX_KEEP_ADDITIONAL_ITEMS))
+                    DestroyItemCount(obj.ObjectID, obj.Amount, true);
                 break;
             case QUEST_OBJECTIVE_CURRENCY:
                 ModifyCurrency(obj.ObjectID, -int32(obj.Amount));
@@ -14604,12 +14632,15 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
         }
     }
 
-    for (uint8 i = 0; i < QUEST_ITEM_DROP_COUNT; ++i)
+    if (!(quest->GetFlagsEx() & QUEST_FLAGS_EX_KEEP_ADDITIONAL_ITEMS))
     {
-        if (quest->ItemDrop[i])
+        for (uint8 i = 0; i < QUEST_ITEM_DROP_COUNT; ++i)
         {
-            uint32 count = quest->ItemDropQuantity[i];
-            DestroyItemCount(quest->ItemDrop[i], count ? count : 9999, true);
+            if (quest->ItemDrop[i])
+            {
+                uint32 count = quest->ItemDropQuantity[i];
+                DestroyItemCount(quest->ItemDrop[i], count ? count : 9999, true);
+            }
         }
     }
 
@@ -14617,13 +14648,40 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
 
     if (quest->GetRewChoiceItemsCount() > 0)
     {
-        if (uint32 itemId = quest->RewardChoiceItemId[reward])
+        for (uint32 i = 0; i < quest->GetRewChoiceItemsCount(); ++i)
         {
-            ItemPosCountVec dest;
-            if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, quest->RewardChoiceItemCount[reward]) == EQUIP_ERR_OK)
+            if (quest->RewardChoiceItemId[i] && quest->RewardChoiceItemId[i] == reward)
             {
-                Item* item = StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
-                SendNewItem(item, quest->RewardChoiceItemCount[reward], true, false);
+                ItemPosCountVec dest;
+                if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, reward, quest->RewardChoiceItemCount[i]) == EQUIP_ERR_OK)
+                {
+                    Item* item = StoreNewItem(dest, reward, true, Item::GenerateItemRandomPropertyId(reward));
+                    SendNewItem(item, quest->RewardChoiceItemCount[i], true, false);
+                }
+            }
+        }
+    }
+
+    // QuestPackageItem.db2
+    if (quest->GetQuestPackageID())
+    {
+        if (sQuestPackageItemStoreMap.find(quest->GetQuestPackageID()) != sQuestPackageItemStoreMap.end())
+        {
+            QuestPackageItemList itemList = sQuestPackageItemStoreMap[quest->GetQuestPackageID()];
+            for (QuestPackageItemList::const_iterator itr = itemList.begin(); itr != itemList.end(); ++itr)
+            {
+                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate((*itr)->ItemID))
+                {
+                    if (rewardProto->CanWinForPlayer(this))
+                    {
+                        ItemPosCountVec dest;
+                        if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, (*itr)->ItemID, (*itr)->ItemCount) == EQUIP_ERR_OK)
+                        {
+                            Item* item = StoreNewItem(dest, (*itr)->ItemID, true, Item::GenerateItemRandomPropertyId((*itr)->ItemID));
+                            SendNewItem(item, (*itr)->ItemCount, true, false);
+                        }
+                    }
+                }
             }
         }
     }
@@ -26568,4 +26626,12 @@ bool Player::ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 ha
         return false;
 
     return true;
+}
+
+uint32 Player::GetDefaultSpecId() const
+{
+    ChrClassesEntry const* entry = sChrClassesStore.LookupEntry(getClass());
+    if (entry)
+        return entry->DefaultSpec;
+    return 0;
 }
