@@ -149,20 +149,6 @@ public:
         float o = float(player->GetOrientation());
         Map* map = player->GetMap();
 
-		std::stringstream phases;
-
-		for (uint32 phase : player->GetPhases())
-		{
-			phases << phase << " ";
-		}
-
-		const char* phasing = phases.str().c_str();
-
-		uint32 phase = atoi(phasing);
-
-		if (!phase)
-			uint32 phase = 0;
-
         GameObject* object = new GameObject;
         ObjectGuid::LowType guidLow = sObjectMgr->GetGenerator<HighGuid::GameObject>()->Generate();
 
@@ -198,14 +184,6 @@ public:
         sObjectMgr->AddGameobjectToGrid(guidLow, ASSERT_NOTNULL(sObjectMgr->GetGOData(guidLow)));
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
-
-		object->ClearPhases();
-		object->SetInPhase(phase, true, true);
-		object->SetDBPhase(phase);
-		object->SaveToDB();
-
-		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
-
         return true;
     }
 
