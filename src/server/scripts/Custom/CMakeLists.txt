@@ -14,6 +14,7 @@ set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
 #  ${sources_Custom}
 Custom/chat.cpp
+Custom/phasing.cpp
 )
 
 message("  -> Prepared: Custom")
