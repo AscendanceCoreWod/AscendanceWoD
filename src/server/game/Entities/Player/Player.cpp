@@ -830,6 +830,10 @@ Player::Player(WorldSession* session): Unit(true)
     m_summon_y = 0.0f;
     m_summon_z = 0.0f;
 
+	m_toggleAppear = true;
+	m_toggleSummon = true;
+	m_toggleWorldChat = false;
+
     m_mover = this;
     m_movedPlayer = this;
     m_seer = this;

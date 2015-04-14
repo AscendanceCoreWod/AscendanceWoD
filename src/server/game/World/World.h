@@ -669,6 +669,7 @@ class World
         void LoadConfigSettings(bool reload = false);
 
         void SendWorldText(uint32 string_id, ...);
+		void SendWorldChat(uint32 string_id, ...);
         void SendGlobalText(const char* text, WorldSession* self);
         void SendGMText(uint32 string_id, ...);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);

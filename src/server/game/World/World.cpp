@@ -2395,6 +2395,28 @@ void World::SendWorldText(uint32 string_id, ...)
     va_end(ap);
 }
 
+/// Send a World Chat Message to all players (except self if mentioned)
+void World::SendWorldChat(uint32 string_id, ...)
+{
+	va_list ap;
+	va_start(ap, string_id);
+
+	Trinity::WorldWorldTextBuilder wt_builder(string_id, &ap);
+	Trinity::LocalizedPacketListDo<Trinity::WorldWorldTextBuilder> wt_do(wt_builder);
+	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+	{
+		if (!itr->second || !itr->second->GetPlayer() || !itr->second->GetPlayer()->IsInWorld())
+			continue;
+
+		if (!itr->second->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_CHAT))
+			continue;
+
+		wt_do(itr->second->GetPlayer());
+	}
+
+	va_end(ap);
+}
+
 /// Send a System Message to all GMs (except self if mentioned)
 void World::SendGMText(uint32 string_id, ...)
 {

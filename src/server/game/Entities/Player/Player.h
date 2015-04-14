@@ -902,6 +902,13 @@ enum ArenaTeamInfoType
     ARENA_TEAM_END               = 7
 };
 
+enum CommandNames
+{
+	TOGGLE_APPEAR = 8,
+	TOGGLE_SUMMON = 9,
+	TOGGLE_WORLD_CHAT = 10
+};
+
 class InstanceSave;
 
 enum RestType
@@ -1403,6 +1410,11 @@ class Player : public Unit, public GridObject<Player>
         bool GetCommandStatus(uint32 command) const { return (_activeCheats & command) != 0; }
         void SetCommandStatusOn(uint32 command) { _activeCheats |= command; }
         void SetCommandStatusOff(uint32 command) { _activeCheats &= ~command; }
+
+		//Toggle Command Values
+		bool m_toggleAppear;
+		bool m_toggleSummon;
+		bool m_toggleWorldChat;
 
         // Played Time Stuff
         time_t m_logintime;
