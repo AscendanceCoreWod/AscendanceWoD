@@ -16,6 +16,7 @@ set(scripts_STAT_SRCS
 Custom/chat.cpp
 Custom/phasing.cpp
 Custom/skills.cpp
+Custom/refresh.cpp
 )
 
 message("  -> Prepared: Custom")

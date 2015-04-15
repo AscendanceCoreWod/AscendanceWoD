@@ -260,6 +260,20 @@ public:
         float o = chr->GetOrientation();
         Map* map = chr->GetMap();
 
+		std::stringstream phases;
+
+		for (uint32 phase : chr->GetPhases())
+		{
+			phases << phase << " ";
+		}
+
+		const char* phasing = phases.str().c_str();
+
+		uint32 phase = atoi(phasing);
+
+		if (!phase)
+			uint32 phase = 0;
+
         if (Transport* trans = chr->GetTransport())
         {
             ObjectGuid::LowType guid = sObjectMgr->GetGenerator<HighGuid::Creature>()->Generate();
@@ -302,6 +316,15 @@ public:
         }
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+
+		creature->ClearPhases();
+		creature->SetInPhase(phase, true, true);
+		creature->SetDBPhase(phase);
+
+		WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+
+		creature->SaveToDB();
+
         return true;
     }
 

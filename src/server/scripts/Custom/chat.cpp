@@ -97,13 +97,48 @@ public:
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
+		static ChatCommand toggleCommandTable[] =
+		{
+			{ "", SEC_PLAYER, false, &HandleToggleChatCommand, "", NULL },
+			{ NULL, 0, false, NULL, "", NULL }
+		};
+
 		static ChatCommand ChatCommandTable[] =
 		{
 			{ "chat", SEC_PLAYER, true, NULL, "", ChatCmdTable },
+			{ "toggle", SEC_PLAYER, false, NULL, "", toggleCommandTable },
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
 		return ChatCommandTable;
+	}
+
+	static bool HandleToggleChatCommand(ChatHandler* handler, const char* args)
+	{
+		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
+			return false;
+
+		std::string argstr = (char*)args;
+
+		Player* _player = handler->GetSession()->GetPlayer();
+
+		if (!*args)
+			argstr = (handler->GetSession()->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_CHAT)) ? "off" : "on";
+
+		if (argstr == "on")
+		{
+			_player->SetCommandStatusOn(TOGGLE_WORLD_CHAT);
+			handler->SendSysMessage("World Chat is ON.");
+			return true;
+		}
+		else if (argstr == "off")
+		{
+			_player->SetCommandStatusOff(TOGGLE_WORLD_CHAT);
+			handler->SendSysMessage("World Chat is OFF.");
+			return true;
+		}
+
+		return false;
 	}
 
 	static bool HandleChatCommand(ChatHandler * handler, const char * args)
