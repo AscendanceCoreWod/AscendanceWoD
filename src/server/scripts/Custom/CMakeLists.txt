@@ -15,6 +15,7 @@ set(scripts_STAT_SRCS
 #  ${sources_Custom}
 Custom/chat.cpp
 Custom/phasing.cpp
+Custom/skills.cpp
 )
 
 message("  -> Prepared: Custom")

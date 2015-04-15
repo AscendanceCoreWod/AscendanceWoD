@@ -1,5 +1,4 @@
 #include "ScriptPCH.h"
-#include "ObjectMgr.h"
 #include "Chat.h"
 #include <stdarg.h>
 #include "GameObject.h"
@@ -8,7 +7,6 @@
 #include "Transport.h"
 #include "Language.h"
 #include "Config.h"
-
 
 std::string PLAYER_H_ICON;
 std::string PLAYER_H_PREFIX;
@@ -99,16 +97,9 @@ public:
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
-		static ChatCommand ToggleCmdTable[] =
-		{
-			{ "", SEC_PLAYER, true, &HandleChatToggleCommand, "", NULL },
-			{ NULL, 0, false, NULL, "", NULL }
-		};
-
 		static ChatCommand ChatCommandTable[] =
 		{
 			{ "chat", SEC_PLAYER, true, NULL, "", ChatCmdTable },
-			{ "toggle", SEC_PLAYER, true, NULL, "", ToggleCmdTable },
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
@@ -135,6 +126,12 @@ public:
 
 		std::string msg = "";
 		Player * player = handler->GetSession()->GetPlayer();
+
+		if (!player->GetCommandStatus(TOGGLE_WORLD_CHAT)){
+			handler->PSendSysMessage("|cffFF0000Chat is disabled, use .toggle chat on!|r");
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
 
 		QueryResult worldMute = LoginDatabase.PQuery("SELECT is_muted FROM world_mute WHERE guid='%u'", player->GetSession()->GetAccountId());
 
@@ -305,34 +302,6 @@ public:
 		handler->PSendSysMessage("|cffFF0000%s has been unmuted!|r", (char*)args);
 		LoginDatabase.PExecute("DELETE FROM world_mute WHERE guid='%u'", accountId);
 		return true;
-	}
-
-	static bool HandleChatToggleCommand(ChatHandler* handler, const char* args)
-	{
-		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
-			return false;
-
-		std::string argstr = (char*)args;
-
-		Player* _player = handler->GetSession()->GetPlayer();
-
-		if (!*args)
-			argstr = (handler->GetSession()->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_CHAT)) ? "off" : "on";
-
-		if (argstr == "on")
-		{
-			_player->SetCommandStatusOn(TOGGLE_WORLD_CHAT);
-			handler->SendSysMessage("Appear is ON. Players can appear to you.");
-			return true;
-		}
-		else if (argstr == "off")
-		{
-			_player->SetCommandStatusOff(TOGGLE_WORLD_CHAT);
-			handler->SendSysMessage("Appear is OFF. Players can't appear to you.");
-			return true;
-		}
-
-		return false;
 	}
 };
 
