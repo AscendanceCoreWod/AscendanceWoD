@@ -9468,7 +9468,7 @@ uint32 Player::GetXPRestBonus(uint32 xp)
 
     SetRestBonus(GetRestBonus() - rested_bonus);
 
-    TC_LOG_DEBUG("entities.player", "Player gain %u xp (+ %u Rested Bonus). Rested points=%f", xp+rested_bonus, rested_bonus, GetRestBonus());
+    TC_LOG_DEBUG("entities.player", "GetXPRestBonus: Player %s (%u) gain %u xp (+%u Rested Bonus). Rested points=%f", GetName().c_str(), GetGUID().GetCounter(), xp + rested_bonus, rested_bonus, GetRestBonus());
     return rested_bonus;
 }
 
@@ -14451,23 +14451,25 @@ bool Player::CanRewardQuest(Quest const* quest, uint32 reward, bool msg)
             }
         }
     }
-    
+
     // QuestPackageItem.db2
     if (quest->GetQuestPackageID())
     {
-        if (sQuestPackageItemStoreMap.find(quest->GetQuestPackageID()) != sQuestPackageItemStoreMap.end())
+        if (std::vector<QuestPackageItemEntry const*> const* questPackageItems = sDB2Manager.GetQuestPackageItems(quest->GetQuestPackageID()))
         {
-            QuestPackageItemList itemList = sQuestPackageItemStoreMap[quest->GetQuestPackageID()];
-            for (QuestPackageItemList::const_iterator itr = itemList.begin(); itr != itemList.end(); ++itr)
+            for (QuestPackageItemEntry const* questPackageItem : *questPackageItems)
             {
-                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate((*itr)->ItemID))
+                if (questPackageItem->ItemID != reward)
+                    continue;
+
+                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate(questPackageItem->ItemID))
                 {
                     if (rewardProto->CanWinForPlayer(this))
                     {
-                        InventoryResult res = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, (*itr)->ItemID, (*itr)->ItemCount);
+                        InventoryResult res = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, questPackageItem->ItemID, questPackageItem->ItemCount);
                         if (res != EQUIP_ERR_OK)
                         {
-                            SendEquipError(res, NULL, NULL, (*itr)->ItemID);
+                            SendEquipError(res, NULL, NULL, questPackageItem->ItemID);
                             return false;
                         }
                     }
@@ -14669,20 +14671,22 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     // QuestPackageItem.db2
     if (quest->GetQuestPackageID())
     {
-        if (sQuestPackageItemStoreMap.find(quest->GetQuestPackageID()) != sQuestPackageItemStoreMap.end())
+        if (std::vector<QuestPackageItemEntry const*> const* questPackageItems = sDB2Manager.GetQuestPackageItems(quest->GetQuestPackageID()))
         {
-            QuestPackageItemList itemList = sQuestPackageItemStoreMap[quest->GetQuestPackageID()];
-            for (QuestPackageItemList::const_iterator itr = itemList.begin(); itr != itemList.end(); ++itr)
+            for (QuestPackageItemEntry const* questPackageItem : *questPackageItems)
             {
-                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate((*itr)->ItemID))
+                if (questPackageItem->ItemID != reward)
+                    continue;
+
+                if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate(questPackageItem->ItemID))
                 {
                     if (rewardProto->CanWinForPlayer(this))
                     {
                         ItemPosCountVec dest;
-                        if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, (*itr)->ItemID, (*itr)->ItemCount) == EQUIP_ERR_OK)
+                        if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, questPackageItem->ItemID, questPackageItem->ItemCount) == EQUIP_ERR_OK)
                         {
-                            Item* item = StoreNewItem(dest, (*itr)->ItemID, true, Item::GenerateItemRandomPropertyId((*itr)->ItemID));
-                            SendNewItem(item, (*itr)->ItemCount, true, false);
+                            Item* item = StoreNewItem(dest, questPackageItem->ItemID, true, Item::GenerateItemRandomPropertyId(questPackageItem->ItemID));
+                            SendNewItem(item, questPackageItem->ItemCount, true, false);
                         }
                     }
                 }
@@ -24635,11 +24639,11 @@ void Player::StoreLootItem(uint8 lootSlot, Loot* loot)
         SendEquipError(msg, NULL, NULL, item->itemid);
 }
 
-bool Player::IsKnowHowFlyIn(uint32 mapid, uint32 zone) const
+bool Player::CanFlyInZone(uint32 mapid, uint32 zone) const
 {
     // continent checked in SpellInfo::CheckLocation at cast and area update
     uint32 v_map = GetVirtualMapForMapAndZone(mapid, zone);
-    return v_map != 571 || HasSpell(54197); // Cold Weather Flying
+    return v_map != 571 || HasSpell(54197); // 54197 = Cold Weather Flying
 }
 
 void Player::LearnSpellHighestRank(uint32 spellid)
