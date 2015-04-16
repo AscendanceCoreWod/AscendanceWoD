@@ -1075,6 +1075,12 @@ enum PlayerCommandStates
     CHEAT_WATERWALK = 0x10
 };
 
+enum PlayerLogXPReason
+{
+    LOG_XP_REASON_KILL    = 0,
+    LOG_XP_REASON_NO_KILL = 1
+};
+
 class PlayerTaxi
 {
     public:
@@ -2122,7 +2128,7 @@ class Player : public Unit, public GridObject<Player>
 
         void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const override;
         void DestroyForPlayer(Player* target) const override;
-        void SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 BonusXP, bool recruitAFriend = false, float group_rate=1.0f);
+        void SendLogXPGain(uint32 givenXP, Unit* victim, uint32 bonusXP, bool recruitAFriend = false, float groupBonus = 1.0f);
 
         // notifiers
         void SendAttackSwingCantAttack();
