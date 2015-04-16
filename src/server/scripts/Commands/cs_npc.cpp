@@ -290,6 +290,14 @@ public:
             creature->SaveToDB(trans->GetGOInfo()->moTransport.mapID, 1 << map->GetSpawnMode(), chr->GetPhaseMask());
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
+
+			creature->ClearPhases();
+			creature->SetInPhase(phase, true, true);
+			creature->SetDBPhase(phase);
+			creature->SaveToDB();
+
+			WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+
             return true;
         }
 
@@ -316,14 +324,6 @@ public:
         }
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
-
-		creature->ClearPhases();
-		creature->SetInPhase(phase, true, true);
-		creature->SetDBPhase(phase);
-
-		WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
-
-		creature->SaveToDB();
 
         return true;
     }
