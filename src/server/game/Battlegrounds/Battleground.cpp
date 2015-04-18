@@ -38,7 +38,7 @@
 #include "Util.h"
 #include "WorldPacket.h"
 #include "Transport.h"
-#include "BattlegroundPackets.h"
+#include "MiscPackets.h"
 
 namespace Trinity
 {
@@ -179,6 +179,8 @@ Battleground::Battleground()
 
     m_queueId = 0;
 
+    m_LastPlayerPositionBroadcast = 0;
+
     m_HonorMode = BG_NORMAL;
 
     StartDelayTimes[BG_STARTING_EVENT_FIRST]  = BG_START_DELAY_2M;
@@ -253,6 +255,7 @@ void Battleground::Update(uint32 diff)
             break;
         case STATUS_IN_PROGRESS:
             _ProcessOfflineQueue();
+            _ProcessPlayerPositionBroadcast(diff);
             // after 47 minutes without one team losing, the arena closes with no winner and no rating change
             if (isArena())
             {
@@ -311,6 +314,19 @@ inline void Battleground::_CheckSafePositions(uint32 diff)
                     player->TeleportTo(GetMapId(), startPos->GetPositionX(), startPos->GetPositionY(), startPos->GetPositionZ(), startPos->GetOrientation());
                 }
             }
+    }
+}
+
+void Battleground::_ProcessPlayerPositionBroadcast(uint32 diff)
+{
+    m_LastPlayerPositionBroadcast += diff;
+    if (m_LastPlayerPositionBroadcast >= PLAYER_POSITION_UPDATE_INTERVAL)
+    {
+        m_LastPlayerPositionBroadcast = 0;
+
+        WorldPackets::Battleground::BattlegroundPlayerPositions playerPositions;
+        GetPlayerPositionData(&playerPositions.FlagCarriers);
+        SendPacketToAll(playerPositions.Write());
     }
 }
 
@@ -667,22 +683,18 @@ void Battleground::SendChatMessage(Creature* source, uint8 textId, WorldObject* 
     sCreatureTextMgr->SendChat(source, textId, target);
 }
 
-void Battleground::PlaySoundToAll(uint32 SoundID)
+void Battleground::PlaySoundToAll(uint32 soundID)
 {
-    WorldPacket data;
-    sBattlegroundMgr->BuildPlaySoundPacket(&data, SoundID);
-    SendPacketToAll(&data);
+    SendPacketToAll(WorldPackets::Misc::PlaySound(ObjectGuid::Empty, soundID).Write());
 }
 
-void Battleground::PlaySoundToTeam(uint32 SoundID, uint32 TeamID)
+void Battleground::PlaySoundToTeam(uint32 soundID, uint32 teamID)
 {
-    WorldPacket data;
     for (BattlegroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-        if (Player* player = _GetPlayerForTeam(TeamID, itr, "PlaySoundToTeam"))
-        {
-            sBattlegroundMgr->BuildPlaySoundPacket(&data, SoundID);
-            player->SendDirectMessage(&data);
-        }
+    {
+        if (Player* player = _GetPlayerForTeam(teamID, itr, "PlaySoundToTeam"))
+            player->SendDirectMessage(WorldPackets::Misc::PlaySound(ObjectGuid::Empty, soundID).Write());
+    }
 }
 
 void Battleground::CastSpellOnTeam(uint32 SpellID, uint32 TeamID)
@@ -996,10 +1008,11 @@ void Battleground::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
             AddToBGFreeSlotQueue();
             sBattlegroundMgr->ScheduleQueueUpdate(0, 0, bgQueueTypeId, bgTypeId, GetBracketId());
         }
+
         // Let others know
-        WorldPacket data;
-        sBattlegroundMgr->BuildPlayerLeftBattlegroundPacket(&data, guid);
-        SendPacketToTeam(team, &data, player, false);
+        WorldPackets::Battleground::BattlegroundPlayerLeft playerLeft;
+        playerLeft.Guid = guid;
+        SendPacketToTeam(team, playerLeft.Write(), player, false);
     }
 
     if (player)
@@ -1084,9 +1097,9 @@ void Battleground::AddPlayer(Player* player)
 
     UpdatePlayersCountByTeam(team, false);                  // +1 player
 
-    WorldPacket data;
-    sBattlegroundMgr->BuildPlayerJoinedBattlegroundPacket(&data, player->GetGUID());
-    SendPacketToTeam(team, &data, player, false);
+    WorldPackets::Battleground::BattlegroundPlayerJoined playerJoined;
+    playerJoined.Guid = player->GetGUID();
+    SendPacketToTeam(team, playerJoined.Write(), player, false);
 
     // BG Status packet
     BattlegroundQueueTypeId bgQueueTypeId = sBattlegroundMgr->BGQueueTypeId(m_TypeID, GetArenaType());
@@ -1910,7 +1923,7 @@ uint32 Battleground::GetTeamScore(uint32 teamId) const
     return 0;
 }
 
-void Battleground::HandleAreaTrigger(Player* player, uint32 trigger)
+void Battleground::HandleAreaTrigger(Player* player, uint32 trigger, bool /*entered*/)
 {
     TC_LOG_DEBUG("bg.battleground", "Unhandled AreaTrigger %u in Battleground %u. Player coords (x: %f, y: %f, z: %f)",
                    trigger, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
