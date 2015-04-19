@@ -276,6 +276,7 @@ namespace WorldPackets
         class SplitItem;
         class SwapInvItem;
         class SwapItem;
+        class WrapItem;
     }
 
     namespace Loot
@@ -337,6 +338,7 @@ namespace WorldPackets
     {
         class Hello;
         class GossipSelectOption;
+        class SpiritHealerActivate;
     }
 
     namespace Petition
@@ -767,7 +769,7 @@ class WorldSession
         void HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlags, SpellCastTargets& targets);
 
         // Pet
-        void SendPetNameQuery(ObjectGuid guid);
+        void SendQueryPetNameResponse(ObjectGuid guid);
         void SendStablePet(ObjectGuid guid);
         void SendStablePetCallback(PreparedQueryResult result, ObjectGuid guid);
         void SendPetStableResult(uint8 guid);
@@ -1110,7 +1112,7 @@ class WorldSession
         void HandlePetitionShowList(WorldPackets::Petition::PetitionShowList& packet);
         void HandleGossipHelloOpcode(WorldPackets::NPC::Hello& packet);
         void HandleGossipSelectOptionOpcode(WorldPackets::NPC::GossipSelectOption& packet);
-        void HandleSpiritHealerActivateOpcode(WorldPacket& recvPacket);
+        void HandleSpiritHealerActivate(WorldPackets::NPC::SpiritHealerActivate& packet);
         void HandleNpcTextQueryOpcode(WorldPackets::Query::QueryNPCText& packet);
         void HandleBinderActivateOpcode(WorldPackets::NPC::Hello& packet);
         void HandleListStabledPetsOpcode(WorldPacket& recvPacket);
@@ -1185,7 +1187,7 @@ class WorldSession
         void HandleAutoEquipItemSlotOpcode(WorldPackets::Item::AutoEquipItemSlot& autoEquipItemSlot);
         void HandleSwapItem(WorldPackets::Item::SwapItem& swapItem);
         void HandleBuybackItem(WorldPackets::Item::BuyBackItem& packet);
-        void HandleWrapItemOpcode(WorldPacket& recvPacket);
+        void HandleWrapItem(WorldPackets::Item::WrapItem& packet);
 
         void HandleAttackSwingOpcode(WorldPackets::Combat::AttackSwing& packet);
         void HandleAttackStopOpcode(WorldPackets::Combat::AttackStop& packet);
@@ -1233,7 +1235,7 @@ class WorldSession
         void HandleChatMessageAFKOpcode(WorldPackets::Chat::ChatMessageAFK& chatMessageAFK);
         void HandleChatMessageDNDOpcode(WorldPackets::Chat::ChatMessageDND& chatMessageDND);
         void HandleChatMessageEmoteOpcode(WorldPackets::Chat::ChatMessageEmote& chatMessageEmote);
-        void SendPlayerNotFoundNotice(std::string const& name);
+        void SendChatPlayerNotfoundNotice(std::string const& name);
         void SendPlayerAmbiguousNotice(std::string const& name);
         void SendChatRestrictedNotice(ChatRestrictionType restriction);
         void HandleTextEmoteOpcode(WorldPackets::Chat::CTextEmote& packet);
