@@ -99,7 +99,9 @@ public:
 
 		static ChatCommand toggleCommandTable[] =
 		{
-			{ "", SEC_PLAYER, false, &HandleToggleChatCommand, "", NULL },
+			{ "chat", SEC_PLAYER, false, &HandleToggleChatCommand, "", NULL },
+			{ "appear", SEC_PLAYER, false, &HandleToggleAppearCommand, "", NULL },
+			{ "summon", SEC_PLAYER, false, &HandleToggleSummonCommand, "", NULL },
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
@@ -135,6 +137,62 @@ public:
 		{
 			_player->SetCommandStatusOff(TOGGLE_WORLD_CHAT);
 			handler->SendSysMessage("World Chat is OFF.");
+			return true;
+		}
+
+		return false;
+	}
+
+	static bool HandleToggleAppearCommand(ChatHandler* handler, const char* args)
+	{
+		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
+			return false;
+
+		std::string argstr = (char*)args;
+
+		Player* _player = handler->GetSession()->GetPlayer();
+
+		if (!*args)
+			argstr = (handler->GetSession()->GetPlayer()->GetCommandStatus(TOGGLE_APPEAR)) ? "off" : "on";
+
+		if (argstr == "on")
+		{
+			_player->SetCommandStatusOn(TOGGLE_APPEAR);
+			handler->SendSysMessage("Appear is ON. Players can appear to you.");
+			return true;
+		}
+		else if (argstr == "off")
+		{
+			_player->SetCommandStatusOff(TOGGLE_APPEAR);
+			handler->SendSysMessage("Appear is OFF. Players can't appear to you.");
+			return true;
+		}
+
+		return false;
+	}
+
+	static bool HandleToggleSummonCommand(ChatHandler* handler, const char* args)
+	{
+		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
+			return false;
+
+		std::string argstr = (char*)args;
+
+		Player* _player = handler->GetSession()->GetPlayer();
+
+		if (!*args)
+			argstr = (handler->GetSession()->GetPlayer()->GetCommandStatus(TOGGLE_SUMMON)) ? "off" : "on";
+
+		if (argstr == "on")
+		{
+			_player->SetCommandStatusOn(TOGGLE_SUMMON);
+			handler->SendSysMessage("Summon is ON. Players can summon you.");
+			return true;
+		}
+		else if (argstr == "off")
+		{
+			_player->SetCommandStatusOff(TOGGLE_SUMMON);
+			handler->SendSysMessage("Summon is OFF. Players can't summon you.");
 			return true;
 		}
 

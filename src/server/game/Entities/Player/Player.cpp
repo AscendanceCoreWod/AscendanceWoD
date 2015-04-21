@@ -11395,7 +11395,7 @@ InventoryResult Player::CanUseItem(ItemTemplate const* proto) const
     if (!proto)
         return EQUIP_ERR_ITEM_NOT_FOUND;
 
-    if ((proto->GetFlags2() & ITEM_FLAGS_EXTRA_HORDE_ONLY) && GetTeam() != HORDE)
+    /*if ((proto->GetFlags2() & ITEM_FLAGS_EXTRA_HORDE_ONLY) && GetTeam() != HORDE)
         return EQUIP_ERR_CANT_EQUIP_EVER;
 
     if ((proto->GetFlags2() & ITEM_FLAGS_EXTRA_ALLIANCE_ONLY) && GetTeam() != ALLIANCE)
@@ -11426,7 +11426,7 @@ InventoryResult Player::CanUseItem(ItemTemplate const* proto) const
     if (proto->Effects.size() >= 2)
         if (proto->Effects[0]->SpellID == 483 || proto->Effects[0]->SpellID == 55884)
             if (HasSpell(proto->Effects[1]->SpellID))
-                return EQUIP_ERR_INTERNAL_BAG_ERROR;
+                return EQUIP_ERR_INTERNAL_BAG_ERROR; */
 
     return EQUIP_ERR_OK;
 }

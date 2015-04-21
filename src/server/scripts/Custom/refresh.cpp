@@ -1,12 +1,24 @@
-#include "ScriptPCH.h"
 #include "Chat.h"
-#include <stdarg.h>
-#include "GameObject.h"
-#include "PoolMgr.h"
-#include "ObjectAccessor.h"
-#include "Transport.h"
+#include "ScriptMgr.h"
+#include "AccountMgr.h"
+#include "ArenaTeamMgr.h"
+#include "CellImpl.h"
+#include "GridNotifiers.h"
+#include "Group.h"
+#include "InstanceSaveMgr.h"
 #include "Language.h"
-using namespace std;
+#include "MovementGenerator.h"
+#include "ObjectAccessor.h"
+#include "Opcodes.h"
+#include "SpellAuras.h"
+#include "TargetedMovementGenerator.h"
+#include "WeatherMgr.h"
+#include "Player.h"
+#include "Pet.h"
+#include "LFG.h"
+#include "GroupMgr.h"
+#include "MMapFactory.h"
+#include "DisableMgr.h"
 
 class refresh : public CommandScript
 {
@@ -26,8 +38,11 @@ public:
 	// Teleport player to last position
 	static bool HandleRefreshCommand(ChatHandler* handler, char const* args)
 	{
+		Player* target;
+		if (!handler->extractPlayerTarget((char*)args, &target))
+			return false;
 
-		Player* target = handler->GetSession()->GetPlayer();
+		target->SaveRecallPosition();
 
 		// check online security
 		if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
@@ -46,8 +61,6 @@ public:
 			target->GetMotionMaster()->MovementExpired();
 			target->CleanupAfterTaxiFlight();
 		}
-
-		target->SaveRecallPosition();
 
 		target->TeleportTo(target->m_recallMap, target->m_recallX, target->m_recallY, target->m_recallZ, target->m_recallO);
 		return true;
