@@ -2030,6 +2030,9 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading race and class expansion requirements...");
     sObjectMgr->LoadRaceAndClassExpansionRequirements();
 
+    TC_LOG_INFO("server.loading", "Loading character templates...");
+    sObjectMgr->LoadCharacterTemplates();
+
     TC_LOG_INFO("server.loading", "Loading realm names...");
     sObjectMgr->LoadRealmNames();
 
