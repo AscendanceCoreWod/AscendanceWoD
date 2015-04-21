@@ -104,7 +104,7 @@ enum AccountTypes
 	SEC_STAFFMEMBER = 4, //Architect
 	SEC_EVENTMASTER = 5, //Event Master
 	SEC_LOREMASTER = 6, //Lore Master
-	SEC_COMMUNITYREPRESENTATIVE = 7, //Community Representative
+	SEC_STAFF = 7, //Staff Member
 	SEC_COUNCILMEMBER = 8, //Council Member
 	SEC_HEADDEVELOPER = 9, //Head Developer
 	SEC_CONSOLE = 10, //Console Must be always last in list, accounts must have less security level

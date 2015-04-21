@@ -14,6 +14,9 @@ std::string PLAYER_H_SUFFIX;
 std::string PLAYER_A_ICON;
 std::string PLAYER_A_PREFIX;
 std::string PLAYER_A_SUFFIX;
+std::string NOBLE_ICON;
+std::string NOBLE_PREFIX;
+std::string NOBLE_SUFFIX;
 std::string BUILDER_ICON;
 std::string BUILDER_PREFIX;
 std::string BUILDER_SUFFIX;
@@ -29,12 +32,9 @@ std::string EVENTMASTER_SUFFIX;
 std::string LOREMASTER_ICON;
 std::string LOREMASTER_PREFIX;
 std::string LOREMASTER_SUFFIX;
-std::string COMMUNITYREPRESENTATIVE_ICON;
-std::string COMMUNITYREPRESENTATIVE_PREFIX;
-std::string COMMUNITYREPRESENTATIVE_SUFFIX;
-std::string COMMUNITYMANAGER_ICON;
-std::string COMMUNITYMANAGER_PREFIX;
-std::string COMMUNITYMANAGER_SUFFIX;
+std::string STAFF_ICON;
+std::string STAFF_PREFIX;
+std::string STAFF_SUFFIX;
 std::string COUNCILMEMBER_ICON;
 std::string COUNCILMEMBER_PREFIX;
 std::string COUNCILMEMBER_SUFFIX;
@@ -209,10 +209,10 @@ public:
 			}
 			break;
 		case SEC_MODERATOR:
-			msg += COMMUNITYMANAGER_ICON;
-			msg += COMMUNITYMANAGER_PREFIX;
+			msg += NOBLE_ICON;
+			msg += NOBLE_PREFIX;
 			msg += GetNameLink(player);
-			msg += COMMUNITYMANAGER_SUFFIX;
+			msg += NOBLE_SUFFIX;
 			break;
 		case SEC_GAMEMASTER:
 			msg += BUILDER_ICON;
@@ -244,11 +244,11 @@ public:
 			msg += GetNameLink(player);
 			msg += LOREMASTER_SUFFIX;
 			break;
-		case SEC_COMMUNITYREPRESENTATIVE:
-			msg += COMMUNITYREPRESENTATIVE_ICON;
-			msg += COMMUNITYREPRESENTATIVE_PREFIX;
+		case SEC_STAFF:
+			msg += STAFF_ICON;
+			msg += STAFF_PREFIX;
 			msg += GetNameLink(player);
-			msg += COMMUNITYREPRESENTATIVE_SUFFIX;
+			msg += STAFF_SUFFIX;
 			break;
 		case SEC_COUNCILMEMBER:
 			msg += COUNCILMEMBER_ICON;
@@ -375,13 +375,13 @@ public:
 		LOREMASTER_PREFIX = sConfigMgr->GetStringDefault("LOREMASTER_PREFIX", "");
 		LOREMASTER_SUFFIX = sConfigMgr->GetStringDefault("LOREMASTER_SUFFIX", "");
 
-		COMMUNITYREPRESENTATIVE_ICON = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_ICON", "");
-		COMMUNITYREPRESENTATIVE_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_PREFIX", "");
-		COMMUNITYREPRESENTATIVE_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_SUFFIX", "");
+		STAFF_ICON = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_ICON", "");
+		STAFF_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_PREFIX", "");
+		STAFF_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_SUFFIX", "");
 
-		COMMUNITYMANAGER_ICON = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_ICON", "");
-		COMMUNITYMANAGER_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_PREFIX", "");
-		COMMUNITYMANAGER_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_SUFFIX", "");
+		NOBLE_ICON = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_ICON", "");
+		NOBLE_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_PREFIX", "");
+		NOBLE_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_SUFFIX", "");
 
 		COUNCILMEMBER_ICON = sConfigMgr->GetStringDefault("COUNCILMEMBER_ICON", "");
 		COUNCILMEMBER_PREFIX = sConfigMgr->GetStringDefault("COUNCILMEMBER_PREFIX", "");
