@@ -82,6 +82,7 @@ public:
             { "possess",          rbac::RBAC_PERM_COMMAND_POSSESS,          false, &HandlePossessCommand,          "", NULL },
             { "pvpstats",         rbac::RBAC_PERM_COMMAND_PVPSTATS,          true, &HandlePvPstatsCommand,         "", NULL },
             { "recall",           rbac::RBAC_PERM_COMMAND_RECALL,           false, &HandleRecallCommand,           "", NULL },
+			{ "refresh",          rbac::RBAC_PERM_COMMAND_REFRESH,           false, &HandleRefreshCommand,           "", NULL },
             { "repairitems",      rbac::RBAC_PERM_COMMAND_REPAIRITEMS,       true, &HandleRepairitemsCommand,      "", NULL },
             { "respawn",          rbac::RBAC_PERM_COMMAND_RESPAWN,          false, &HandleRespawnCommand,          "", NULL },
             { "revive",           rbac::RBAC_PERM_COMMAND_REVIVE,            true, &HandleReviveCommand,           "", NULL },
@@ -815,6 +816,36 @@ public:
         target->TeleportTo(target->m_recallMap, target->m_recallX, target->m_recallY, target->m_recallZ, target->m_recallO);
         return true;
     }
+
+	static bool HandleRefreshCommand(ChatHandler* handler, char const* args)
+	{
+		Player* target;
+		if (!handler->extractPlayerTarget((char*)args, &target))
+			return false;
+
+		// check online security
+		if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+			return false;
+
+		if (target->IsBeingTeleported())
+		{
+			handler->PSendSysMessage(LANG_IS_TELEPORTED, handler->GetNameLink(target).c_str());
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		// stop flight if need
+		if (target->IsInFlight())
+		{
+			target->GetMotionMaster()->MovementExpired();
+			target->CleanupAfterTaxiFlight();
+		}
+
+		target->SaveRecallPosition();
+
+		target->TeleportTo(target->m_recallMap, target->m_recallX, target->m_recallY, target->m_recallZ, target->m_recallO);
+		return true;
+	}
 
     static bool HandleSaveCommand(ChatHandler* handler, char const* /*args*/)
     {
