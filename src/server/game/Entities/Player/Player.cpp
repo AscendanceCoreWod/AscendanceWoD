@@ -7643,7 +7643,7 @@ void Player::_ApplyItemBonuses(Item* item, uint8 slot, bool apply)
         if (statType == -1)
             continue;
 
-        int32 val = item->GetItemStatValue(i);
+        int32 val = item->GetItemStatValue(i, this);
         if (val == 0)
             continue;
 
@@ -7809,7 +7809,7 @@ void Player::_ApplyItemBonuses(Item* item, uint8 slot, bool apply)
         }
     }
 
-    if (uint32 armor = item->GetArmor())
+    if (uint32 armor = item->GetArmor(this))
     {
         UnitModifierType modType = TOTAL_VALUE;
         if (proto->GetClass() == ITEM_CLASS_ARMOR)
@@ -7869,7 +7869,7 @@ void Player::_ApplyWeaponDamage(uint8 slot, Item* item, bool apply)
     }
 
     float minDamage, maxDamage;
-    item->GetDamage(minDamage, maxDamage);
+    item->GetDamage(this, minDamage, maxDamage);
 
     if (minDamage > 0)
     {
@@ -24642,7 +24642,7 @@ void Player::StoreLootItem(uint8 lootSlot, Loot* loot)
         --loot->unlootedCount;
 
         if (sObjectMgr->GetItemTemplate(item->itemid))
-            if (newitem->GetQuality() > ITEM_QUALITY_EPIC || (newitem->GetQuality() == ITEM_QUALITY_EPIC && newitem->GetItemLevel() >= MinNewsItemLevel[sWorld->getIntConfig(CONFIG_EXPANSION)]))
+            if (newitem->GetQuality() > ITEM_QUALITY_EPIC || (newitem->GetQuality() == ITEM_QUALITY_EPIC && newitem->GetItemLevel(this) >= MinNewsItemLevel[sWorld->getIntConfig(CONFIG_EXPANSION)]))
                 if (Guild* guild = GetGuild())
                     guild->AddGuildNews(GUILD_NEWS_ITEM_LOOTED, GetGUID(), 0, item->itemid);
 
@@ -25984,7 +25984,7 @@ float Player::GetAverageItemLevel()
             continue;
 
         if (m_items[i] && m_items[i]->GetTemplate())
-            sum += m_items[i]->GetItemLevel();
+            sum += m_items[i]->GetItemLevel(this);
 
         ++count;
     }
