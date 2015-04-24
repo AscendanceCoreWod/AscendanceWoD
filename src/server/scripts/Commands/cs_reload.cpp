@@ -88,6 +88,7 @@ public:
             { "creature_queststarter",         rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_QUESTSTARTER,            true,  &HandleReloadCreatureQuestStarterCommand,       "", NULL },
             { "creature_summon_groups",        rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_SUMMON_GROUPS,           true,  &HandleReloadCreatureSummonGroupsCommand,       "", NULL },
             { "creature_template",             rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadCreatureTemplateCommand,           "", NULL },
+			{ "full_creature_template",        rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadFullCreatureTemplateCommand,       "", NULL },
             { "disables",                      rbac::RBAC_PERM_COMMAND_RELOAD_DISABLES,                         true,  &HandleReloadDisablesCommand,                   "", NULL },
             { "disenchant_loot_template",      rbac::RBAC_PERM_COMMAND_RELOAD_DISENCHANT_LOOT_TEMPLATE,         true,  &HandleReloadLootTemplatesDisenchantCommand,    "", NULL },
             { "event_scripts",                 rbac::RBAC_PERM_COMMAND_RELOAD_EVENT_SCRIPTS,                    true,  &HandleReloadEventScriptsCommand,               "", NULL },
@@ -101,6 +102,7 @@ public:
             { "gossip_menu_option",            rbac::RBAC_PERM_COMMAND_RELOAD_GOSSIP_MENU_OPTION,               true,  &HandleReloadGossipMenuOptionCommand,           "", NULL },
             { "item_enchantment_template",     rbac::RBAC_PERM_COMMAND_RELOAD_ITEM_ENCHANTMENT_TEMPLATE,        true,  &HandleReloadItemEnchantementsCommand,          "", NULL },
             { "item_loot_template",            rbac::RBAC_PERM_COMMAND_RELOAD_ITEM_LOOT_TEMPLATE,               true,  &HandleReloadLootTemplatesItemCommand,          "", NULL },
+			{ "item_template",				   rbac::RBAC_PERM_COMMAND_RELOAD_ITEM_LOOT_TEMPLATE,               true,  &HandleReloadItemTemplateCommand,	           "", NULL },
             { "lfg_dungeon_rewards",           rbac::RBAC_PERM_COMMAND_RELOAD_LFG_DUNGEON_REWARDS,              true,  &HandleReloadLfgRewardsCommand,                 "", NULL },
             { "locales_achievement_reward",    rbac::RBAC_PERM_COMMAND_RELOAD_LOCALES_ACHIEVEMENT_REWARD,       true,  &HandleReloadLocalesAchievementRewardCommand,   "", NULL },
             { "locales_creature",              rbac::RBAC_PERM_COMMAND_RELOAD_LOCALES_CRETURE,                  true,  &HandleReloadLocalesCreatureCommand,            "", NULL },
@@ -164,6 +166,29 @@ public:
     }
 
     //reload commands
+	static bool HandleReloadStarterCommand(ChatHandler* handler, const char* /*args*/)
+	{
+		HandleReloadItemTemplateCommand(handler, "a");
+		HandleReloadFullCreatureTemplateCommand(handler, "a");
+		return true;
+	}
+
+	static bool HandleReloadItemTemplateCommand(ChatHandler* handler, const char* /*args*/)
+	{
+		TC_LOG_INFO("misc", "Reloading Item_template..");
+		sObjectMgr->LoadItemTemplates();
+		handler->SendGlobalGMSysMessage("Item_template has been reloaded!");
+		return true;
+	}
+
+	static bool HandleReloadFullCreatureTemplateCommand(ChatHandler* handler, const char* /*args*/)
+	{
+		TC_LOG_INFO("misc", "Reloading Creature_template..");
+		sObjectMgr->LoadCreatureTemplates();
+		handler->SendGlobalGMSysMessage("Creature_template has been reloaded!");
+		return true;
+	}
+
     static bool HandleReloadSupportSystemCommand(ChatHandler* handler, const char* /*args*/)
     {
         TC_LOG_INFO("misc", "Re-Loading Support System Tables...");
