@@ -160,12 +160,14 @@ public:
 			target->AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
 			target->RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_SPLINE_ELEVATION);
 			target->SetFall(false);
+			WorldPackets::Movement::MoveSetFlag packet(flyOpcodeTable[true][1]);
 		}
 		else if (strncmp(args, "off", 4) == 0)
 		{
 			target->RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
 			if (!target->IsLevitating())
 				target->SetFall(true);
+			WorldPackets::Movement::MoveSetFlag packet(flyOpcodeTable[false][1]);
 		}
 		else
 		{
