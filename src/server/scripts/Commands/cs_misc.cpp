@@ -38,6 +38,7 @@
 #include "DisableMgr.h"
 #include "SpellHistory.h"
 #include "MiscPackets.h"
+#include "MovementPackets.h"
 
 class misc_commandscript : public CommandScript
 {
@@ -100,6 +101,7 @@ public:
             { "wchange",          rbac::RBAC_PERM_COMMAND_WCHANGE,          false, &HandleChangeWeather,           "", NULL },
             { "mailbox",          rbac::RBAC_PERM_COMMAND_MAILBOX,          false, &HandleMailBoxCommand,          "", NULL },
             { "auras  ",          rbac::RBAC_PERM_COMMAND_LIST_AURAS,       false, &HandleAurasCommand,            "", NULL },
+			{ "fly",              SEC_PLAYER,                               false, &HandleFlyCommand,              "", NULL },
             { NULL,               0,                                  false, NULL,                           "", NULL }
         };
         return commandTable;
@@ -133,6 +135,47 @@ public:
 
         return true;
     }
+
+	static bool HandleFlyCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+
+		Player* target = handler->getSelectedPlayer();
+		if (!target)
+			target = handler->GetSession()->GetPlayer();
+
+		WorldPacket data;
+
+		Unit* player = handler->GetSession()->GetPlayer();
+
+		static OpcodeServer const flyOpcodeTable[2][2] =
+		{
+			{ SMSG_MOVE_SPLINE_UNSET_FLYING, SMSG_MOVE_UNSET_CAN_FLY },
+			{ SMSG_MOVE_SPLINE_SET_FLYING, SMSG_MOVE_SET_CAN_FLY }
+		};
+
+		if (strncmp(args, "on", 3) == 0)
+		{
+			target->AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
+			target->RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_SPLINE_ELEVATION);
+			target->SetFall(false);
+		}
+		else if (strncmp(args, "off", 4) == 0)
+		{
+			target->RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
+			if (!target->IsLevitating())
+				target->SetFall(true);
+		}
+		else
+		{
+			handler->SendSysMessage(LANG_USE_BOL);
+			return false;
+		}
+
+		handler->PSendSysMessage(LANG_COMMAND_FLYMODE_STATUS, handler->GetNameLink(target).c_str(), args);
+		return true;
+	}
 
     static bool HandleDevCommand(ChatHandler* handler, char const* args)
     {
