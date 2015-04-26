@@ -7979,7 +7979,7 @@ void Player::_ApplyWeaponDependentAuraDamageMod(Item* item, WeaponAttackType att
     }
 }
 
-void Player::ApplyItemEquipSpell(Item* item, bool apply, bool form_change)
+void Player::ApplyItemEquipSpell(Item* item, bool apply, bool formChange /*= false*/)
 {
     if (!item)
         return;
@@ -8001,11 +8001,11 @@ void Player::ApplyItemEquipSpell(Item* item, bool apply, bool form_change)
         if (!spellproto)
             continue;
 
-        ApplyEquipSpell(spellproto, item, apply, form_change);
+        ApplyEquipSpell(spellproto, item, apply, formChange);
     }
 }
 
-void Player::ApplyEquipSpell(SpellInfo const* spellInfo, Item* item, bool apply, bool form_change)
+void Player::ApplyEquipSpell(SpellInfo const* spellInfo, Item* item, bool apply, bool formChange /*= false*/)
 {
     if (apply)
     {
@@ -8013,7 +8013,7 @@ void Player::ApplyEquipSpell(SpellInfo const* spellInfo, Item* item, bool apply,
         if (spellInfo->CheckShapeshift(GetShapeshiftForm()) != SPELL_CAST_OK)
             return;
 
-        if (form_change)                                    // check aura active state from other form
+        if (formChange)                                    // check aura active state from other form
         {
             AuraApplicationMapBounds range = GetAppliedAuras().equal_range(spellInfo->Id);
             for (AuraApplicationMap::const_iterator itr = range.first; itr != range.second; ++itr)
@@ -8027,7 +8027,7 @@ void Player::ApplyEquipSpell(SpellInfo const* spellInfo, Item* item, bool apply,
     }
     else
     {
-        if (form_change)                                     // check aura compatibility
+        if (formChange)                                     // check aura compatibility
         {
             // Cannot be used in this stance/form
             if (spellInfo->CheckShapeshift(GetShapeshiftForm()) == SPELL_CAST_OK)
@@ -8052,6 +8052,11 @@ void Player::UpdateEquipSpellsAtFormChange()
         }
     }
 
+    UpdateItemSetAuras(true);
+}
+
+void Player::UpdateItemSetAuras(bool formChange /*= false*/)
+{
     // item set bonuses not dependent from item broken state
     for (size_t setindex = 0; setindex < ItemSetEff.size(); ++setindex)
     {
@@ -8059,17 +8064,21 @@ void Player::UpdateEquipSpellsAtFormChange()
         if (!eff)
             continue;
 
-        for (uint32 y = 0; y < MAX_ITEM_SET_SPELLS; ++y)
+        for (ItemSetSpellEntry const* itemSetSpell : eff->SetBonuses)
         {
-            SpellInfo const* spellInfo = eff->spells[y];
-            if (!spellInfo)
-                continue;
+            SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(itemSetSpell->SpellID);
 
-            ApplyEquipSpell(spellInfo, NULL, false, true);       // remove spells that not fit to form
-            ApplyEquipSpell(spellInfo, NULL, true, true);        // add spells that fit form but not active
+            if (itemSetSpell->ChrSpecID && itemSetSpell->ChrSpecID != GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID))
+                ApplyEquipSpell(spellInfo, nullptr, false, false);  // item set aura is not for current spec
+            else
+            {
+                ApplyEquipSpell(spellInfo, nullptr, false, formChange); // remove spells that not fit to form - removal is skipped if shapeshift condition is satisfied
+                ApplyEquipSpell(spellInfo, nullptr, true, formChange);  // add spells that fit form but not active
+            }
         }
     }
 }
+
 void Player::CastItemCombatSpell(Unit* target, WeaponAttackType attType, uint32 procVictim, uint32 procEx)
 {
     if (!target || !target->IsAlive() || target == this)
@@ -25052,6 +25061,7 @@ void Player::LearnTalentSpecialization(uint32 talentSpec)
 
     LearnSpecializationSpells();
     SendTalentsInfoData();
+    UpdateItemSetAuras(false);
 }
 
 void Player::ResetTalentSpecialization()
@@ -25072,6 +25082,7 @@ void Player::ResetTalentSpecialization()
 
     RemoveSpecializationSpells();
     SendTalentsInfoData();
+    UpdateItemSetAuras(false);
 }
 
 void Player::UpdateFallInformationIfNeed(MovementInfo const& minfo, uint16 opcode)
@@ -25628,6 +25639,7 @@ void Player::ActivateTalentGroup(uint8 spec)
         SetPower(POWER_MANA, 0); // Mana must be 0 even if it isn't the active power type.
 
     SetPower(pw, 0);
+    UpdateItemSetAuras(false);
 
     if (!sChrSpecializationStore.LookupEntry(GetSpecId(GetActiveTalentGroup())))
         ResetTalents(true);
