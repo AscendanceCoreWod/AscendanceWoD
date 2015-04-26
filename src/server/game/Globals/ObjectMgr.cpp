@@ -2136,7 +2136,7 @@ void ObjectMgr::LoadGameobjects()
         uint32 PoolId       = fields[16].GetUInt32();
         data.phaseid		= fields[17].GetUInt32();
         data.phaseGroup		= fields[18].GetUInt32();
-		data.size = fields[18].GetFloat();
+		data.size			= fields[19].GetFloat();
 
 		if (data.size > 30.0f || data.size < 0.0f)
 		{
