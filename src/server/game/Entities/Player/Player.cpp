@@ -11388,8 +11388,8 @@ InventoryResult Player::CanUseItem(Item* pItem, bool not_loading) const
                     return EQUIP_ERR_PROFICIENCY_NEEDED;
             }
 
-            if (pProto->GetRequiredReputationFaction() && uint32(GetReputationRank(pProto->GetRequiredReputationFaction())) < pProto->GetRequiredReputationRank())
-                return EQUIP_ERR_CANT_EQUIP_REPUTATION;
+            /*if (pProto->GetRequiredReputationFaction() && uint32(GetReputationRank(pProto->GetRequiredReputationFaction())) < pProto->GetRequiredReputationRank())
+                return EQUIP_ERR_CANT_EQUIP_REPUTATION;*/
 
             return EQUIP_ERR_OK;
         }
