@@ -668,7 +668,7 @@ public:
 
 		if (Transport* trans = chr->GetTransport())
 		{
-			ObjectGuid::LowType guid = sObjectMgr->GetGenerator<HighGuid::Creature>()->Generate();
+			ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
 			CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
 			data.id = id;
 			data.phaseMask = chr->GetPhaseMask();
@@ -688,7 +688,7 @@ public:
 		}
 
 		Creature* creature = new Creature();
-		if (!creature->Create(sObjectMgr->GetGenerator<HighGuid::Creature>()->Generate(), map, chr->GetPhaseMask(), id, x, y, z, o))
+		if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, chr->GetPhaseMask(), id, x, y, z, o))
 		{
 			delete creature;
 			return false;
@@ -738,7 +738,7 @@ public:
 		creature->SetDBPhase(phase);
 		creature->SaveToDB();
 
-		uint32 db_guid = creature->GetDBTableGUIDLow();
+		ObjectGuid::LowType db_guid = creature->GetSpawnId();
 
 		// To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
 		// current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
@@ -1067,7 +1067,7 @@ public:
 		}
 
 		GameObject* object = new GameObject;
-		ObjectGuid::LowType guidLow = sObjectMgr->GetGenerator<HighGuid::GameObject>()->Generate();
+		ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
 		if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
 		{
