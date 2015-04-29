@@ -890,14 +890,14 @@ bool GameObject::LoadGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, boo
     uint32 artKit = data->artKit;
 	float size = data->size;
 
-    m_DBTableGuid = guid;
+    /*m_DBTableGuid = guid;
     if (map->GetInstanceId() != 0)
         guid = sObjectMgr->GetGenerator<HighGuid::GameObject>()->Generate();
 
-    if (!Create(guid, entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit, size))
+    if (!Create(guid, entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit, size))*/ // Old Utilization
 
     m_spawnId = spawnId;
-    if (!Create(map->GenerateLowGuid<HighGuid::GameObject>(), entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit))
+    if (!Create(map->GenerateLowGuid<HighGuid::GameObject>(), entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit, size))
         return false;
 
     if (data->phaseid)
