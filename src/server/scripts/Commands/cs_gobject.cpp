@@ -231,7 +231,7 @@ public:
         // this is required to avoid weird behavior and memory leaks
         delete object;
 
-        // object = new GameObject();
+        object = new GameObject();
         // this will generate a new guid if the object is in an instance
         if (!object->LoadGameObjectFromDB(guidLow, map))
         {
