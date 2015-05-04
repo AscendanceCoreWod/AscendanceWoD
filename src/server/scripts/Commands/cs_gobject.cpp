@@ -152,47 +152,47 @@ public:
         return true;
     }
 
-	//spawn go
-	static bool HandleGameObjectAddCommand(ChatHandler* handler, char const* args)
-	{
-		if (!*args)
-			return false;
+    //spawn go
+    static bool HandleGameObjectAddCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
 
-		// number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
-		char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
-		if (!id)
-			return false;
+        // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
+        if (!id)
+            return false;
 
-		uint32 objectId = atoul(id);
-		if (!objectId)
-			return false;
+        uint32 objectId = atoul(id);
+        if (!objectId)
+            return false;
 
-		char* spawntimeSecs = strtok(NULL, " ");
+        char* spawntimeSecs = strtok(NULL, " ");
 
-		const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
+        const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
 
-		if (!objectInfo)
-		{
-			handler->PSendSysMessage(LANG_GAMEOBJECT_NOT_EXIST, objectId);
-			handler->SetSentErrorMessage(true);
-			return false;
-		}
+        if (!objectInfo)
+        {
+            handler->PSendSysMessage(LANG_GAMEOBJECT_NOT_EXIST, objectId);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-		if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
-		{
-			// report to DB errors log as in loading case
-			TC_LOG_ERROR("sql.sql", "Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", objectId, objectInfo->type, objectInfo->displayId);
-			handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, objectId);
-			handler->SetSentErrorMessage(true);
-			return false;
-		}
+        if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
+        {
+            // report to DB errors log as in loading case
+            TC_LOG_ERROR("sql.sql", "Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", objectId, objectInfo->type, objectInfo->displayId);
+            handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, objectId);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-		Player* player = handler->GetSession()->GetPlayer();
-		float x = float(player->GetPositionX());
-		float y = float(player->GetPositionY());
-		float z = float(player->GetPositionZ());
-		float o = float(player->GetOrientation());
-		Map* map = player->GetMap();
+        Player* player = handler->GetSession()->GetPlayer();
+        float x = float(player->GetPositionX());
+        float y = float(player->GetPositionY());
+        float z = float(player->GetPositionZ());
+        float o = float(player->GetOrientation());
+        Map* map = player->GetMap();
 
 		std::stringstream phases;
 
@@ -208,39 +208,39 @@ public:
 		if (!phase)
 			uint32 phase = 0;
 
-		GameObject* object = new GameObject;
-		ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
+        GameObject* object = new GameObject;
+        ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
-		if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
-		{
-			delete object;
-			return false;
-		}
+        if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
+        {
+            delete object;
+            return false;
+        }
 
-		object->CopyPhaseFrom(player);
+        object->CopyPhaseFrom(player);
 
-		if (spawntimeSecs)
-		{
-			uint32 value = atoi((char*)spawntimeSecs);
-			object->SetRespawnTime(value);
-		}
+        if (spawntimeSecs)
+        {
+            uint32 value = atoi((char*)spawntimeSecs);
+            object->SetRespawnTime(value);
+        }
 
-		// fill the gameobject data and save to the db
-		object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), player->GetPhaseMask());
-		// delete the old object and do a clean load from DB with a fresh new GameObject instance.
-		// this is required to avoid weird behavior and memory leaks
-		delete object;
+        // fill the gameobject data and save to the db
+        object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), player->GetPhaseMask());
+        // delete the old object and do a clean load from DB with a fresh new GameObject instance.
+        // this is required to avoid weird behavior and memory leaks
+        delete object;
 
-		object = new GameObject();
-		// this will generate a new guid if the object is in an instance
-		if (!object->LoadGameObjectFromDB(guidLow, map))
-		{
-			delete object;
-			return false;
-		}
+        object = new GameObject();
+        // this will generate a new guid if the object is in an instance
+        if (!object->LoadGameObjectFromDB(guidLow, map))
+        {
+            delete object;
+            return false;
+        }
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
-		sObjectMgr->AddGameobjectToGrid(guidLow, ASSERT_NOTNULL(sObjectMgr->GetGOData(guidLow)));
+        sObjectMgr->AddGameobjectToGrid(guidLow, ASSERT_NOTNULL(sObjectMgr->GetGOData(guidLow)));
 
 		object->ClearPhases();
 		object->SetInPhase(phase, true, true);
