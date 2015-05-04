@@ -211,8 +211,6 @@ public:
         GameObject* object = new GameObject;
         ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
-		ObjectGuid::LowType guidFix = guidLow;
-
         if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
         {
             delete object;
@@ -235,7 +233,7 @@ public:
 
         object = new GameObject();
         // this will generate a new guid if the object is in an instance
-        if (!object->LoadGameObjectFromDB(guidFix, map))
+        if (!object->LoadGameObjectFromDB(guidLow, map))
         {
             delete object;
             return false;
