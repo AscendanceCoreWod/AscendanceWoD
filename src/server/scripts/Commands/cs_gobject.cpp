@@ -238,6 +238,8 @@ public:
         if (!object->LoadGameObjectFromDB(guidFix, map))
         {
             delete object;
+			handler->PSendSysMessage("No True GUID: %u guidLow: %u", guidFix, guidLow);
+			handler->SetSentErrorMessage(true);
             return false;
         }
 
