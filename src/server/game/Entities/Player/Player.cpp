@@ -4600,7 +4600,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BLUEPRINTS);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BUILDINGS);
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
@@ -5242,7 +5242,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
                     if (channel->Flags & CHANNEL_DBC_FLAG_CITY_ONLY)
                         currentNameExt = sObjectMgr->GetTrinityStringForDBCLocale(LANG_CHANNEL_CITY);
                     else
-                        currentNameExt = current_zone->ZoneName;
+                        currentNameExt = current_zone->AreaName_lang;
 
                     snprintf(new_channel_name_buf, 100, channel->Name_lang, currentNameExt);
 
@@ -26232,9 +26232,9 @@ std::string Player::GetMapAreaAndZoneString()
     std::string zoneName = "Unknown";
     if (AreaTableEntry const* area = GetAreaEntryByAreaID(areaId))
     {
-        areaName = area->ZoneName;
+        areaName = area->AreaName_lang;
         if (AreaTableEntry const* zone = GetAreaEntryByAreaID(area->ParentAreaID))
-            zoneName = zone->ZoneName;
+            zoneName = zone->AreaName_lang;
     }
 
     std::ostringstream str;
