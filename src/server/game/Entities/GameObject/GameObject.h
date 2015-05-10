@@ -842,7 +842,6 @@ struct GameObjectData
 	uint32 phaseid;
 	uint32 phaseGroup;
 	bool dbData;
-	float size;
 };
 
 typedef std::vector<uint32> GameObjectQuestItemList;
@@ -878,7 +877,7 @@ public:
 	void RemoveFromWorld() override;
 	void CleanupsBeforeDelete(bool finalCleanup = true) override;
 
-	bool Create(ObjectGuid::LowType guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0, float size = -1.0);
+	bool Create(ObjectGuid::LowType guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0);
 	void Update(uint32 p_time) override;
 	GameObjectTemplate const* GetGOInfo() const { return m_goInfo; }
 	GameObjectData const* GetGOData() const { return m_goData; }
