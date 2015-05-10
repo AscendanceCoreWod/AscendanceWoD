@@ -150,13 +150,15 @@ public:
 		Map* map = player->GetMap();
 
 		GameObject* object = new GameObject;
-		ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
+		// ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
 		QueryResult objectGuids = WorldDatabase.PQuery("SELECT MAX(guid) FROM gameobject");
 
 		Field * maxGuid = objectGuids->Fetch();
 
-		ObjectGuid::LowType guidLow = maxGuid[0].GetInt32 + 1;
+		std::uint32_t highGuid = maxGuid[0].GetUInt32();
+
+		ObjectGuid::LowType guidLow = highGuid + 1;
 
 		if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
 		{
