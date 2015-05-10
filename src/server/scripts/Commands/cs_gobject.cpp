@@ -152,6 +152,12 @@ public:
 		GameObject* object = new GameObject;
 		ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
+		QueryResult objectGuids = WorldDatabase.PQuery("SELECT MAX(guid) FROM gameobject");
+
+		Field * maxGuid = objectGuids->Fetch();
+
+		ObjectGuid::LowType guidLow = maxGuid[0].GetInt32 + 1;
+
 		if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
 		{
 			delete object;
