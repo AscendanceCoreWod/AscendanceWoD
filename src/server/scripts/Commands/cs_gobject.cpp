@@ -195,7 +195,7 @@ public:
 		float o = float(player->GetOrientation());
 		Map* map = player->GetMap();
 
-		/*std::stringstream phases;
+		std::stringstream phases;
 
 		for (uint32 phase : player->GetPhases())
 		{
@@ -207,7 +207,7 @@ public:
 		uint32 phase = atoi(phasing);
 
 		if (!phase)
-			uint32 phase = 0;*/
+			uint32 phase = 0;
 
 		GameObject* object = new GameObject;
 		// ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
@@ -251,14 +251,15 @@ public:
 		/// @todo is it really necessary to add both the real and DB table guid here ?
 		sObjectMgr->AddGameobjectToGrid(guidLow, ASSERT_NOTNULL(sObjectMgr->GetGOData(guidLow)));
 
-		/*object->ClearPhases();
+		handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
+
+		object->ClearPhases();
 		object->SetInPhase(phase, true, true);
 		object->SetDBPhase(phase);
 		object->SaveToDB();
 
-		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, object->GetGUID());*/
+		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
 
-		handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
 		return true;
 	}
 
