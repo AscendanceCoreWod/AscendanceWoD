@@ -9667,7 +9667,27 @@ uint8 Player::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool swap) c
             slots[0] = EQUIPMENT_SLOT_OFFHAND;
             break;
         case INVTYPE_RANGED:
-            slots[0] = EQUIPMENT_SLOT_RANGED;
+			slots[0] = EQUIPMENT_SLOT_MAINHAND;
+			if (Item* mhWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+				{
+				if (ItemTemplate const* mhWeaponProto = mhWeapon->GetTemplate())
+					{
+					if (mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+						{
+						const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+						break;
+						}
+					}
+				}
+			
+				if (GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+				{
+				if (proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+					{
+					const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+					break;
+					}
+				}
             break;
         case INVTYPE_2HWEAPON:
             slots[0] = EQUIPMENT_SLOT_MAINHAND;
@@ -9707,10 +9727,50 @@ uint8 Player::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool swap) c
             slots[0] = EQUIPMENT_SLOT_OFFHAND;
             break;
         case INVTYPE_THROWN:
-            slots[0] = EQUIPMENT_SLOT_RANGED;
+			slots[0] = EQUIPMENT_SLOT_MAINHAND;
+			if (Item* mhWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+				{
+				if (ItemTemplate const* mhWeaponProto = mhWeapon->GetTemplate())
+					{
+					if (mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+						{
+						const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+						break;
+						}
+					}
+				}
+			
+				if (GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+				{
+				if (proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+					{
+					const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+					break;
+					}
+				}
             break;
         case INVTYPE_RANGEDRIGHT:
-            slots[0] = EQUIPMENT_SLOT_RANGED;
+			slots[0] = EQUIPMENT_SLOT_MAINHAND;
+			if (Item* mhWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+				{
+				if (ItemTemplate const* mhWeaponProto = mhWeapon->GetTemplate())
+					{
+					if (mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || mhWeaponProto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+						{
+						const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+						break;
+						}
+					}
+				}
+			
+				if (GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+				{
+				if (proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_POLEARM || proto->GetSubClass() == ITEM_SUBCLASS_WEAPON_STAFF)
+					{
+					const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+					break;
+					}
+				}
             break;
         case INVTYPE_BAG:
             slots[0] = INVENTORY_SLOT_BAG_START + 0;
@@ -9938,7 +9998,7 @@ Item* Player::GetWeaponForAttack(WeaponAttackType attackType, bool useable /*= f
     {
         case BASE_ATTACK:   slot = EQUIPMENT_SLOT_MAINHAND; break;
         case OFF_ATTACK:    slot = EQUIPMENT_SLOT_OFFHAND;  break;
-        case RANGED_ATTACK: slot = EQUIPMENT_SLOT_RANGED;   break;
+        case RANGED_ATTACK: slot = EQUIPMENT_SLOT_MAINHAND;   break;
         default: return NULL;
     }
 
