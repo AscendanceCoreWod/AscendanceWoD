@@ -228,8 +228,6 @@ bool GameObject::Create(ObjectGuid::LowType guidlow, uint32 name_id, Map* map, u
 	else
 		SetObjectScale(goinfo->size);
 
-	SetObjectScale(goinfo->size);
-
 	SetUInt32Value(GAMEOBJECT_FACTION, goinfo->faction);
 	SetUInt32Value(GAMEOBJECT_FLAGS, goinfo->flags);
 
@@ -1334,7 +1332,6 @@ void GameObject::Use(Unit* user)
 		{
 			// the distance between this slot and the center of the go - imagine a 1D space
 			float relativeDistance = (info->size*itr->first) - (info->size*(info->chair.chairslots - 1) / 2.0f);
-
 			if (const GameObjectData* data = GetGOData())
 				relativeDistance = (data->size*itr->first) - (data->size*(info->chair.chairslots - 1) / 2.0f);
 
