@@ -210,7 +210,7 @@ public:
 			uint32 phase = 0;
 
 		GameObject* object = new GameObject;
-		// ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
+		ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
 		// QueryResult objectGuids = WorldDatabase.PQuery("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'gameobject'");
 
@@ -236,6 +236,8 @@ public:
 
 		// fill the gameobject data and save to the db
 		object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), player->GetPhaseMask());
+		guidLow = object->GetSpawnId();
+
 		// delete the old object and do a clean load from DB with a fresh new GameObject instance.
 		// this is required to avoid weird behavior and memory leaks
 		delete object;
