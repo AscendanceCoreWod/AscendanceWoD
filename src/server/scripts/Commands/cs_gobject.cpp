@@ -212,13 +212,13 @@ public:
 		GameObject* object = new GameObject;
 		// ObjectGuid::LowType guidLow = map->GenerateLowGuid<HighGuid::GameObject>();
 
-		QueryResult objectGuids = WorldDatabase.PQuery("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'gameobject'");
+		// QueryResult objectGuids = WorldDatabase.PQuery("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'gameobject'");
 
-		Field * maxGuid = objectGuids->Fetch();
+		// Field * maxGuid = objectGuids->Fetch();
 
-		std::uint32_t highGuid = maxGuid[0].GetUInt32();
+		// std::uint32_t highGuid = maxGuid[0].GetUInt32();
 
-		ObjectGuid::LowType guidLow = highGuid;
+		// ObjectGuid::LowType guidLow = highGuid;
 
 		if (!object->Create(guidLow, objectInfo->entry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
 		{
