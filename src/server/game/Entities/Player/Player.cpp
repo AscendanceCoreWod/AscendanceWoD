@@ -18636,8 +18636,6 @@ void Player::SendRaidInfo()
         {
             if (itr->second.perm)
             {
-				WorldPackets::Instance::InstanceInfo::ClientInstanceLock lock;
-
                 InstanceSave* save = itr->second.save;
 
                 WorldPackets::Instance::InstanceLockInfos lockInfos;
@@ -18659,6 +18657,7 @@ void Player::SendRaidInfo()
             }
         }
     }
+
     GetSession()->SendPacket(instanceInfo.Write());
 }
 
