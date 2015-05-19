@@ -74,511 +74,508 @@ namespace rbac
 
 namespace WorldPackets
 {
-	namespace Achievement
-	{
-		class GuildSetFocusedAchievement;
-	}
+    namespace Achievement
+    {
+        class GuildSetFocusedAchievement;
+    }
 
-	namespace AuctionHouse
-	{
-		class AuctionHelloRequest;
-		class AuctionListBidderItems;
-		class AuctionListItems;
-		class AuctionListOwnerItems;
-		class AuctionListPendingSales;
-		class AuctionPlaceBid;
-		class AuctionRemoveItem;
-		class AuctionReplicateItems;
-		class AuctionSellItem;
-	}
+    namespace AuctionHouse
+    {
+        class AuctionHelloRequest;
+        class AuctionListBidderItems;
+        class AuctionListItems;
+        class AuctionListOwnerItems;
+        class AuctionListPendingSales;
+        class AuctionPlaceBid;
+        class AuctionRemoveItem;
+        class AuctionReplicateItems;
+        class AuctionSellItem;
+    }
 
-	namespace Auth
-	{
-		enum class ConnectToSerial : uint32;
-	}
+    namespace Auth
+    {
+        enum class ConnectToSerial : uint32;
+    }
 
-	namespace Bank
-	{
-		class AutoBankItem;
-		class AutoStoreBankItem;
-		class BuyBankSlot;
-	}
+    namespace Bank
+    {
+        class AutoBankItem;
+        class AutoStoreBankItem;
+        class BuyBankSlot;
+    }
 
-	namespace Battleground
-	{
-		class AreaSpiritHealerQuery;
-		class AreaSpiritHealerQueue;
-		class HearthAndResurrect;
-		class PVPLogDataRequest;
-		class BattlemasterJoin;
-		class BattlefieldLeave;
-		class BattlefieldPort;
-		class BattlefieldListRequest;
-		class GetPVPOptionsEnabled;
-		class RequestBattlefieldStatus;
-		class ReportPvPPlayerAFK;
-	}
+    namespace Battleground
+    {
+        class AreaSpiritHealerQuery;
+        class AreaSpiritHealerQueue;
+        class HearthAndResurrect;
+        class PVPLogDataRequest;
+        class BattlemasterJoin;
+        class BattlefieldLeave;
+        class BattlefieldPort;
+        class BattlefieldListRequest;
+        class GetPVPOptionsEnabled;
+        class RequestBattlefieldStatus;
+        class ReportPvPPlayerAFK;
+    }
 
-	namespace BlackMarket
-	{
-		class BlackMarketOpen;
-	}
+    namespace BlackMarket
+    {
+        class BlackMarketOpen;
+    }
 
-	namespace Character
-	{
-		struct CharacterCreateInfo;
-		struct CharacterRenameInfo;
-		struct CharCustomizeInfo;
-		struct CharRaceOrFactionChangeInfo;
-		struct CharacterUndeleteInfo;
+    namespace Character
+    {
+        struct CharacterCreateInfo;
+        struct CharacterRenameInfo;
+        struct CharCustomizeInfo;
+        struct CharRaceOrFactionChangeInfo;
+        struct CharacterUndeleteInfo;
 
-		class AlterApperance;
-		class EnumCharacters;
-		class CreateCharacter;
-		class CharDelete;
-		class CharacterRenameRequest;
-		class CharCustomize;
-		class CharRaceOrFactionChange;
-		class GenerateRandomCharacterName;
-		class GetUndeleteCharacterCooldownStatus;
-		class ReorderCharacters;
-		class UndeleteCharacter;
-		class PlayerLogin;
-		class LogoutRequest;
-		class LogoutCancel;
-		class LoadingScreenNotify;
-		class SetActionBarToggles;
-		class RequestPlayedTime;
-		class ShowingCloak;
-		class ShowingHelm;
-		class SetTitle;
-		class SetFactionAtWar;
-		class SetFactionNotAtWar;
-		class SetFactionInactive;
-		class SetWatchedFaction;
+        class AlterApperance;
+        class EnumCharacters;
+        class CreateCharacter;
+        class CharDelete;
+        class CharacterRenameRequest;
+        class CharCustomize;
+        class CharRaceOrFactionChange;
+        class GenerateRandomCharacterName;
+        class GetUndeleteCharacterCooldownStatus;
+        class ReorderCharacters;
+        class UndeleteCharacter;
+        class PlayerLogin;
+        class LogoutRequest;
+        class LogoutCancel;
+        class LoadingScreenNotify;
+        class SetActionBarToggles;
+        class RequestPlayedTime;
+        class ShowingCloak;
+        class ShowingHelm;
+        class SetTitle;
+        class SetFactionAtWar;
+        class SetFactionNotAtWar;
+        class SetFactionInactive;
+        class SetWatchedFaction;
 
-		enum class LoginFailureReason : uint8;
-	}
+        enum class LoginFailureReason : uint8;
+    }
 
-	namespace ClientConfig
-	{
-		class RequestAccountData;
-		class UserClientUpdateAccountData;
-	}
+    namespace ClientConfig
+    {
+        class RequestAccountData;
+        class UserClientUpdateAccountData;
+    }
 
-	namespace Channel
-	{
-		class ChannelPlayerCommand;
-		class JoinChannel;
-		class LeaveChannel;
-		class UserlistAdd;
-		class UserlistRemove;
-		class UserlistUpdate;
-	}
+    namespace Channel
+    {
+        class ChannelPlayerCommand;
+        class JoinChannel;
+        class LeaveChannel;
+    }
 
-	namespace Chat
-	{
-		class ChatMessage;
-		class ChatMessageWhisper;
-		class ChatMessageChannel;
-		class ChatAddonMessage;
-		class ChatAddonMessageWhisper;
-		class ChatAddonMessageChannel;
-		class ChatMessageAFK;
-		class ChatMessageDND;
-		class ChatMessageEmote;
-		class CTextEmote;
-		class EmoteClient;
-	}
+    namespace Chat
+    {
+        class ChatMessage;
+        class ChatMessageWhisper;
+        class ChatMessageChannel;
+        class ChatAddonMessage;
+        class ChatAddonMessageWhisper;
+        class ChatAddonMessageChannel;
+        class ChatMessageAFK;
+        class ChatMessageDND;
+        class ChatMessageEmote;
+        class CTextEmote;
+        class EmoteClient;
+    }
 
-	namespace Combat
-	{
-		class AttackSwing;
-		class AttackStop;
-		class SetSheathed;
-	}
+    namespace Combat
+    {
+        class AttackSwing;
+        class AttackStop;
+        class SetSheathed;
+    }
 
-	namespace Duel
-	{
-		class CanDuel;
-		class DuelResponse;
-	}
+    namespace Duel
+    {
+        class CanDuel;
+        class DuelResponse;
+    }
 
-	namespace EquipmentSet
-	{
-		class SaveEquipmentSet;
-		class DeleteEquipmentSet;
-		class UseEquipmentSet;
-	}
+    namespace EquipmentSet
+    {
+        class SaveEquipmentSet;
+        class DeleteEquipmentSet;
+        class UseEquipmentSet;
+    }
 
-	namespace GameObject
-	{
-		class GameObjReportUse;
-		class GameObjUse;
-	}
+    namespace GameObject
+    {
+        class GameObjReportUse;
+        class GameObjUse;
+    }
 
-	namespace Garrison
-	{
-		class GetGarrisonInfo;
-		class GarrisonPurchaseBuilding;
-		class GarrisonCancelConstruction;
-		class GarrisonRequestBlueprintAndSpecializationData;
-		class GarrisonGetBuildingLandmarks;
-	}
+    namespace Garrison
+    {
+        class GetGarrisonInfo;
+        class GarrisonPurchaseBuilding;
+        class GarrisonCancelConstruction;
+        class GarrisonRequestBlueprintAndSpecializationData;
+        class GarrisonGetBuildingLandmarks;
+    }
 
-	namespace Guild
-	{
-		class QueryGuildInfo;
-		class GuildInviteByName;
-		class AcceptGuildInvite;
-		class DeclineGuildInvites;
-		class GuildDeclineInvitation;
-		class GuildGetRoster;
-		class GuildPromoteMember;
-		class GuildDemoteMember;
-		class GuildOfficerRemoveMember;
-		class GuildAssignMemberRank;
-		class GuildLeave;
-		class GuildDelete;
-		class GuildUpdateMotdText;
-		class GuildGetRanks;
-		class GuildAddRank;
-		class GuildDeleteRank;
-		class GuildUpdateInfoText;
-		class GuildSetMemberNote;
-		class GuildEventLogQuery;
-		class GuildBankRemainingWithdrawMoneyQuery;
-		class GuildPermissionsQuery;
-		class GuildSetRankPermissions;
-		class GuildBankActivate;
-		class GuildBankQueryTab;
-		class GuildBankDepositMoney;
-		class GuildBankWithdrawMoney;
-		class GuildBankSwapItems;
-		class GuildBankBuyTab;
-		class GuildBankUpdateTab;
-		class GuildBankLogQuery;
-		class GuildBankTextQuery;
-		class GuildBankSetTabText;
-		class RequestGuildPartyState;
-		class RequestGuildRewardsList;
-		class GuildQueryNews;
-		class GuildNewsUpdateSticky;
-		class GuildSetGuildMaster;
-		class GuildChallengeUpdateRequest;
-		class SaveGuildEmblem;
-		class GuildSetAchievementTracking;
-	}
+    namespace Guild
+    {
+        class QueryGuildInfo;
+        class GuildInviteByName;
+        class AcceptGuildInvite;
+        class DeclineGuildInvites;
+        class GuildDeclineInvitation;
+        class GuildGetRoster;
+        class GuildPromoteMember;
+        class GuildDemoteMember;
+        class GuildOfficerRemoveMember;
+        class GuildAssignMemberRank;
+        class GuildLeave;
+        class GuildDelete;
+        class GuildUpdateMotdText;
+        class GuildGetRanks;
+        class GuildAddRank;
+        class GuildDeleteRank;
+        class GuildUpdateInfoText;
+        class GuildSetMemberNote;
+        class GuildEventLogQuery;
+        class GuildBankRemainingWithdrawMoneyQuery;
+        class GuildPermissionsQuery;
+        class GuildSetRankPermissions;
+        class GuildBankActivate;
+        class GuildBankQueryTab;
+        class GuildBankDepositMoney;
+        class GuildBankWithdrawMoney;
+        class GuildBankSwapItems;
+        class GuildBankBuyTab;
+        class GuildBankUpdateTab;
+        class GuildBankLogQuery;
+        class GuildBankTextQuery;
+        class GuildBankSetTabText;
+        class RequestGuildPartyState;
+        class RequestGuildRewardsList;
+        class GuildQueryNews;
+        class GuildNewsUpdateSticky;
+        class GuildSetGuildMaster;
+        class GuildChallengeUpdateRequest;
+        class SaveGuildEmblem;
+        class GuildSetAchievementTracking;
+    }
 
-	namespace Inspect
-	{
-		class Inspect;
-		class InspectPVPRequest;
-		class QueryInspectAchievements;
-		class RequestHonorStats;
-	}
+    namespace Inspect
+    {
+        class Inspect;
+        class InspectPVPRequest;
+        class QueryInspectAchievements;
+        class RequestHonorStats;
+    }
 
-	namespace Instance
-	{
-		class InstanceInfo;
-	}
+    namespace Instance
+    {
+        class InstanceInfo;
+    }
 
-	namespace Item
-	{
-		class AutoEquipItem;
-		class AutoEquipItemSlot;
-		class AutoStoreBagItem;
-		class BuyItem;
-		class BuyBackItem;
-		class DestroyItem;
-		class GetItemPurchaseData;
-		class RepairItem;
-		class ReadItem;
-		class SellItem;
-		class SplitItem;
-		class SwapInvItem;
-		class SwapItem;
-		class WrapItem;
-		class CancelTempEnchantment;
-	}
+    namespace Item
+    {
+        class AutoEquipItem;
+        class AutoEquipItemSlot;
+        class AutoStoreBagItem;
+        class BuyItem;
+        class BuyBackItem;
+        class DestroyItem;
+        class GetItemPurchaseData;
+        class RepairItem;
+        class ReadItem;
+        class SellItem;
+        class SplitItem;
+        class SwapInvItem;
+        class SwapItem;
+        class WrapItem;
+        class CancelTempEnchantment;
+    }
 
-	namespace Loot
-	{
-		class LootUnit;
-		class LootItem;
-		class LootRelease;
-		class LootMoney;
-		class LootRoll;
-	}
+    namespace Loot
+    {
+        class LootUnit;
+        class LootItem;
+        class LootRelease;
+        class LootMoney;
+        class LootRoll;
+    }
 
-	namespace Mail
-	{
-		class MailCreateTextItem;
-		class MailDelete;
-		class MailGetList;
-		class MailMarkAsRead;
-		class MailQueryNextMailTime;
-		class MailReturnToSender;
-		class MailTakeItem;
-		class MailTakeMoney;
-		class SendMail;
-	}
+    namespace Mail
+    {
+        class MailCreateTextItem;
+        class MailDelete;
+        class MailGetList;
+        class MailMarkAsRead;
+        class MailQueryNextMailTime;
+        class MailReturnToSender;
+        class MailTakeItem;
+        class MailTakeMoney;
+        class SendMail;
+    }
 
-	namespace Misc
-	{
-		class AreaTrigger;
-		class SetSelection;
-		class ViolenceLevel;
-		class TimeSyncResponse;
-		class TutorialSetFlag;
-		class SetDungeonDifficulty;
-		class SetRaidDifficulty;
-		class PortGraveyard;
-		class ReclaimCorpse;
-		class RepopRequest;
-		class RequestCemeteryList;
-		class ResurrectResponse;
-		class StandStateChange;
-		class UITimeRequest;
-		class RandomRollClient;
-		class ObjectUpdateFailed;
-		class ObjectUpdateRescued;
-		class CompleteCinematic;
-		class NextCinematicCamera;
-		class FarSight;
-		class LoadCUFProfiles;
-		class SaveCUFProfiles;
-	}
+    namespace Misc
+    {
+        class AreaTrigger;
+        class SetSelection;
+        class ViolenceLevel;
+        class TimeSyncResponse;
+        class TutorialSetFlag;
+        class SetDungeonDifficulty;
+        class SetRaidDifficulty;
+        class PortGraveyard;
+        class ReclaimCorpse;
+        class RepopRequest;
+        class RequestCemeteryList;
+        class ResurrectResponse;
+        class StandStateChange;
+        class UITimeRequest;
+        class RandomRollClient;
+        class ObjectUpdateFailed;
+        class ObjectUpdateRescued;
+        class CompleteCinematic;
+        class NextCinematicCamera;
+        class FarSight;
+        class LoadCUFProfiles;
+        class SaveCUFProfiles;
+    }
 
-	namespace Movement
-	{
-		class ClientPlayerMovement;
-		class WorldPortResponse;
-		class MoveTeleportAck;
-		class MovementAckMessage;
-		class MovementSpeedAck;
-		class SetActiveMover;
-		class MoveSetCollisionHeightAck;
-		class MoveTimeSkipped;
-	}
+    namespace Movement
+    {
+        class ClientPlayerMovement;
+        class WorldPortResponse;
+        class MoveTeleportAck;
+        class MovementAckMessage;
+        class MovementSpeedAck;
+        class SetActiveMover;
+        class MoveSetCollisionHeightAck;
+        class MoveTimeSkipped;
+    }
 
-	namespace NPC
-	{
-		class Hello;
-		class GossipSelectOption;
-		class SpiritHealerActivate;
-		class TrainerBuySpell;
-	}
+    namespace NPC
+    {
+        class Hello;
+        class GossipSelectOption;
+        class SpiritHealerActivate;
+        class TrainerBuySpell;
+    }
 
-	namespace Party
-	{
-		class PartyCommandResult;
-		class PartyInviteClient;
-		class PartyInvite;
-		class PartyInviteResponse;
-		class PartyUninvite;
-		class GroupDecline;
-		class RequestPartyMemberStats;
-		class PartyMemberStats;
-		class SetPartyLeader;
-		class SetRole;
-		class RoleChangedInform;
-		class SetLootMethod;
-		class LeaveGroup;
-		class MinimapPingClient;
-		class MinimapPing;
-		class UpdateRaidTarget;
-		class SendRaidTargetUpdateSingle;
-		class SendRaidTargetUpdateAll;
-		class ConvertRaid;
-		class RequestPartyJoinUpdates;
-		class SetAssistantLeader;
-		class DoReadyCheck;
-		class ReadyCheckStarted;
-		class ReadyCheckResponseClient;
-		class ReadyCheckResponse;
-		class ReadyCheckCompleted;
-		class RequestRaidInfo;
-		class OptOutOfLoot;
-		class InitiateRolePoll;
-		class RolePollInform;
-		class GroupNewLeader;
-		class PartyUpdate;
-		class SetEveryoneIsAssistant;
-		class ChangeSubGroup;
-		class SwapSubGroups;
-		class RaidMarkersChanged;
-		class ClearRaidMarker;
-	}
+    namespace Party
+    {
+        class PartyCommandResult;
+        class PartyInviteClient;
+        class PartyInvite;
+        class PartyInviteResponse;
+        class PartyUninvite;
+        class GroupDecline;
+        class RequestPartyMemberStats;
+        class PartyMemberStats;
+        class SetPartyLeader;
+        class SetRole;
+        class RoleChangedInform;
+        class SetLootMethod;
+        class LeaveGroup;
+        class MinimapPingClient;
+        class MinimapPing;
+        class UpdateRaidTarget;
+        class SendRaidTargetUpdateSingle;
+        class SendRaidTargetUpdateAll;
+        class ConvertRaid;
+        class RequestPartyJoinUpdates;
+        class SetAssistantLeader;
+        class DoReadyCheck;
+        class ReadyCheckStarted;
+        class ReadyCheckResponseClient;
+        class ReadyCheckResponse;
+        class ReadyCheckCompleted;
+        class RequestRaidInfo;
+        class OptOutOfLoot;
+        class InitiateRolePoll;
+        class RolePollInform;
+        class GroupNewLeader;
+        class PartyUpdate;
+        class SetEveryoneIsAssistant;
+        class ChangeSubGroup;
+        class SwapSubGroups;
+        class RaidMarkersChanged;
+        class ClearRaidMarker;
+    }
 
-	namespace Petition
-	{
-		class DeclinePetition;
-		class OfferPetition;
-		class PetitionBuy;
-		class PetitionRenameGuild;
-		class PetitionShowList;
-		class PetitionShowSignatures;
-		class QueryPetition;
-		class SignPetition;
-		class TurnInPetition;
-	}
+    namespace Petition
+    {
+        class DeclinePetition;
+        class OfferPetition;
+        class PetitionBuy;
+        class PetitionRenameGuild;
+        class PetitionShowList;
+        class PetitionShowSignatures;
+        class QueryPetition;
+        class SignPetition;
+        class TurnInPetition;
+    }
 
-	namespace Query
-	{
-		class QueryCreature;
-		class QueryPlayerName;
-		class QueryPageText;
-		class QueryNPCText;
-		class DBQueryBulk;
-		class QueryGameObject;
-		class QueryCorpseLocationFromClient;
-		class QueryCorpseTransport;
-		class QueryTime;
-		class QueryPetName;
-		class QuestPOIQuery;
-		class QueryQuestCompletionNPCs;
-		class ItemTextQuery;
-	}
+    namespace Query
+    {
+        class QueryCreature;
+        class QueryPlayerName;
+        class QueryPageText;
+        class QueryNPCText;
+        class DBQueryBulk;
+        class QueryGameObject;
+        class QueryCorpseLocationFromClient;
+        class QueryCorpseTransport;
+        class QueryTime;
+        class QueryPetName;
+        class QuestPOIQuery;
+        class QueryQuestCompletionNPCs;
+        class ItemTextQuery;
+    }
 
-	namespace Quest
-	{
-		class QuestConfirmAccept;
-		class QuestGiverStatusQuery;
-		class QuestGiverStatusMultipleQuery;
-		class QuestGiverHello;
-		class QueryQuestInfo;
-		class QuestGiverChooseReward;
-		class QuestGiverCompleteQuest;
-		class QuestGiverRequestReward;
-		class QuestGiverQueryQuest;
-		class QuestGiverAcceptQuest;
-		class QuestLogRemoveQuest;
-	}
+    namespace Quest
+    {
+        class QuestConfirmAccept;
+        class QuestGiverStatusQuery;
+        class QuestGiverStatusMultipleQuery;
+        class QuestGiverHello;
+        class QueryQuestInfo;
+        class QuestGiverChooseReward;
+        class QuestGiverCompleteQuest;
+        class QuestGiverRequestReward;
+        class QuestGiverQueryQuest;
+        class QuestGiverAcceptQuest;
+        class QuestLogRemoveQuest;
+    }
 
-	namespace RaF
-	{
-		class AcceptLevelGrant;
-		class GrantLevel;
-	}
+    namespace RaF
+    {
+        class AcceptLevelGrant;
+        class GrantLevel;
+    }
 
-	namespace Reputation
-	{
-		class RequestForcedReactions;
-	}
+    namespace Reputation
+    {
+        class RequestForcedReactions;
+    }
 
-	namespace Scenes
-	{
-		class SceneTriggerEvent;
-		class ScenePlaybackComplete;
-		class ScenePlaybackCanceled;
-	}
+    namespace Scenes
+    {
+        class SceneTriggerEvent;
+        class ScenePlaybackComplete;
+        class ScenePlaybackCanceled;
+    }
 
-	namespace Social
-	{
-		class AddFriend;
-		class AddIgnore;
-		class DelFriend;
-		class DelIgnore;
-		class SendContactList;
-		class SetContactNotes;
-	}
+    namespace Social
+    {
+        class AddFriend;
+        class AddIgnore;
+        class DelFriend;
+        class DelIgnore;
+        class SendContactList;
+        class SetContactNotes;
+    }
 
-	namespace Spells
-	{
-		class CancelAura;
-		class CancelGrowthAura;
-		class CancelMountAura;
-		class RequestCategoryCooldowns;
-		class CancelCast;
-		class CastSpell;
-		class PetCastSpell;
-		class UseItem;
-		class OpenItem;
-		class SetActionButton;
-		class UnlearnSkill;
-		class SelfRes;
-	}
+    namespace Spells
+    {
+        class CancelAura;
+        class CancelGrowthAura;
+        class CancelMountAura;
+        class RequestCategoryCooldowns;
+        class CancelCast;
+        class CastSpell;
+        class PetCastSpell;
+        class UseItem;
+        class OpenItem;
+        class SetActionButton;
+        class UnlearnSkill;
+        class SelfRes;
+    }
 
-	namespace Talent
-	{
-		class SetSpecialization;
-		class LearnTalents;
-	}
+    namespace Talent
+    {
+        class SetSpecialization;
+        class LearnTalents;
+    }
 
-	namespace Ticket
-	{
-		class GMSurveySubmit;
-		class GMTicketAcknowledgeSurvey;
-		class GMTicketCreate;
-		class GMTicketDelete;
-		class GMTicketGetSystemStatus;
-		class GMTicketGetCaseStatus;
-		class GMTicketGetTicket;
-		class GMTicketResponseResolve;
-		class GMTicketUpdateText;
-		class SupportTicketSubmitBug;
-		class SupportTicketSubmitSuggestion;
-		class SupportTicketSubmitComplaint;
-		class BugReport;
-	}
+    namespace Ticket
+    {
+        class GMSurveySubmit;
+        class GMTicketAcknowledgeSurvey;
+        class GMTicketCreate;
+        class GMTicketDelete;
+        class GMTicketGetSystemStatus;
+        class GMTicketGetCaseStatus;
+        class GMTicketGetTicket;
+        class GMTicketResponseResolve;
+        class GMTicketUpdateText;
+        class SupportTicketSubmitBug;
+        class SupportTicketSubmitSuggestion;
+        class SupportTicketSubmitComplaint;
+        class BugReport;
+    }
 
-	namespace Token
-	{
-		class UpdateListedAuctionableTokens;
-		class RequestWowTokenMarketPrice;
-	}
+    namespace Token
+    {
+        class UpdateListedAuctionableTokens;
+        class RequestWowTokenMarketPrice;
+    }
 
-	namespace Trade
-	{
-		class AcceptTrade;
-		class BeginTrade;
-		class BusyTrade;
-		class CancelTrade;
-		class ClearTradeItem;
-		class IgnoreTrade;
-		class InitiateTrade;
-		class SetTradeCurrency;
-		class SetTradeGold;
-		class SetTradeItem;
-		class UnacceptTrade;
-		class TradeStatus;
-	}
+    namespace Trade
+    {
+        class AcceptTrade;
+        class BeginTrade;
+        class BusyTrade;
+        class CancelTrade;
+        class ClearTradeItem;
+        class IgnoreTrade;
+        class InitiateTrade;
+        class SetTradeCurrency;
+        class SetTradeGold;
+        class SetTradeItem;
+        class UnacceptTrade;
+        class TradeStatus;
+    }
 
-	namespace Vehicle
-	{
-		class MoveDismissVehicle;
-		class RequestVehiclePrevSeat;
-		class RequestVehicleNextSeat;
-		class MoveChangeVehicleSeats;
-		class RequestVehicleSwitchSeat;
-		class RideVehicleInteract;
-		class EjectPassenger;
-		class RequestVehicleExit;
-		class MoveSetVehicleRecIdAck;
-	}
+    namespace Vehicle
+    {
+        class MoveDismissVehicle;
+        class RequestVehiclePrevSeat;
+        class RequestVehicleNextSeat;
+        class MoveChangeVehicleSeats;
+        class RequestVehicleSwitchSeat;
+        class RideVehicleInteract;
+        class EjectPassenger;
+        class RequestVehicleExit;
+        class MoveSetVehicleRecIdAck;
+    }
 
-	namespace VoidStorage
-	{
-		class UnlockVoidStorage;
-		class QueryVoidStorage;
-		class VoidStorageTransfer;
-		class SwapVoidItem;
-	}
+    namespace VoidStorage
+    {
+        class UnlockVoidStorage;
+        class QueryVoidStorage;
+        class VoidStorageTransfer;
+        class SwapVoidItem;
+    }
 
-	namespace Who
-	{
-		class WhoIsRequest;
-		class WhoRequestPkt;
-	}
+    namespace Who
+    {
+        class WhoIsRequest;
+        class WhoRequestPkt;
+    }
 
-	class Null final : public ClientPacket
-	{
-	public:
-		Null(WorldPacket&& packet) : ClientPacket(std::move(packet)) { }
+    class Null final : public ClientPacket
+    {
+    public:
+        Null(WorldPacket&& packet) : ClientPacket(std::move(packet)) { }
 
-		void Read() override { _worldPacket.rfinish(); }
-	};
+        void Read() override { _worldPacket.rfinish(); }
+    };
 }
 
 enum AccountDataType
