@@ -2254,6 +2254,9 @@ void World::Update(uint32 diff)
     sLFGMgr->Update(diff);
     RecordTimeDiff("UpdateLFGMgr");
 
+    sGroupMgr->Update(diff);
+    RecordTimeDiff("GroupMgr");
+
     // execute callbacks from sql queries that were queued recently
     ProcessQueryCallbacks();
     RecordTimeDiff("ProcessQueryCallbacks");
@@ -2383,7 +2386,7 @@ namespace Trinity
                 while (char* line = ChatHandler::LineFromMessage(text))
                 {
                     WorldPackets::Chat::Chat packet;
-                    packet.Initalize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, line);
+                    packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, line);
                     packet.Write();
                     dataList.emplace_back(new WorldPacket(packet.Move()));
                 }
@@ -2471,7 +2474,7 @@ void World::SendGlobalText(const char* text, WorldSession* self)
     while (char* line = ChatHandler::LineFromMessage(pos))
     {
         WorldPackets::Chat::Chat packet;
-        packet.Initalize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, line);
+        packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, line);
         SendGlobalMessage(packet.Write(), self);
     }
 
@@ -2505,7 +2508,7 @@ bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession
 void World::SendZoneText(uint32 zone, const char* text, WorldSession* self, uint32 team)
 {
     WorldPackets::Chat::Chat packet;
-    packet.Initalize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
+    packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
     SendZoneMessage(zone, packet.Write(), self, team);
 }
 
