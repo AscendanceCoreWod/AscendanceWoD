@@ -22,6 +22,7 @@
 #include "Vehicle.h"
 #include "SpellAuras.h"
 #include "SpellAuraEffects.h"
+#include "ObjectMgr.h"
 
 WorldPacket const* WorldPackets::Party::PartyCommandResult::Write()
 {
@@ -75,12 +76,10 @@ WorldPacket const* WorldPackets::Party::PartyInvite::Write()
 	_worldPacket.WriteBit(IsLocal);
 	_worldPacket.WriteBit(Unk2);
 
-	_worldPacket.FlushBits();
-
-	_worldPacket.WriteBits(InviterRealmNameActual.size(), 8);
-	_worldPacket.WriteBits(InviterRealmNameNormalized.size(), 8);
-	_worldPacket.WriteString(InviterRealmNameActual);
-	_worldPacket.WriteString(InviterRealmNameNormalized);
+    _worldPacket.WriteBits(InviterRealmNameActual.size(), 8);
+    _worldPacket.WriteBits(InviterRealmNameNormalized.size(), 8);
+    _worldPacket.WriteString(InviterRealmNameActual);
+    _worldPacket.WriteString(InviterRealmNameNormalized);
 
 	_worldPacket << ProposedRoles;
 	_worldPacket << int32(LfgSlots.size());
