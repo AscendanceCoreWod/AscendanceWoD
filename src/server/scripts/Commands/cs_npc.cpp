@@ -1,4 +1,4 @@
-/*
+ll/*
  * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -210,6 +210,7 @@ public:
             { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "", NULL },
             { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "", NULL },
             { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "", NULL },
+			{ "die",        rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcDieCommand,			     "", NULL },
             //{ "name",       rbac::RBAC_PERM_COMMAND_NPC_SET_NAME,    false, &HandleNpcSetNameCommand,          "", NULL },
             //{ "subname",    rbac::RBAC_PERM_COMMAND_NPC_SET_SUBNAME, false, &HandleNpcSetSubNameCommand,       "", NULL },
             { NULL,         0,                                   false, NULL,                              "", NULL }
@@ -238,6 +239,52 @@ public:
         };
         return commandTable;
     }
+
+	static bool HandleNpcDieCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 138767;
+
+		SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+		if (!spellInfo)
+		{
+			handler->PSendSysMessage(LANG_COMMAND_NOSPELLFOUND);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		if (!SpellMgr::IsSpellValid(spellInfo, handler->GetSession()->GetPlayer()))
+		{
+			handler->PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spellId);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		char* triggeredStr = strtok(NULL, " ");
+		if (triggeredStr)
+		{
+			int l = strlen(triggeredStr);
+			if (strncmp(triggeredStr, "triggered", l) != 0)
+				return false;
+		}
+
+		bool triggered = (triggeredStr != NULL);
+
+		handler->GetSession()->GetPlayer()->CastSpell(target, spellId, triggered);
+
+		return true;
+	}
 
     //add spawn of creature
     static bool HandleNpcAddCommand(ChatHandler* handler, char const* args)
