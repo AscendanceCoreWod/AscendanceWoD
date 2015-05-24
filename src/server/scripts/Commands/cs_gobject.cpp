@@ -32,6 +32,17 @@ EndScriptData */
 #include "Player.h"
 #include "Opcodes.h"
 
+void SetPhase(GameObject* object, uint32 phase)
+{
+	object->ClearPhases();
+	object->SetInPhase(phase, true, true);
+	object->SetDBPhase(phase);
+
+	object->SaveToDB();
+
+	WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, object->GetSpawnId());
+}
+
 class gobject_commandscript : public CommandScript
 {
 public:
@@ -255,12 +266,7 @@ public:
 
 		handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
 
-		object->ClearPhases();
-		object->SetInPhase(phase, true, true);
-		object->SetDBPhase(phase);
-		object->SaveToDB();
-
-		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
+		SetPhase(object, phase);
 
 		return true;
 	}

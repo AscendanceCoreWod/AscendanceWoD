@@ -1467,6 +1467,7 @@ void AddBattlegroundScripts()
 	void AddSC_chat();
 	void AddSC_system_phase();
 	void AddSC_customskills();
+	void AddSC_misc();
 	//void AddSC_refresh();
 #endif
 
@@ -1477,6 +1478,7 @@ void AddCustomScripts()
 	AddSC_chat();
 	AddSC_system_phase();
 	AddSC_customskills();
+	AddSC_misc();
 	//AddSC_refresh();
 #endif
 }

@@ -17,6 +17,7 @@ Custom/chat.cpp
 Custom/phasing.cpp
 Custom/skills.cpp
 Custom/refresh.cpp
+Custom/misc.cpp
 )
 
 message("  -> Prepared: Custom")

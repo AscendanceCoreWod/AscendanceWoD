@@ -15902,6 +15902,38 @@ bool Unit::SetCanFly(bool enable)
     return true;
 }
 
+bool Unit::SetFlightStatus(bool enable)
+{
+	if (enable == HasUnitMovementFlag(MOVEMENTFLAG_CAN_FLY))
+		return false;
+
+	if (enable)
+	{
+		AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
+		RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_SPLINE_ELEVATION);
+		SetFall(false);
+	}
+	else
+	{
+		RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
+		if (!IsLevitating())
+			SetFall(true);
+	}
+
+	static OpcodeServer const flyOpcodeTable[2][2] =
+	{
+		{ SMSG_MOVE_SPLINE_UNSET_FLYING, SMSG_MOVE_UNSET_CAN_FLY },
+		{ SMSG_MOVE_SPLINE_SET_FLYING, SMSG_MOVE_SET_CAN_FLY }
+	};
+
+	WorldPackets::Movement::MoveSetFlag packet(flyOpcodeTable[enable][1]);
+	packet.MoverGUID = GetGUID();
+	packet.SequenceIndex = m_movementCounter++;
+	SendMessageToSet(packet.Write(), true);
+
+	return true;
+}
+
 bool Unit::SetWaterWalking(bool enable, bool packetOnly /*= false */)
 {
     if (!packetOnly)

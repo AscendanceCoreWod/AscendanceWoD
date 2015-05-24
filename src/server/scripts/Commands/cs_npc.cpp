@@ -166,6 +166,17 @@ EnumName<CreatureFlagsExtra> const flagsExtra[FLAGS_EXTRA_COUNT] =
     CREATE_NAMED_ENUM(CREATURE_FLAG_EXTRA_DUNGEON_BOSS)
 };
 
+void SetPhase(Creature* creature, uint32 phase)
+{
+	creature->ClearPhases();
+	creature->SetInPhase(phase, true, true);
+	creature->SetDBPhase(phase);
+
+	creature->SaveToDB();
+
+	WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+}
+
 class npc_commandscript : public CommandScript
 {
 public:
@@ -338,12 +349,7 @@ public:
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
 
-			creature->ClearPhases();
-			creature->SetInPhase(phase, true, true);
-			creature->SetDBPhase(phase);
-			creature->SaveToDB();
-
-			WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+			SetPhase(creature, phase);
 
             return true;
         }
@@ -362,6 +368,7 @@ public:
         // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
         // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
         creature->CleanupsBeforeDelete();
+
         delete creature;
         creature = new Creature();
         if (!creature->LoadCreatureFromDB(db_guid, map))
@@ -371,6 +378,8 @@ public:
         }
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+
+		SetPhase(creature, phase);
 
         return true;
     }

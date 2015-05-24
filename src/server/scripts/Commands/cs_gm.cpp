@@ -102,8 +102,8 @@ public:
             target = handler->GetSession()->GetPlayer();
 
         WorldPacket data;
-        if (strncmp(args, "on", 3) == 0)
-            target->SetCanFly(true);
+		if (strncmp(args, "on", 3) == 0)
+			target->SetCanFly(true);
         else if (strncmp(args, "off", 4) == 0)
             target->SetCanFly(false);
         else
