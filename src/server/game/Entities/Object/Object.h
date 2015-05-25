@@ -629,66 +629,77 @@ public:
 	double rand_chance() const                  { return GetMap()->mtRand.randExc(100.0); }
 #endif
 
-	uint32  LastUsedScriptID;
+        uint32  LastUsedScriptID;
 
-	// Transports
-	Transport* GetTransport() const { return m_transport; }
-	float GetTransOffsetX() const { return m_movementInfo.transport.pos.GetPositionX(); }
-	float GetTransOffsetY() const { return m_movementInfo.transport.pos.GetPositionY(); }
-	float GetTransOffsetZ() const { return m_movementInfo.transport.pos.GetPositionZ(); }
-	float GetTransOffsetO() const { return m_movementInfo.transport.pos.GetOrientation(); }
-	uint32 GetTransTime()   const { return m_movementInfo.transport.time; }
-	int8 GetTransSeat()     const { return m_movementInfo.transport.seat; }
-	virtual ObjectGuid GetTransGUID() const;
-	void SetTransport(Transport* t) { m_transport = t; }
+        // Transports
+        Transport* GetTransport() const { return m_transport; }
+        float GetTransOffsetX() const { return m_movementInfo.transport.pos.GetPositionX(); }
+        float GetTransOffsetY() const { return m_movementInfo.transport.pos.GetPositionY(); }
+        float GetTransOffsetZ() const { return m_movementInfo.transport.pos.GetPositionZ(); }
+        float GetTransOffsetO() const { return m_movementInfo.transport.pos.GetOrientation(); }
+        uint32 GetTransTime()   const { return m_movementInfo.transport.time; }
+        int8 GetTransSeat()     const { return m_movementInfo.transport.seat; }
+        virtual ObjectGuid GetTransGUID() const;
+        void SetTransport(Transport* t) { m_transport = t; }
 
-	MovementInfo m_movementInfo;
+        MovementInfo m_movementInfo;
 
-	virtual float GetStationaryX() const { return GetPositionX(); }
-	virtual float GetStationaryY() const { return GetPositionY(); }
-	virtual float GetStationaryZ() const { return GetPositionZ(); }
-	virtual float GetStationaryO() const { return GetOrientation(); }
+        virtual float GetStationaryX() const { return GetPositionX(); }
+        virtual float GetStationaryY() const { return GetPositionY(); }
+        virtual float GetStationaryZ() const { return GetPositionZ(); }
+        virtual float GetStationaryO() const { return GetOrientation(); }
 
-protected:
-	std::string m_name;
-	bool m_isActive;
-	const bool m_isWorldObject;
-	ZoneScript* m_zoneScript;
+        uint16 GetAIAnimKitId() const { return m_aiAnimKitId; }
+        void SetAIAnimKitId(uint16 animKitId);
+        uint16 GetMovementAnimKitId() const { return m_movementAnimKitId; }
+        void SetMovementAnimKitId(uint16 animKitId);
+        uint16 GetMeleeAnimKitId() const { return m_meleeAnimKitId; }
+        void SetMeleeAnimKitId(uint16 animKitId);
 
-	// transports
-	Transport* m_transport;
+    protected:
+        std::string m_name;
+        bool m_isActive;
+        const bool m_isWorldObject;
+        ZoneScript* m_zoneScript;
 
-	//these functions are used mostly for Relocate() and Corpse/Player specific stuff...
-	//use them ONLY in LoadFromDB()/Create() funcs and nowhere else!
-	//mapId/instanceId should be set in SetMap() function!
-	void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
-	void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
+        // transports
+        Transport* m_transport;
 
-	virtual bool IsNeverVisible() const { return !IsInWorld(); }
-	virtual bool IsAlwaysVisibleFor(WorldObject const* /*seer*/) const { return false; }
-	virtual bool IsInvisibleDueToDespawn() const { return false; }
-	//difference from IsAlwaysVisibleFor: 1. after distance check; 2. use owner or charmer as seer
-	virtual bool IsAlwaysDetectableFor(WorldObject const* /*seer*/) const { return false; }
-private:
-	Map* m_currMap;                                    //current object's Map location
+        //these functions are used mostly for Relocate() and Corpse/Player specific stuff...
+        //use them ONLY in LoadFromDB()/Create() funcs and nowhere else!
+        //mapId/instanceId should be set in SetMap() function!
+        void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
+        void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
 
-	//uint32 m_mapId;                                     // object at map with map_id
-	uint32 m_InstanceId;                                // in map copy with instance id
-	uint32 m_phaseMask;                                 // in area phase state
-	std::set<uint32> _phases;
-	std::set<uint32> _terrainSwaps;
-	std::set<uint32> _worldMapAreaSwaps;
-	int32 _dbPhase;
+        virtual bool IsNeverVisible() const { return !IsInWorld(); }
+        virtual bool IsAlwaysVisibleFor(WorldObject const* /*seer*/) const { return false; }
+        virtual bool IsInvisibleDueToDespawn() const { return false; }
+        //difference from IsAlwaysVisibleFor: 1. after distance check; 2. use owner or charmer as seer
+        virtual bool IsAlwaysDetectableFor(WorldObject const* /*seer*/) const { return false; }
+    private:
+        Map* m_currMap;                                    //current object's Map location
 
-	uint16 m_notifyflags;
-	uint16 m_executed_notifies;
-	virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
+        //uint32 m_mapId;                                     // object at map with map_id
+        uint32 m_InstanceId;                                // in map copy with instance id
+        uint32 m_phaseMask;                                 // in area phase state
+        std::set<uint32> _phases;
+        std::set<uint32> _terrainSwaps;
+        std::set<uint32> _worldMapAreaSwaps;
+        int32 _dbPhase;
 
-	bool CanNeverSee(WorldObject const* obj) const;
-	virtual bool CanAlwaysSee(WorldObject const* /*obj*/) const { return false; }
-	bool CanDetect(WorldObject const* obj, bool ignoreStealth) const;
-	bool CanDetectInvisibilityOf(WorldObject const* obj) const;
-	bool CanDetectStealthOf(WorldObject const* obj) const;
+        uint16 m_notifyflags;
+        uint16 m_executed_notifies;
+        virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
+
+        bool CanNeverSee(WorldObject const* obj) const;
+        virtual bool CanAlwaysSee(WorldObject const* /*obj*/) const { return false; }
+        bool CanDetect(WorldObject const* obj, bool ignoreStealth) const;
+        bool CanDetectInvisibilityOf(WorldObject const* obj) const;
+        bool CanDetectStealthOf(WorldObject const* obj) const;
+
+        uint16 m_aiAnimKitId;
+        uint16 m_movementAnimKitId;
+        uint16 m_meleeAnimKitId;
 };
 
 namespace Trinity
