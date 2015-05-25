@@ -221,7 +221,6 @@ public:
             { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "", NULL },
             { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "", NULL },
             { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "", NULL },
-			{ "die",        rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcDieCommand,			     "", NULL },
             //{ "name",       rbac::RBAC_PERM_COMMAND_NPC_SET_NAME,    false, &HandleNpcSetNameCommand,          "", NULL },
             //{ "subname",    rbac::RBAC_PERM_COMMAND_NPC_SET_SUBNAME, false, &HandleNpcSetSubNameCommand,       "", NULL },
             { NULL,         0,                                   false, NULL,                              "", NULL }
@@ -241,7 +240,8 @@ public:
             { "delete",    rbac::RBAC_PERM_COMMAND_NPC_DELETE,    false, NULL,              "", npcDeleteCommandTable },
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, NULL,              "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, NULL,                 "", npcSetCommandTable },
-            { NULL,        0,                               false, NULL,                               "", NULL }
+			{ "die",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,  false, &HandleNpcDieCommand,			     "", NULL },
+            { NULL,        0,									  false, NULL,                               "", NULL }
         };
         static ChatCommand commandTable[] =
         {
@@ -251,20 +251,18 @@ public:
         return commandTable;
     }
 
-	static bool HandleNpcDieCommand(ChatHandler* handler, char const* args)
+	static bool HandleNpcDieCommand(ChatHandler* handler, char const* /*args*/)
 	{
-		if (!*args)
-			return false;
-
 		Unit* target = handler->getSelectedUnit();
-		if (!target)
+
+		if (!target || !handler->GetSession()->GetPlayer()->GetTarget())
 		{
 			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
 
-		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		// Permanent Feign Death SpellID
 		uint32 spellId = 138767;
 
 		SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
