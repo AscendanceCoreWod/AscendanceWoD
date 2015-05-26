@@ -41,7 +41,7 @@ void SetPhase(GameObject* object, uint32 phase)
 	object->SaveToDB();
 
 	WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, object->GetSpawnId());
-}
+};
 
 class gobject_commandscript : public CommandScript
 {

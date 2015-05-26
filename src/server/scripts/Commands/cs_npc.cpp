@@ -33,6 +33,17 @@ EndScriptData */
 #include "Player.h"
 #include "Pet.h"
 
+void SetPhase(Creature* creature, uint32 phase)
+{
+	creature->ClearPhases();
+	creature->SetInPhase(phase, true, true);
+	creature->SetDBPhase(phase);
+
+	creature->SaveToDB();
+
+	WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+};
+
 template<typename E, typename T = char const*>
 struct EnumName
 {
@@ -166,17 +177,6 @@ EnumName<CreatureFlagsExtra> const flagsExtra[FLAGS_EXTRA_COUNT] =
     CREATE_NAMED_ENUM(CREATURE_FLAG_EXTRA_DUNGEON_BOSS)
 };
 
-void SetPhase(Creature* creature, uint32 phase)
-{
-	creature->ClearPhases();
-	creature->SetInPhase(phase, true, true);
-	creature->SetDBPhase(phase);
-
-	creature->SaveToDB();
-
-	WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
-}
-
 class npc_commandscript : public CommandScript
 {
 public:
@@ -253,6 +253,9 @@ public:
 
 	static bool HandleNpcDieCommand(ChatHandler* handler, char const* /*args*/)
 	{
+		// Permanent Feign Death SpellID
+		uint32 spellId = 138767;
+
 		Unit* target = handler->getSelectedUnit();
 
 		if (!target || !handler->GetSession()->GetPlayer()->GetTarget())
@@ -262,35 +265,12 @@ public:
 			return false;
 		}
 
-		// Permanent Feign Death SpellID
-		uint32 spellId = 138767;
-
-		SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-		if (!spellInfo)
-		{
-			handler->PSendSysMessage(LANG_COMMAND_NOSPELLFOUND);
-			handler->SetSentErrorMessage(true);
-			return false;
-		}
-
-		if (!SpellMgr::IsSpellValid(spellInfo, handler->GetSession()->GetPlayer()))
-		{
-			handler->PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spellId);
-			handler->SetSentErrorMessage(true);
-			return false;
-		}
-
-		char* triggeredStr = strtok(NULL, " ");
-		if (triggeredStr)
-		{
-			int l = strlen(triggeredStr);
-			if (strncmp(triggeredStr, "triggered", l) != 0)
+		if (Player* player = target->ToPlayer())
+			if (handler->HasLowerSecurity(player, ObjectGuid::Empty, false))
 				return false;
-		}
 
-		bool triggered = (triggeredStr != NULL);
-
-		handler->GetSession()->GetPlayer()->CastSpell(target, spellId, triggered);
+		if (target->IsAlive())
+			handler->GetSession()->GetPlayer()->CastSpell(target, spellId);
 
 		return true;
 	}
@@ -347,7 +327,15 @@ public:
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
 
-			SetPhase(creature, phase);
+			if (phase){
+				creature->ClearPhases();
+				creature->SetInPhase(phase, true, true);
+				creature->SetDBPhase(phase);
+
+				creature->SaveToDB();
+
+				WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+			}
 
             return true;
         }
@@ -377,7 +365,15 @@ public:
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
 
-		SetPhase(creature, phase);
+		if (phase){
+			creature->ClearPhases();
+			creature->SetInPhase(phase, true, true);
+			creature->SetDBPhase(phase);
+
+			creature->SaveToDB();
+
+			WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
+		}
 
         return true;
     }
