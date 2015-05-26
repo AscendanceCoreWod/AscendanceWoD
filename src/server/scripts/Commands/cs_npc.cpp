@@ -246,20 +246,15 @@ public:
 		uint32 spellId = 138767;
 
 		Unit* target = handler->getSelectedUnit();
-
-		if (!target || !handler->GetSession()->GetPlayer()->GetTarget())
+		if (!target)
 		{
 			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
 
-		if (Player* player = target->ToPlayer())
-			if (handler->HasLowerSecurity(player, ObjectGuid::Empty, false))
-				return false;
-
 		if (target->IsAlive())
-			handler->GetSession()->GetPlayer()->CastSpell(target, spellId);
+			target->CastSpell(target, spellId, false);
 
 		return true;
 	}

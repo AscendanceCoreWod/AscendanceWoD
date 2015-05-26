@@ -31,14 +31,13 @@ public:
 		if (!*args)
 			return false;
 
-		Player* target = handler->GetSession()->GetPlayer();
+		Player* target = handler->getSelectedPlayer();
 		if (!target)
-			return false;
+			target = handler->GetSession()->GetPlayer();
 
 		WorldPacket data;
-		if (strncmp(args, "on", 3) == 0){
+		if (strncmp(args, "on", 3) == 0)
 			target->SetCanFly(true);
-		}
 		else if (strncmp(args, "off", 4) == 0)
 			target->SetCanFly(false);
 		else
