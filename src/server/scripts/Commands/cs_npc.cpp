@@ -33,17 +33,6 @@ EndScriptData */
 #include "Player.h"
 #include "Pet.h"
 
-void SetPhase(Creature* creature, uint32 phase)
-{
-	creature->ClearPhases();
-	creature->SetInPhase(phase, true, true);
-	creature->SetDBPhase(phase);
-
-	creature->SaveToDB();
-
-	WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
-};
-
 template<typename E, typename T = char const*>
 struct EnumName
 {
@@ -303,9 +292,7 @@ public:
 			phases << phase << " ";
 		}
 
-		const char* phasing = phases.str().c_str();
-
-		uint32 phase = atoi(phasing);
+		uint32 phase = atoi(phases.str().c_str());
 
 		if (!phase)
 			uint32 phase = 0;
@@ -327,15 +314,11 @@ public:
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
 
-			if (phase){
-				creature->ClearPhases();
-				creature->SetInPhase(phase, true, true);
-				creature->SetDBPhase(phase);
+			creature->ClearPhases();
+			creature->SetInPhase(phase, true, true);
+			creature->SetDBPhase(phase);
 
-				creature->SaveToDB();
-
-				WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
-			}
+			creature->SaveToDB();
 
             return true;
         }
@@ -365,15 +348,11 @@ public:
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
 
-		if (phase){
-			creature->ClearPhases();
-			creature->SetInPhase(phase, true, true);
-			creature->SetDBPhase(phase);
+		creature->ClearPhases();
+		creature->SetInPhase(phase, true, true);
+		creature->SetDBPhase(phase);
 
-			creature->SaveToDB();
-
-			WorldDatabase.PExecute("UPDATE creature SET PhaseId='%u' WHERE guid='%u'", phase, creature->GetGUID());
-		}
+		creature->SaveToDB();
 
         return true;
     }

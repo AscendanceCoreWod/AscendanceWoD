@@ -329,7 +329,7 @@ public:
 		return true;
 	};
 
-	static bool HandlePhaseGetCommand(ChatHandler * chat, const char * args)
+	/*static bool HandlePhaseGetCommand(ChatHandler * chat, const char * args)
 	{
 		Player * player = chat->GetSession()->GetPlayer();
 		QueryResult getPhaseAndOwnedPhase = CharacterDatabase.PQuery("SELECT COUNT(*), phase_owned, phase_name FROM phase WHERE guid='%u'", player->GetSession()->GetAccountId());
@@ -347,8 +347,10 @@ public:
 
 		uint32 phase = atoi(phasing);
 
-		if (!phase)
+		if (phases.str().empty())
 			uint32 phase = 0;
+
+		chat->PSendSysMessage("|cffADD8E6Current Phase: %u|r", phase);
 
 		if (getPhaseAndOwnedPhase)
 		{
@@ -365,7 +367,28 @@ public:
 			} while (getPhaseAndOwnedPhase->NextRow());
 		}
 		return true;
-	};
+	};*/
+
+	static bool HandlePhaseGetCommand(ChatHandler* handler, char const* /*args*/)
+	{
+		Player * player = handler->GetSession()->GetPlayer();
+
+		std::stringstream phases;
+
+		for (uint32 phase : player->GetPhases())
+		{
+			phases << phase << " ";
+		}
+
+		if (!phases.str().empty()){
+			handler->PSendSysMessage("Target's current phases: %s", phases.str().c_str());
+			uint32 phase = atoi(phases.str().c_str());
+			handler->PSendSysMessage("Conversion: %u", phase);
+		} else {
+			handler->SendSysMessage("Target is not phased");
+		}
+		return true;
+	}
 
 	static bool HandlePhaseCompleteCommand(ChatHandler* handler, const char* args)
 	{
