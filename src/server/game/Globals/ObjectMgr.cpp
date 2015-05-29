@@ -1835,7 +1835,7 @@ void ObjectMgr::LoadCreatures()
             }
         }*/
 
-		if (data.phaseid < 1 || data.phaseid > 100)
+		if (data.phaseid < 1 || data.phaseid > 49)
 		{
 			PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
 			if (!phase)
@@ -2139,7 +2139,7 @@ void ObjectMgr::LoadGameobjects()
             }
         }*/
 
-		if (data.phaseid < 1 || data.phaseid > 100)
+		if (data.phaseid < 1 || data.phaseid > 49)
 		{
 			PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
 			if (!phase)
