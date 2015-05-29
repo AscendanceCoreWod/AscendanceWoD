@@ -754,7 +754,7 @@ bool Creature::Create(ObjectGuid::LowType guidlow, Map* map, uint32 /*phaseMask*
     SetMap(map);
 
     if (data && data->phaseid)
-        SetInPhase(data->phaseid, false, true);
+		SetInPhase(data->phaseid, false, true);
 
     if (data && data->phaseGroup)
         for (auto ph : sDB2Manager.GetPhasesForGroup(data->phaseGroup))

@@ -1825,7 +1825,7 @@ void ObjectMgr::LoadCreatures()
             data.phaseGroup = 0;
         }
 
-        if (data.phaseid)
+        /*if (data.phaseid)
         {
             PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
             if (!phase)
@@ -1833,7 +1833,17 @@ void ObjectMgr::LoadCreatures()
                 TC_LOG_ERROR("sql.sql", "Table `creature` have creature (GUID: " UI64FMTD " Entry: %u) with `phaseid` %u does not exist, set to 0", guid, data.id, data.phaseid);
                 data.phaseid = 0;
             }
-        }
+        }*/
+
+		if (data.phaseid < 1 || data.phaseid > 100)
+		{
+			PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
+			if (!phase)
+			{
+				TC_LOG_ERROR("sql.sql", "Table `creature` have creature (GUID: " UI64FMTD " Entry: %u) with `phaseid` %u does not exist, set to 0", guid, data.id, data.phaseid);
+				data.phaseid = 0;
+			}
+		}
 
         if (data.phaseGroup)
         {
@@ -2119,7 +2129,7 @@ void ObjectMgr::LoadGameobjects()
             data.phaseGroup = 0;
         }
 
-        if (data.phaseid)
+        /*if (data.phaseid)
         {
             PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
             if (!phase)
@@ -2127,7 +2137,17 @@ void ObjectMgr::LoadGameobjects()
                 TC_LOG_ERROR("sql.sql", "Table `gameobject` have gameobject (GUID: " UI64FMTD " Entry: %u) with `phaseid` %u does not exist, set to 0", guid, data.id, data.phaseid);
                 data.phaseid = 0;
             }
-        }
+        }*/
+
+		if (data.phaseid < 1 || data.phaseid > 100)
+		{
+			PhaseEntry const* phase = sPhaseStore.LookupEntry(data.phaseid);
+			if (!phase)
+			{
+				TC_LOG_ERROR("sql.sql", "Table `gameobject` have gameobject (GUID: " UI64FMTD " Entry: %u) with `phaseid` %u does not exist, set to 0", guid, data.id, data.phaseid);
+				data.phaseid = 0;
+			}
+		}
 
         if (data.phaseGroup)
         {
