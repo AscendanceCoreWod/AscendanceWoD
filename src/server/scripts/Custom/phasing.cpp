@@ -1,3 +1,23 @@
+/*
+* Copyright (C) 2014-2015 Ascendance <http://www.ascendance-rp.com/>
+*/
+
+/* ScriptData
+Name: custom_phasing_commandscript
+%Complete: 100 - OUTDATED
+Comment: All phasing commands for the custom phase system
+Category: custom_commandscripts
+Author: Dreamer
+Co-Author: Death
+EndScriptData */
+
+/* TODO
+Remove any direct references to non-existant tables. (phase, phase_members)
+Redevelop NPC and GOBJ commands to line up with the WoD Core.
+Remove any direct references to database injects, utilize defined functions before command class. (CreatePhase())
+Ensure any sensitive data pushed to the Database is tagged with a GUID and or Account ID.
+ENDTODO */
+
 #include "ScriptPCH.h"
 #include "Chat.h"
 #include <stdarg.h>
