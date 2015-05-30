@@ -586,9 +586,9 @@ public:
 	}
 
 	//set phasemask for selected object
-	static bool HandleGameObjectSetPhaseCommand(ChatHandler* /*handler*/, char const* /*args*/)
+	static bool HandleGameObjectSetPhaseCommand(ChatHandler* handler, char const* args)
 	{
-		/*// number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+		// number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
 		char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
 		if (!id)
 		return false;
@@ -612,15 +612,21 @@ public:
 
 		char* phase = strtok (NULL, " ");
 		uint32 phaseMask = phase ? atoi(phase) : 0;
-		if (phaseMask == 0)
+		if (phaseMask <= 0)
 		{
 		handler->SendSysMessage(LANG_BAD_VALUE);
 		handler->SetSentErrorMessage(true);
 		return false;
 		}
 
-		object->SetPhaseMask(phaseMask, true);
-		object->SaveToDB();*/
+		object->ClearPhases();
+		object->SetInPhase(phaseMask, true, true);
+		object->SetDBPhase(phaseMask);
+
+		object->SaveToDB();
+
+		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phaseMask, guidLow);
+
 		return true;
 	}
 
