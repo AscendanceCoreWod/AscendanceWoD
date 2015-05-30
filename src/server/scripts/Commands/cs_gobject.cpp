@@ -100,6 +100,8 @@ public:
 			return false;
 		}
 
+		uint32 phase = object->GetDBPhase;
+
 		char* scale_temp = strtok(NULL, " ");
 		float scale = scale_temp ? atof(scale_temp) : -1.0f;
 		if (scale > 30.0f || scale < 0.0f)
@@ -113,7 +115,14 @@ public:
 		object->SetObjectScale(scale);
 		object->DestroyForNearbyPlayers();
 		object->UpdateObjectVisibility();
+
+		object->ClearPhases();
+		object->SetInPhase(phase, true, true);
+		object->SetDBPhase(phase);
+
 		object->SaveToDB();
+
+		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
 
 		return true;
 	}
