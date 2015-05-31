@@ -32,6 +32,24 @@ EndScriptData */
 #include "Player.h"
 #include "Opcodes.h"
 
+uint32 GetObjPhase(GameObject* object)
+{
+	QueryResult gobjPhase = WorldDatabase.PQuery("SELECT PhaseId FROM gameobject WHERE guid='%u'", object->GetSpawnId());
+
+	if (!gobjPhase)
+		return false;
+
+	Field * a_fields = gobjPhase->Fetch();
+
+	uint32 phase = a_fields[0].GetUInt32;
+
+	if (!phase)
+		phase = 0;
+
+	return phase;
+}
+
+
 class gobject_commandscript : public CommandScript
 {
 public:
@@ -100,7 +118,7 @@ public:
 			return false;
 		}
 
-		uint32 phase = object->GetDBPhase.GetUInt32Value;
+		uint32 phase = GetObjPhase(object);
 
 		char* scale_temp = strtok(NULL, " ");
 		float scale = scale_temp ? atof(scale_temp) : -1.0f;
