@@ -100,7 +100,7 @@ public:
 			return false;
 		}
 
-		uint32 phase = object->GetDBPhase;
+		int32 phase = object->GetDBPhase;
 
 		char* scale_temp = strtok(NULL, " ");
 		float scale = scale_temp ? atof(scale_temp) : -1.0f;
