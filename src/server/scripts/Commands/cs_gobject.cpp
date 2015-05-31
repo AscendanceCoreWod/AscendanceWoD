@@ -41,7 +41,7 @@ uint32 GetObjPhase(GameObject* object)
 
 	Field * a_fields = gobjPhase->Fetch();
 
-	uint32 phase = a_fields[0].GetUInt32;
+	int32 phase = a_fields[0].GetInt32();
 
 	if (!phase)
 		phase = 0;
