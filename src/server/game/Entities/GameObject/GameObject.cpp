@@ -173,163 +173,163 @@ void GameObject::RemoveFromWorld()
 
 bool GameObject::Create(ObjectGuid::LowType guidlow, uint32 name_id, Map* map, uint32 /*phaseMask*/, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit, float size)
 {
-	ASSERT(map);
-	SetMap(map);
+    ASSERT(map);
+    SetMap(map);
 
-	Relocate(x, y, z, ang);
-	m_stationaryPosition.Relocate(x, y, z, ang);
-	if (!IsPositionValid())
-	{
-		TC_LOG_ERROR("misc", "Gameobject (GUID: " UI64FMTD " Entry: %u) not created. Suggested coordinates isn't valid (X: %f Y: %f)", guidlow, name_id, x, y);
-		return false;
-	}
+    Relocate(x, y, z, ang);
+    m_stationaryPosition.Relocate(x, y, z, ang);
+    if (!IsPositionValid())
+    {
+        TC_LOG_ERROR("misc", "Gameobject (GUID: " UI64FMTD " Spawn id: " UI64FMTD " Entry: %u) not created. Suggested coordinates isn't valid (X: %f Y: %f)", guidlow, GetSpawnId(), name_id, x, y);
+        return false;
+    }
 
-	SetZoneScript();
-	if (m_zoneScript)
-	{
-		name_id = m_zoneScript->GetGameObjectEntry(guidlow, name_id);
-		if (!name_id)
-			return false;
-	}
+    SetZoneScript();
+    if (m_zoneScript)
+    {
+        name_id = m_zoneScript->GetGameObjectEntry(guidlow, name_id);
+        if (!name_id)
+            return false;
+    }
 
-	GameObjectTemplate const* goinfo = sObjectMgr->GetGameObjectTemplate(name_id);
-	if (!goinfo)
-	{
-		TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Entry: %u) not created: non-existing entry in `gameobject_template`. Map: %u (X: %f Y: %f Z: %f)", guidlow, name_id, map->GetId(), x, y, z);
-		return false;
-	}
+    GameObjectTemplate const* goinfo = sObjectMgr->GetGameObjectTemplate(name_id);
+    if (!goinfo)
+    {
+        TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Spawn id: " UI64FMTD " Entry: %u) not created: non-existing entry in `gameobject_template`. Map: %u (X: %f Y: %f Z: %f)", guidlow, GetSpawnId(), name_id, map->GetId(), x, y, z);
+        return false;
+    }
 
-	if (goinfo->type == GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT)
-	{
-		TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Entry: %u) not created: gameobject type GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT cannot be manually created.", guidlow, name_id);
-		return false;
-	}
+    if (goinfo->type == GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT)
+    {
+        TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Spawn id: " UI64FMTD " Entry: %u) not created: gameobject type GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT cannot be manually created.", guidlow, GetSpawnId(), name_id);
+        return false;
+    }
 
-	if (goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
-		m_updateFlag |= UPDATEFLAG_TRANSPORT;
+    if (goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
+        m_updateFlag |= UPDATEFLAG_TRANSPORT;
 
-	Object::_Create(ObjectGuid::Create<HighGuid::GameObject>(map->GetId(), goinfo->entry, guidlow));
+    Object::_Create(ObjectGuid::Create<HighGuid::GameObject>(map->GetId(), goinfo->entry, guidlow));
 
-	m_goInfo = goinfo;
+    m_goInfo = goinfo;
 
-	if (goinfo->type >= MAX_GAMEOBJECT_TYPE)
-	{
-		TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Entry: %u) not created: non-existing GO type '%u' in `gameobject_template`. It will crash client if created.", guidlow, name_id, goinfo->type);
-		return false;
-	}
+    if (goinfo->type >= MAX_GAMEOBJECT_TYPE)
+    {
+        TC_LOG_ERROR("sql.sql", "Gameobject (GUID: " UI64FMTD " Spawn id: " UI64FMTD " Entry: %u) not created: non-existing GO type '%u' in `gameobject_template`. It will crash client if created.", guidlow, GetSpawnId(), name_id, goinfo->type);
+        return false;
+    }
 
-	SetFloatValue(GAMEOBJECT_PARENTROTATION + 0, rotation0);
-	SetFloatValue(GAMEOBJECT_PARENTROTATION + 1, rotation1);
+    SetFloatValue(GAMEOBJECT_PARENTROTATION+0, rotation0);
+    SetFloatValue(GAMEOBJECT_PARENTROTATION+1, rotation1);
 
-	UpdateRotationFields(rotation2, rotation3);              // GAMEOBJECT_FACING, GAMEOBJECT_ROTATION, GAMEOBJECT_PARENTROTATION+2/3
+    UpdateRotationFields(rotation2, rotation3);              // GAMEOBJECT_FACING, GAMEOBJECT_ROTATION, GAMEOBJECT_PARENTROTATION+2/3
 
 	if (size >= 0.0f)
 		SetObjectScale(size);
 	else
 		SetObjectScale(goinfo->size);
 
-	SetUInt32Value(GAMEOBJECT_FACTION, goinfo->faction);
-	SetUInt32Value(GAMEOBJECT_FLAGS, goinfo->flags);
+    SetUInt32Value(GAMEOBJECT_FACTION, goinfo->faction);
+    SetUInt32Value(GAMEOBJECT_FLAGS, goinfo->flags);
 
-	SetEntry(goinfo->entry);
+    SetEntry(goinfo->entry);
 
-	// set name for logs usage, doesn't affect anything ingame
-	SetName(goinfo->name);
+    // set name for logs usage, doesn't affect anything ingame
+    SetName(goinfo->name);
 
-	SetDisplayId(goinfo->displayId);
+    SetDisplayId(goinfo->displayId);
 
-	m_model = GameObjectModel::Create(*this);
-	// GAMEOBJECT_BYTES_1, index at 0, 1, 2 and 3
-	SetGoType(GameobjectTypes(goinfo->type));
-	SetGoState(go_state);
-	SetGoArtKit(artKit);
+    m_model = GameObjectModel::Create(*this);
+    // GAMEOBJECT_BYTES_1, index at 0, 1, 2 and 3
+    SetGoType(GameobjectTypes(goinfo->type));
+    SetGoState(go_state);
+    SetGoArtKit(artKit);
 
-	switch (goinfo->type)
-	{
-	case GAMEOBJECT_TYPE_FISHINGHOLE:
-		SetGoAnimProgress(animprogress);
-		m_goValue.FishingHole.MaxOpens = urand(GetGOInfo()->fishingHole.minRestock, GetGOInfo()->fishingHole.maxRestock);
-		break;
-	case GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING:
-		// TODO: Get the values somehow, no longer in gameobject_template
-		m_goValue.Building.Health = 20000/*goinfo->destructibleBuilding.intactNumHits + goinfo->destructibleBuilding.damagedNumHits*/;
-		m_goValue.Building.MaxHealth = m_goValue.Building.Health;
-		SetGoAnimProgress(255);
-		SetUInt32Value(GAMEOBJECT_PARENTROTATION, m_goInfo->destructibleBuilding.DestructibleModelRec);
-		break;
-	case GAMEOBJECT_TYPE_TRANSPORT:
-	{
-		m_goValue.Transport.AnimationInfo = sTransportMgr->GetTransportAnimInfo(goinfo->entry);
-		m_goValue.Transport.PathProgress = getMSTime();
-		if (m_goValue.Transport.AnimationInfo)
-			m_goValue.Transport.PathProgress -= m_goValue.Transport.PathProgress % GetTransportPeriod();    // align to period
-		m_goValue.Transport.CurrentSeg = 0;
-		m_goValue.Transport.StateUpdateTimer = 0;
-		m_goValue.Transport.StopFrames = new std::vector<uint32>();
-		if (goinfo->transport.Timeto2ndfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto2ndfloor);
-		if (goinfo->transport.Timeto3rdfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto3rdfloor);
-		if (goinfo->transport.Timeto4thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto4thfloor);
-		if (goinfo->transport.Timeto5thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto5thfloor);
-		if (goinfo->transport.Timeto6thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto6thfloor);
-		if (goinfo->transport.Timeto7thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto7thfloor);
-		if (goinfo->transport.Timeto8thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto8thfloor);
-		if (goinfo->transport.Timeto9thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto9thfloor);
-		if (goinfo->transport.Timeto10thfloor > 0)
-			m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto10thfloor);
-		if (goinfo->transport.startOpen)
-			SetTransportState(GO_STATE_TRANSPORT_STOPPED, goinfo->transport.startOpen - 1);
-		else
-			SetTransportState(GO_STATE_TRANSPORT_ACTIVE);
+    switch (goinfo->type)
+    {
+        case GAMEOBJECT_TYPE_FISHINGHOLE:
+            SetGoAnimProgress(animprogress);
+            m_goValue.FishingHole.MaxOpens = urand(GetGOInfo()->fishingHole.minRestock, GetGOInfo()->fishingHole.maxRestock);
+            break;
+        case GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING:
+            // TODO: Get the values somehow, no longer in gameobject_template
+            m_goValue.Building.Health = 20000/*goinfo->destructibleBuilding.intactNumHits + goinfo->destructibleBuilding.damagedNumHits*/;
+            m_goValue.Building.MaxHealth = m_goValue.Building.Health;
+            SetGoAnimProgress(255);
+            SetUInt32Value(GAMEOBJECT_PARENTROTATION, m_goInfo->destructibleBuilding.DestructibleModelRec);
+            break;
+        case GAMEOBJECT_TYPE_TRANSPORT:
+        {
+            m_goValue.Transport.AnimationInfo = sTransportMgr->GetTransportAnimInfo(goinfo->entry);
+            m_goValue.Transport.PathProgress = getMSTime();
+            if (m_goValue.Transport.AnimationInfo)
+                m_goValue.Transport.PathProgress -= m_goValue.Transport.PathProgress % GetTransportPeriod();    // align to period
+            m_goValue.Transport.CurrentSeg = 0;
+            m_goValue.Transport.StateUpdateTimer = 0;
+            m_goValue.Transport.StopFrames = new std::vector<uint32>();
+            if (goinfo->transport.Timeto2ndfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto2ndfloor);
+            if (goinfo->transport.Timeto3rdfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto3rdfloor);
+            if (goinfo->transport.Timeto4thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto4thfloor);
+            if (goinfo->transport.Timeto5thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto5thfloor);
+            if (goinfo->transport.Timeto6thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto6thfloor);
+            if (goinfo->transport.Timeto7thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto7thfloor);
+            if (goinfo->transport.Timeto8thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto8thfloor);
+            if (goinfo->transport.Timeto9thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto9thfloor);
+            if (goinfo->transport.Timeto10thfloor > 0)
+                m_goValue.Transport.StopFrames->push_back(goinfo->transport.Timeto10thfloor);
+            if (goinfo->transport.startOpen)
+                SetTransportState(GO_STATE_TRANSPORT_STOPPED, goinfo->transport.startOpen - 1);
+            else
+                SetTransportState(GO_STATE_TRANSPORT_ACTIVE);
 
-		SetGoAnimProgress(animprogress);
-		break;
-	}
-	case GAMEOBJECT_TYPE_FISHINGNODE:
-		SetGoAnimProgress(0);
-		break;
-	case GAMEOBJECT_TYPE_TRAP:
-		if (GetGOInfo()->trap.stealthed)
-		{
-			m_stealth.AddFlag(STEALTH_TRAP);
-			m_stealth.AddValue(STEALTH_TRAP, 70);
-		}
+            SetGoAnimProgress(animprogress);
+            break;
+        }
+        case GAMEOBJECT_TYPE_FISHINGNODE:
+            SetGoAnimProgress(0);
+            break;
+        case GAMEOBJECT_TYPE_TRAP:
+            if (GetGOInfo()->trap.stealthed)
+            {
+                m_stealth.AddFlag(STEALTH_TRAP);
+                m_stealth.AddValue(STEALTH_TRAP, 70);
+            }
 
-		if (GetGOInfo()->trap.stealthAffected)
-		{
-			m_invisibility.AddFlag(INVISIBILITY_TRAP);
-			m_invisibility.AddValue(INVISIBILITY_TRAP, 300);
-		}
-		break;
-	default:
-		SetGoAnimProgress(animprogress);
-		break;
-	}
+            if (GetGOInfo()->trap.stealthAffected)
+            {
+                m_invisibility.AddFlag(INVISIBILITY_TRAP);
+                m_invisibility.AddValue(INVISIBILITY_TRAP, 300);
+            }
+            break;
+        default:
+            SetGoAnimProgress(animprogress);
+            break;
+    }
 
-	if (GameObjectAddon const* addon = sObjectMgr->GetGameObjectAddon(guidlow))
-	{
-		if (addon->InvisibilityValue)
-		{
-			m_invisibility.AddFlag(addon->invisibilityType);
-			m_invisibility.AddValue(addon->invisibilityType, addon->InvisibilityValue);
-		}
-	}
+    if (GameObjectAddon const* addon = sObjectMgr->GetGameObjectAddon(GetSpawnId()))
+    {
+        if (addon->InvisibilityValue)
+        {
+            m_invisibility.AddFlag(addon->invisibilityType);
+            m_invisibility.AddValue(addon->invisibilityType, addon->InvisibilityValue);
+        }
+    }
 
-	LastUsedScriptID = GetGOInfo()->ScriptId;
-	AIM_Initialize();
+    LastUsedScriptID = GetGOInfo()->ScriptId;
+    AIM_Initialize();
 
-	// Initialize loot duplicate count depending on raid difficulty
-	if (map->Is25ManRaid())
-		loot.maxDuplicates = 3;
+    // Initialize loot duplicate count depending on raid difficulty
+    if (map->Is25ManRaid())
+        loot.maxDuplicates = 3;
 
-	return true;
+    return true;
 }
 
 void GameObject::Update(uint32 diff)
