@@ -2422,13 +2422,13 @@ float GameObject::GetInteractionDistance() const
 
 void GameObject::UpdateModelPosition()
 {
-	if (!m_model)
-		return;
+    if (!m_model)
+        return;
 
-	if (GetMap()->ContainsGameObjectModel(*m_model))
-	{
-		GetMap()->RemoveGameObjectModel(*m_model);
-		m_model->Relocate(*this);
-		GetMap()->InsertGameObjectModel(*m_model);
-	}
+    if (GetMap()->ContainsGameObjectModel(*m_model))
+    {
+        GetMap()->RemoveGameObjectModel(*m_model);
+        m_model->UpdatePosition();
+        GetMap()->InsertGameObjectModel(*m_model);
+    }
 }
