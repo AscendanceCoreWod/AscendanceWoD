@@ -98,7 +98,6 @@ namespace WorldPackets
             uint8 ResetFailedReason = 0;
         };
     }
->>>>>>> TrinityCore/6.x
 }
 
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Instance::InstanceLockInfos const& lockInfos);
