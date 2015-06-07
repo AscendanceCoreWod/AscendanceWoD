@@ -53,7 +53,6 @@ uint32 GetObjPhase(GameObject* object)
 class gobject_commandscript : public CommandScript
 {
 public:
-<<<<<<< HEAD
 	gobject_commandscript() : CommandScript("gobject_commandscript") { }
 
 	ChatCommand* GetCommands() const override
