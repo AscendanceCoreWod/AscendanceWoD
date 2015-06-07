@@ -6791,12 +6791,12 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
     // victim_rank [1..4]  HK: <dishonored rank>
     // victim_rank [5..19] HK: <alliance\horde rank>
     // victim_rank [0, 20+] HK: <>
-    WorldPacket data(SMSG_PVP_CREDIT, 4+8+4);
-    data << uint32(honor);
-    data << victim_guid;
-    data << uint32(victim_rank);
+    WorldPackets::Combat::PvPCredit data;
+    data.Honor = honor;
+    data.Target = victim_guid;
+    data.Rank = victim_rank;
 
-    GetSession()->SendPacket(&data);
+    GetSession()->SendPacket(data.Write());
 
     // add honor points
     ModifyCurrency(CURRENCY_TYPE_HONOR_POINTS, int32(honor));
@@ -20138,9 +20138,9 @@ void Player::ResetInstances(uint8 method, bool isRaid, bool isLegacy)
 
 void Player::SendResetInstanceSuccess(uint32 MapId)
 {
-    WorldPacket data(SMSG_INSTANCE_RESET, 4);
-    data << uint32(MapId);
-    GetSession()->SendPacket(&data);
+    WorldPackets::Instance::InstanceReset data;
+    data.MapID = MapId;
+    GetSession()->SendPacket(data.Write());
 }
 
 void Player::SendResetInstanceFailed(uint32 reason, uint32 MapId)
@@ -20150,10 +20150,11 @@ void Player::SendResetInstanceFailed(uint32 reason, uint32 MapId)
     // 1: There are players offline in your party.
     // 2>: There are players in your party attempting to zone into an instance.
     */
-    WorldPacket data(SMSG_INSTANCE_RESET_FAILED, 8);
-    data << uint32(reason);
-    data << uint32(MapId);
-    GetSession()->SendPacket(&data);
+
+    WorldPackets::Instance::InstanceResetFailed data;
+    data.MapID = MapId;
+    data.ResetFailedReason = reason;
+    GetSession()->SendPacket(data.Write());
 }
 
 /*********************************************************/
