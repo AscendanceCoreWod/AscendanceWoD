@@ -161,7 +161,7 @@ public:
 			return true;
 		}
 
-		QueryResult phaseExist = CharacterDatabase.PQuery("SELECT COUNT(*) FROM phase WHERE phase_owned='%u'", phase);
+		QueryResult phaseExist = CharacterDatabase.PQuery("SELECT COUNT(*) FROM phase WHERE phase='%u'", phase);
 		if (phaseExist)
 		{
 			do

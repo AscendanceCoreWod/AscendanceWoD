@@ -7814,8 +7814,8 @@ void ObjectMgr::LoadGameTele()
 
     _gameTeleStore.clear();                                  // for reload case
 
-    //                                                0       1           2           3           4        5     6
-    QueryResult result = WorldDatabase.Query("SELECT id, position_x, position_y, position_z, orientation, map, name FROM game_tele");
+    //                                                0       1           2           3           4        5     6		7
+    QueryResult result = WorldDatabase.Query("SELECT id, position_x, position_y, position_z, orientation, map, name, PhaseId FROM game_tele");
 
     if (!result)
     {
@@ -7839,6 +7839,7 @@ void ObjectMgr::LoadGameTele()
         gt.orientation    = fields[4].GetFloat();
         gt.mapId          = fields[5].GetUInt16();
         gt.name           = fields[6].GetString();
+		gt.phase		  = fields[7].GetUInt32;
 
         if (!MapManager::IsValidMapCoord(gt.mapId, gt.position_x, gt.position_y, gt.position_z, gt.orientation))
         {
@@ -7932,6 +7933,7 @@ bool ObjectMgr::AddGameTele(GameTele& tele)
     stmt->setFloat(4, tele.orientation);
     stmt->setUInt16(5, uint16(tele.mapId));
     stmt->setString(6, tele.name);
+	stmt->setUInt32(7, tele.phase);
 
     WorldDatabase.Execute(stmt);
 

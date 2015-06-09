@@ -73,12 +73,27 @@ public:
         }
 
         GameTele tele;
+		uint32 phase;
         tele.position_x  = player->GetPositionX();
         tele.position_y  = player->GetPositionY();
         tele.position_z  = player->GetPositionZ();
         tele.orientation = player->GetOrientation();
         tele.mapId       = player->GetMapId();
         tele.name        = name;
+		
+		std::stringstream phases;
+
+		for (uint32 phase : player->GetPhases())
+		{
+			phases << phase << " ";
+		}
+
+		if (!phases.str().empty())
+			uint32 phase = atoi(phases.str().c_str());
+		else
+			uint32 phase = 0;
+
+		tele.phase		= phase;
 
         if (sObjectMgr->AddGameTele(tele))
         {
@@ -191,6 +206,10 @@ public:
                 target->SaveRecallPosition();
 
             target->TeleportTo(tele->mapId, tele->position_x, tele->position_y, tele->position_z, tele->orientation);
+
+			target->ClearPhases();
+			target->SetInPhase(tele->phase, true, !target->IsInPhase(tele->phase));
+			target->ToPlayer()->SendUpdatePhasing();
         }
         else
         {
@@ -289,6 +308,10 @@ public:
                 player->SaveRecallPosition();
 
             player->TeleportTo(tele->mapId, tele->position_x, tele->position_y, tele->position_z, tele->orientation);
+
+			player->ClearPhases();
+			player->SetInPhase(tele->phase, true, !player->IsInPhase(tele->phase));
+			player->ToPlayer()->SendUpdatePhasing();
         }
 
         return true;
@@ -337,6 +360,11 @@ public:
             me->SaveRecallPosition();
 
         me->TeleportTo(tele->mapId, tele->position_x, tele->position_y, tele->position_z, tele->orientation);
+
+		me->ClearPhases();
+		me->SetInPhase(tele->phase, true, !me->IsInPhase(tele->phase));
+		me->ToPlayer()->SendUpdatePhasing();
+
         return true;
     }
 };

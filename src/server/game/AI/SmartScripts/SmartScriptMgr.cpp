@@ -1147,11 +1147,16 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
             }
 
             PhaseEntry const* phase = sPhaseStore.LookupEntry(phaseId);
-            if (!phase)
+            /*if (!phase)
             {
                 TC_LOG_ERROR("sql.sql", "SmartScript: SMART_ACTION_SET_INGAME_PHASE_ID uses invalid phaseid %u for creature " SI64FMTD ", skipped", phaseId, e.entryOrGuid);
                 return false;
-            }
+            }*/
+			if (phaseId < 0 || phaseId > 49)
+			{
+				TC_LOG_ERROR("sql.sql", "SmartScript: SMART_ACTION_SET_INGAME_PHASE_ID uses invalid phaseid %u for creature " SI64FMTD ", skipped", phaseId, e.entryOrGuid);
+				return false;
+			}
             break;
         }
         case SMART_ACTION_SET_INGAME_PHASE_GROUP:
