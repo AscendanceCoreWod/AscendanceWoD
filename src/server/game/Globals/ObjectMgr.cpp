@@ -7836,7 +7836,7 @@ void ObjectMgr::LoadGameTele()
         gt.orientation    = fields[4].GetFloat();
         gt.mapId          = fields[5].GetUInt16();
         gt.name           = fields[6].GetString();
-		gt.phase		  = fields[7].GetUInt32;
+		gt.phase		  = fields[7].GetUInt32();
 
         if (!MapManager::IsValidMapCoord(gt.mapId, gt.position_x, gt.position_y, gt.position_z, gt.orientation))
         {
