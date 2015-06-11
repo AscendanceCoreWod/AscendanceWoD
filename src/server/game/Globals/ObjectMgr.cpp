@@ -7850,6 +7850,12 @@ void ObjectMgr::LoadGameTele()
             continue;
         }
 
+		if (gt.phase < 0 || gt.phase > 49)
+		{
+			TC_LOG_ERROR("sql.sql", "Wrong PhaseID for id %u in `game_tele` table, ignoring.", id);
+			continue;
+		}
+
         wstrToLower(gt.wnameLow);
 
         _gameTeleStore[id] = gt;

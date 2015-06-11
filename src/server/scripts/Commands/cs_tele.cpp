@@ -72,16 +72,8 @@ public:
             return false;
         }
 
-        GameTele tele;
-		uint32 phase;
-        tele.position_x  = player->GetPositionX();
-        tele.position_y  = player->GetPositionY();
-        tele.position_z  = player->GetPositionZ();
-        tele.orientation = player->GetOrientation();
-        tele.mapId       = player->GetMapId();
-        tele.name        = name;
-		
 		std::stringstream phases;
+		uint32 phase;
 
 		for (uint32 phase : player->GetPhases())
 		{
@@ -93,7 +85,14 @@ public:
 		else
 			uint32 phase = 0;
 
-		tele.phase		= phase;
+        GameTele tele;
+        tele.position_x  = player->GetPositionX();
+        tele.position_y  = player->GetPositionY();
+        tele.position_z  = player->GetPositionZ();
+        tele.orientation = player->GetOrientation();
+        tele.mapId       = player->GetMapId();
+        tele.name        = name;
+		tele.phase		 = phase;
 
         if (sObjectMgr->AddGameTele(tele))
         {
