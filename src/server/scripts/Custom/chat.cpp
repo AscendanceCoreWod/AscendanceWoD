@@ -20,15 +20,9 @@ std::string NOBLE_SUFFIX;
 std::string BUILDER_ICON;
 std::string BUILDER_PREFIX;
 std::string BUILDER_SUFFIX;
-std::string ARCHITECT_ICON;
-std::string ARCHITECT_PREFIX;
-std::string ARCHITECT_SUFFIX;
 std::string DUNGEONMASTER_ICON;
 std::string DUNGEONMASTER_PREFIX;
 std::string DUNGEONMASTER_SUFFIX;
-std::string EVENTMASTER_ICON;
-std::string EVENTMASTER_PREFIX;
-std::string EVENTMASTER_SUFFIX;
 std::string LOREMASTER_ICON;
 std::string LOREMASTER_PREFIX;
 std::string LOREMASTER_SUFFIX;
@@ -38,9 +32,6 @@ std::string STAFF_SUFFIX;
 std::string COUNCILMEMBER_ICON;
 std::string COUNCILMEMBER_PREFIX;
 std::string COUNCILMEMBER_SUFFIX;
-std::string HEADDEVELOPER_ICON;
-std::string HEADDEVELOPER_PREFIX;
-std::string HEADDEVELOPER_SUFFIX;
 
 std::string GetNameLink(Player* player)
 {
@@ -276,18 +267,6 @@ public:
 			msg += GetNameLink(player);
 			msg += DUNGEONMASTER_SUFFIX;
 			break;
-		case SEC_STAFFMEMBER:
-			msg += ARCHITECT_ICON;
-			msg += ARCHITECT_PREFIX;
-			msg += GetNameLink(player);
-			msg += ARCHITECT_SUFFIX;
-			break;
-		case SEC_EVENTMASTER:
-			msg += EVENTMASTER_ICON;
-			msg += EVENTMASTER_PREFIX;
-			msg += GetNameLink(player);
-			msg += EVENTMASTER_SUFFIX;
-			break;
 		case SEC_LOREMASTER:
 			msg += LOREMASTER_ICON;
 			msg += LOREMASTER_PREFIX;
@@ -305,12 +284,6 @@ public:
 			msg += COUNCILMEMBER_PREFIX;
 			msg += GetNameLink(player);
 			msg += COUNCILMEMBER_SUFFIX;
-			break;
-		case SEC_HEADDEVELOPER:
-			msg += HEADDEVELOPER_ICON;
-			msg += HEADDEVELOPER_PREFIX;
-			msg += GetNameLink(player);
-			msg += HEADDEVELOPER_SUFFIX;
 			break;
 		case SEC_CONSOLE:
 			msg += "|cfffa9900[ROOT] ";
@@ -341,6 +314,10 @@ public:
 		PLAYER_A_PREFIX = sConfigMgr->GetStringDefault("PLAYER_A_PREFIX", "");
 		PLAYER_A_SUFFIX = sConfigMgr->GetStringDefault("PLAYER_A_SUFFIX", "");
 
+		NOBLE_ICON = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_ICON", "");
+		NOBLE_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_PREFIX", "");
+		NOBLE_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_SUFFIX", "");
+
 		BUILDER_ICON = sConfigMgr->GetStringDefault("BUILDER_ICON", "");
 		BUILDER_PREFIX = sConfigMgr->GetStringDefault("BUILDER_PREFIX", "");
 		BUILDER_SUFFIX = sConfigMgr->GetStringDefault("BUILDER_SUFFIX", "");
@@ -348,14 +325,6 @@ public:
 		DUNGEONMASTER_ICON = sConfigMgr->GetStringDefault("DUNGEONMASTER_ICON", "");
 		DUNGEONMASTER_PREFIX = sConfigMgr->GetStringDefault("DUNGEONMASTER_PREFIX", "");
 		DUNGEONMASTER_SUFFIX = sConfigMgr->GetStringDefault("DUNGEONMASTER_SUFFIX", "");
-
-		ARCHITECT_ICON = sConfigMgr->GetStringDefault("ARCHITECT_ICON", "");
-		ARCHITECT_PREFIX = sConfigMgr->GetStringDefault("ARCHITECT_PREFIX", "");
-		ARCHITECT_SUFFIX = sConfigMgr->GetStringDefault("ARCHITECT_SUFFIX", "");
-
-		EVENTMASTER_ICON = sConfigMgr->GetStringDefault("EVENTMASTER_ICON", "");
-		EVENTMASTER_PREFIX = sConfigMgr->GetStringDefault("EVENTMASTER_PREFIX", "");
-		EVENTMASTER_SUFFIX = sConfigMgr->GetStringDefault("EVENTMASTER_SUFFIX", "");
 
 		LOREMASTER_ICON = sConfigMgr->GetStringDefault("LOREMASTER_ICON", "");
 		LOREMASTER_PREFIX = sConfigMgr->GetStringDefault("LOREMASTER_PREFIX", "");
@@ -365,18 +334,9 @@ public:
 		STAFF_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_PREFIX", "");
 		STAFF_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYREPRESENTATIVE_SUFFIX", "");
 
-		NOBLE_ICON = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_ICON", "");
-		NOBLE_PREFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_PREFIX", "");
-		NOBLE_SUFFIX = sConfigMgr->GetStringDefault("COMMUNITYMANAGER_SUFFIX", "");
-
 		COUNCILMEMBER_ICON = sConfigMgr->GetStringDefault("COUNCILMEMBER_ICON", "");
 		COUNCILMEMBER_PREFIX = sConfigMgr->GetStringDefault("COUNCILMEMBER_PREFIX", "");
 		COUNCILMEMBER_SUFFIX = sConfigMgr->GetStringDefault("COUNCILMEMBER_SUFFIX", "");
-
-		HEADDEVELOPER_ICON = sConfigMgr->GetStringDefault("HEADDEVELOPER_ICON", "");
-		HEADDEVELOPER_PREFIX = sConfigMgr->GetStringDefault("HEADDEVELOPER_PREFIX", "");
-		HEADDEVELOPER_SUFFIX = sConfigMgr->GetStringDefault("HEADDEVELOPER_SUFFIX", "");
-
 	}
 };
 
