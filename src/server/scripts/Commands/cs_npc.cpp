@@ -550,12 +550,16 @@ public:
     {
         Creature* unit = NULL;
 
+		ObjectGuid::LowType lowguid = UI64LIT(0);
+
         if (*args)
         {
+			/*
             // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
-            char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
-            if (!cId)
-                return false;
+
+			char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
+			if (!cId)
+				return false;
 
             ObjectGuid::LowType lowguid = strtoull(cId, nullptr, 10);
             if (!lowguid)
@@ -563,7 +567,36 @@ public:
 
             if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
                 unit = handler->GetSession()->GetPlayer()->GetMap()->GetCreature(ObjectGuid::Create<HighGuid::Creature>(cr_data->mapid, cr_data->id, lowguid));
-        }
+			*/
+
+			// number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+
+			char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
+			if (!cId)
+				return false;
+
+			lowguid = strtoull(cId, nullptr, 10);
+
+			// Attempting creature load from DB data
+			CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid);
+			if (!cr_data)
+			{
+				handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, lowguid);
+				handler->SetSentErrorMessage(true);
+				return false;
+			}
+
+			uint32 map_id = cr_data->mapid;
+
+			if (handler->GetSession()->GetPlayer()->GetMapId() != map_id)
+			{
+				handler->PSendSysMessage(LANG_COMMAND_CREATUREATSAMEMAP, lowguid);
+				handler->SetSentErrorMessage(true);
+				return false;
+			}
+
+			unit = handler->GetSession()->GetPlayer()->GetMap()->GetCreature(ObjectGuid::Create<HighGuid::Creature>(cr_data->mapid, cr_data->id, lowguid));
+		}
         else
             unit = handler->getSelectedCreature();
 
