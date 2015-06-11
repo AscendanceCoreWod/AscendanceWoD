@@ -422,13 +422,18 @@ public:
         ObjectGuid::LowType lowGuid = strtoull(guidStr, nullptr, 10);
 
         // attempt check creature existence by DB data
-        CreatureData const* data = sObjectMgr->GetCreatureData(lowGuid);
-        if (!data)
-        {
-            handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, lowGuid);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+		Creature* creature = NULL;
+
+		if (!creature)
+		{
+			CreatureData const* data = sObjectMgr->GetCreatureData(lowGuid);
+			if (!data)
+			{
+				handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, lowGuid);
+				handler->SetSentErrorMessage(true);
+				return false;
+			}
+		}
 
         int wait = waitStr ? atoi(waitStr) : 0;
 
@@ -443,7 +448,19 @@ public:
 
         WorldDatabase.Execute(stmt);
 
-        handler->SendSysMessage(LANG_WAYPOINT_ADDED);
+		if (creature && creature->GetWaypointPath())
+		{
+			creature->SetDefaultMovementType(WAYPOINT_MOTION_TYPE);
+			creature->GetMotionMaster()->Initialize();
+			if (creature->IsAlive())                            // dead creature will reset movement generator at respawn
+			{
+				creature->setDeathState(JUST_DIED);
+				creature->Respawn(true);
+			}
+			creature->SaveToDB();
+		}
+
+		handler->PSendSysMessage(LANG_WAYPOINT_ADDED, uint8(WAYPOINT_MOTION_TYPE), lowGuid);
 
         return true;
     }
