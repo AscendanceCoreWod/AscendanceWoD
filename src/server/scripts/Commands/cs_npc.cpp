@@ -343,6 +343,8 @@ public:
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
 
+		handler->PSendSysMessage(LANG_CREATURE_ADD, id, creature->GetName(), db_guid, x, y, z, phase);
+
 		creature->ClearPhases();
 		creature->SetInPhase(phase, true, true);
 		creature->SetDBPhase(phase);

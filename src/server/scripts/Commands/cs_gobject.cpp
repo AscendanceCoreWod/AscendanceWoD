@@ -278,7 +278,7 @@ public:
 		/// @todo is it really necessary to add both the real and DB table guid here ?
 		sObjectMgr->AddGameobjectToGrid(guidLow, ASSERT_NOTNULL(sObjectMgr->GetGOData(guidLow)));
 
-		handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
+		handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z, phase);
 
 		object->ClearPhases();
 		object->SetInPhase(phase, true, true);
