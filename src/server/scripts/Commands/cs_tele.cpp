@@ -73,16 +73,15 @@ public:
         }
 
 		std::stringstream phases;
-		uint32 phase;
 
 		for (uint32 phase : player->GetPhases())
 		{
 			phases << phase << " ";
 		}
 
-		if (!phases.str().empty())
-			uint32 phase = atoi(phases.str().c_str());
-		else
+		uint32 phase = atoi(phases.str().c_str());
+
+		if (!phase)
 			uint32 phase = 0;
 
         GameTele tele;

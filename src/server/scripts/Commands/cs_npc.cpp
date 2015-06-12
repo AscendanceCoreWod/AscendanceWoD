@@ -596,6 +596,23 @@ public:
 			}
 
 			unit = handler->GetSession()->GetPlayer()->GetMap()->GetCreature(ObjectGuid::Create<HighGuid::Creature>(cr_data->mapid, cr_data->id, lowguid));
+
+			if (unit)
+			{
+				unit->CombatStop();
+				unit->DeleteFromDB();
+				unit->AddObjectToRemoveList();
+
+				handler->SendSysMessage(LANG_COMMAND_DELCREATMESSAGE);
+
+				return true;
+			}
+			else
+			{
+				handler->SendSysMessage(LANG_SELECT_CREATURE);
+				handler->SetSentErrorMessage(true);
+				return false;
+			}
 		}
         else
             unit = handler->getSelectedCreature();
