@@ -671,6 +671,7 @@ class World
 
         void SendWorldText(uint32 string_id, ...);
 		void SendWorldChat(uint32 string_id, ...);
+		void SendWorldBroadcast(uint32 string_id, ...);
         void SendGlobalText(const char* text, WorldSession* self);
         void SendGMText(uint32 string_id, ...);
         void SendServerMessage(ServerMessageType messageID, std::string stringParam = "", Player* player = NULL);

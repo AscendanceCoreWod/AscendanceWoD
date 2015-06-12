@@ -2438,6 +2438,27 @@ void World::SendWorldChat(uint32 string_id, ...)
 	va_end(ap);
 }
 
+void World::SendWorldBroadcast(uint32 string_id, ...)
+{
+	va_list ap;
+	va_start(ap, string_id);
+
+	Trinity::WorldWorldTextBuilder wt_builder(string_id, &ap);
+	Trinity::LocalizedPacketListDo<Trinity::WorldWorldTextBuilder> wt_do(wt_builder);
+	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+	{
+		if (!itr->second || !itr->second->GetPlayer() || !itr->second->GetPlayer()->IsInWorld())
+			continue;
+
+		if (!itr->second->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_HINT))
+			continue;
+
+		wt_do(itr->second->GetPlayer());
+	}
+
+	va_end(ap);
+}
+
 /// Send a System Message to all GMs (except self if mentioned)
 void World::SendGMText(uint32 string_id, ...)
 {
@@ -2916,6 +2937,10 @@ void World::SendAutoBroadcast()
         sWorld->SendWorldText(LANG_AUTO_BROADCAST, msg.c_str());
         sWorld->SendGlobalMessage(WorldPackets::Chat::PrintNotification(msg).Write());
     }
+	else if (abcenter == 3)
+	{
+		sWorld->SendWorldBroadcast(LANG_AUTO_BROADCAST, msg.c_str());
+	}
 
     TC_LOG_DEBUG("misc", "AutoBroadcast: '%s'", msg.c_str());
 }

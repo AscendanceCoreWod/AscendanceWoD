@@ -904,9 +904,10 @@ enum ArenaTeamInfoType
 
 enum CommandNames
 {
-	TOGGLE_APPEAR = 8,
-	TOGGLE_SUMMON = 9,
-	TOGGLE_WORLD_CHAT = 10
+	TOGGLE_APPEAR				 = 8,
+	TOGGLE_SUMMON				 = 9,
+	TOGGLE_WORLD_CHAT			 = 10,
+	TOGGLE_WORLD_HINT			 = 11
 };
 
 class InstanceSave;
@@ -1424,6 +1425,7 @@ class Player : public Unit, public GridObject<Player>
 		bool m_toggleAppear;
 		bool m_toggleSummon;
 		bool m_toggleWorldChat;
+		bool m_toggleWorldHint;
 
         // Played Time Stuff
         time_t m_logintime;

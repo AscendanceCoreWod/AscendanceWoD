@@ -9,6 +9,7 @@ public:
 	{
 		player->GetSession()->SendNotification("|cffFFFF00Welcome to Ascendance!");
 		player->SetCommandStatusOn(TOGGLE_WORLD_CHAT);
+		player->SetCommandStatusOn(TOGGLE_WORLD_HINT);
 	}
 };
 

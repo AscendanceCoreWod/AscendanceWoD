@@ -126,6 +126,34 @@ public:
 		return false;
 	}
 
+	static bool HandleToggleHintCommand(ChatHandler* handler, const char* args)
+	{
+		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
+			return false;
+
+		std::string argstr = (char*)args;
+
+		Player* _player = handler->GetSession()->GetPlayer();
+
+		if (!*args)
+			argstr = (handler->GetSession()->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_HINT)) ? "off" : "on";
+
+		if (argstr == "on")
+		{
+			_player->SetCommandStatusOn(TOGGLE_WORLD_HINT);
+			handler->SendSysMessage("World Hints are ON.");
+			return true;
+		}
+		else if (argstr == "off")
+		{
+			_player->SetCommandStatusOff(TOGGLE_WORLD_HINT);
+			handler->SendSysMessage("World Hints are OFF.");
+			return true;
+		}
+
+		return false;
+	}
+
 	static bool HandleToggleAppearCommand(ChatHandler* handler, const char* args)
 	{
 		if (!handler->GetSession() && !handler->GetSession()->GetPlayer())

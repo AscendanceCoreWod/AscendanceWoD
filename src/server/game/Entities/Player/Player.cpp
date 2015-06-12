@@ -836,6 +836,7 @@ Player::Player(WorldSession* session): Unit(true)
 	m_toggleAppear = true;
 	m_toggleSummon = true;
 	m_toggleWorldChat = false;
+	m_toggleWorldHint = false;
 
     m_mover = this;
     m_movedPlayer = this;
