@@ -85,6 +85,7 @@ public:
 			{ "chat", SEC_PLAYER, false, &HandleToggleChatCommand, "", NULL },
 			{ "appear", SEC_PLAYER, false, &HandleToggleAppearCommand, "", NULL },
 			{ "summon", SEC_PLAYER, false, &HandleToggleSummonCommand, "", NULL },
+			{ "hint", SEC_PLAYER, false, &HandleToggleHintCommand, "", NULL },
 			{ NULL, 0, false, NULL, "", NULL }
 		};
 
