@@ -6171,11 +6171,21 @@ void ObjectMgr::LoadAccessRequirements()
     {
         Field* fields = result->Fetch();
 
-        ++count;
-
         uint32 mapid = fields[0].GetUInt32();
-        uint8 difficulty = fields[1].GetUInt8();
-        uint32 requirement_ID = MAKE_PAIR64(mapid, difficulty);
+        if (!sMapStore.LookupEntry(mapid))
+        {
+            TC_LOG_ERROR("sql.sql", "Map %u referenced in `access_requirement` does not exist, skipped.", mapid);
+            continue;
+        }
+
+        uint32 difficulty = fields[1].GetUInt8();
+        if (!GetMapDifficultyData(mapid, Difficulty(difficulty)))
+        {
+            TC_LOG_ERROR("sql.sql", "Map %u referenced in `access_requirement` does not have difficulty %u, skipped", mapid, difficulty);
+            continue;
+        }
+
+        uint64 requirement_ID = MAKE_PAIR64(mapid, difficulty);
 
         AccessRequirement* ar   = new AccessRequirement();
         ar->levelMin            = fields[2].GetUInt8();
@@ -6192,7 +6202,7 @@ void ObjectMgr::LoadAccessRequirements()
             ItemTemplate const* pProto = GetItemTemplate(ar->item);
             if (!pProto)
             {
-                TC_LOG_ERROR("misc", "Key item %u does not exist for map %u difficulty %u, removing key requirement.", ar->item, mapid, difficulty);
+                TC_LOG_ERROR("sql.sql", "Key item %u does not exist for map %u difficulty %u, removing key requirement.", ar->item, mapid, difficulty);
                 ar->item = 0;
             }
         }
@@ -6202,7 +6212,7 @@ void ObjectMgr::LoadAccessRequirements()
             ItemTemplate const* pProto = GetItemTemplate(ar->item2);
             if (!pProto)
             {
-                TC_LOG_ERROR("misc", "Second item %u does not exist for map %u difficulty %u, removing key requirement.", ar->item2, mapid, difficulty);
+                TC_LOG_ERROR("sql.sql", "Second item %u does not exist for map %u difficulty %u, removing key requirement.", ar->item2, mapid, difficulty);
                 ar->item2 = 0;
             }
         }
@@ -6235,6 +6245,8 @@ void ObjectMgr::LoadAccessRequirements()
         }
 
         _accessRequirementStore[requirement_ID] = ar;
+        ++count;
+
     } while (result->NextRow());
 
     TC_LOG_INFO("server.loading", ">> Loaded %u access requirement definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
