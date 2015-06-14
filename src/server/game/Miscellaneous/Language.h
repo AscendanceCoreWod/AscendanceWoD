@@ -1223,6 +1223,7 @@ enum TrinityStrings
     LANG_NPCINFO_FLAGS_EXTRA                      = 11009,
 
 	// Custom Higher than 11010
-	LANG_CREATURE_ADD							  = 11010
+	LANG_CREATURE_ADD							  = 11010,
+	LANG_COMMAND_SCALEOBJMESSAGE				  = 11011
 };
 #endif
