@@ -142,7 +142,7 @@ public:
 
 		object->SaveToDB();
 
-		handler->PSendSysMessage(LANG_COMMAND_SCALEOBJMESSAGE, object->GetSpawnId(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), scale);
+		handler->PSendSysMessage(LANG_COMMAND_SCALEOBJMESSAGE, scale);
 		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
 
 		return true;
