@@ -132,9 +132,6 @@ public:
 		// set scale
 		object->SetObjectScale(scale);
 
-		object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-		object->RelocateStationaryPosition(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-		object->UpdateRotationFields();
 		object->DestroyForNearbyPlayers();
 		object->UpdateObjectVisibility();
 
