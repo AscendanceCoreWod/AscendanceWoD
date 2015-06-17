@@ -130,9 +130,6 @@ public:
 		}
 
 		// set scale
-		object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-		object->RelocateStationaryPosition(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-		object->UpdateRotationFields();
 		object->DestroyForNearbyPlayers();
 		object->UpdateObjectVisibility();
 
@@ -142,7 +139,7 @@ public:
 
 		object->SaveToDB();
 
-		handler->PSendSysMessage(LANG_COMMAND_SCALEOBJMESSAGE, scale);
+		handler->PSendSysMessage(LANG_COMMAND_SCALEOBJMESSAGE, object->GetSpawnId(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), scale);
 		WorldDatabase.PExecute("UPDATE gameobject SET PhaseId='%u' WHERE guid='%u'", phase, guidLow);
 
 		return true;
