@@ -429,26 +429,26 @@ void WorldSession::HandleRandomRollOpcode(WorldPackets::Misc::RandomRollClient& 
 
 void WorldSession::HandleUpdateRaidTargetOpcode(WorldPackets::Party::UpdateRaidTarget& packet)
 {
-	Group* group = GetPlayer()->GetGroup();
-	if (!group)
-		return;
+    Group* group = GetPlayer()->GetGroup();
+    if (!group)
+        return;
 
-	if (packet.Symbol == 0xFF)                  // target icon request
-		group->SendTargetIconList(this, packet.PartyIndex);
-	else                                        // target icon update
-	{
-		if (group->isRaidGroup() && !group->IsLeader(GetPlayer()->GetGUID()) && !group->IsAssistant(GetPlayer()->GetGUID()))
-			return;
+    if (packet.Symbol == -1)                  // target icon request
+        group->SendTargetIconList(this, packet.PartyIndex);
+    else                                        // target icon update
+    {
+        if (group->isRaidGroup() && !group->IsLeader(GetPlayer()->GetGUID()) && !group->IsAssistant(GetPlayer()->GetGUID()))
+            return;
 
-		if (packet.Target.IsPlayer())
-		{
-			Player* target = ObjectAccessor::FindConnectedPlayer(packet.Target);
-			if (!target || target->IsHostileTo(GetPlayer()))
-				return;
-		}
+        if (packet.Target.IsPlayer())
+        {
+            Player* target = ObjectAccessor::FindConnectedPlayer(packet.Target);
+            if (!target || target->IsHostileTo(GetPlayer()))
+                return;
+        }
 
-		group->SetTargetIcon(packet.Symbol, packet.Target, GetPlayer()->GetGUID(), packet.PartyIndex);
-	}
+        group->SetTargetIcon(packet.Symbol, packet.Target, GetPlayer()->GetGUID(), packet.PartyIndex);
+    }
 }
 
 void WorldSession::HandleConvertRaidOpcode(WorldPackets::Party::ConvertRaid& packet)
