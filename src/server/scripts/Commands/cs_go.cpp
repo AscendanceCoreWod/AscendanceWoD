@@ -203,7 +203,7 @@ public:
 
 		player->SaveRecallPosition();
 
-		Position position = player->GetPosition;
+		Position position = player->GetPosition();
 
 		if (newx > 0)
 		{
