@@ -205,29 +205,34 @@ public:
 
 		Position position = player->GetPosition();
 
-		if (newx > 0)
+		if (!newz == 0)
 		{
-			player->MovePosition(position, newx, 0);
-		}
-		else
-		{
-			player->MovePosition(position, newx, 180);
+			player->TeleportTo(mapId, curx, cury, z, ort);
 		}
 
-		if (newy > 0)
+		if (!newx == 0)
 		{
-			player->MovePosition(position, newy, 90);
-		}
-		else
-		{
-			player->MovePosition(position, newy, 270);
+			if (newx > 0)
+			{
+				player->MovePosition(position, newx, 0.0f);
+			}
+			else
+			{
+				player->MovePosition(position, newx, 180.0f);
+			}
 		}
 
-		float inx = player->GetPositionX();
-		float iny = player->GetPositionY();
-		float inz = player->GetPositionZ();
-		uint32 inmapId = player->GetMapId();
-		player->TeleportTo(inmapId, inx, iny, inz, ort);
+		if (!newy == 0)
+		{
+			if (newy > 0)
+			{
+				player->MovePosition(position, newy, 90.0f);
+			}
+			else
+			{
+				player->MovePosition(position, newy, 270.0f);
+			}
+		}
 
 		//player->Relocate(x, y, z, player->GetOrientation());
 		//player->TeleportTo(mapId, x, y, z, ort);
