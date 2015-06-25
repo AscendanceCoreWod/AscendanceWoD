@@ -638,6 +638,8 @@ class World
         void LoadConfigSettings(bool reload = false);
 
         void SendWorldText(uint32 string_id, ...);
+		void SendWorldChat(uint32 string_id, ...);
+		void SendWorldBroadcast(uint32 string_id, ...);
         void SendGlobalText(const char* text, WorldSession* self);
         void SendGMText(uint32 string_id, ...);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);
@@ -741,7 +743,8 @@ class World
         void LoadDBVersion();
         char const* GetDBVersion() const { return m_DBVersion.c_str(); }
 
-        void RecordTimeDiff(const char * text, ...);
+        void ResetTimeDiffRecord();
+        void RecordTimeDiff(std::string const& text);
 
         void LoadAutobroadcasts();
 
