@@ -31,6 +31,7 @@
 #include "BattlegroundMgr.h"
 #include "MapManager.h"
 #include "InstanceSaveMgr.h"
+#include "MapInstanced.h"
 #include "Util.h"
 #include "LFGMgr.h"
 #include "UpdateFieldFlags.h"
@@ -1857,9 +1858,6 @@ GroupJoinBattlegroundResult Group::CanJoinBattlegroundQueue(Battleground const* 
         // check if someone in party is using dungeon system
         if (member->isUsingLfg())
             return ERR_LFG_CANT_USE_BATTLEGROUND;
-        // check Freeze debuff
-        if (member->HasAura(9454))
-            return ERR_BATTLEGROUND_JOIN_FAILED;
     }
 
     // only check for MinPlayerCount since MinPlayerCount == MaxPlayerCount for arenas...

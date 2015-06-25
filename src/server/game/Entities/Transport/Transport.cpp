@@ -20,10 +20,14 @@
 #include "Transport.h"
 #include "MapManager.h"
 #include "ObjectMgr.h"
+#include "Path.h"
 #include "ScriptMgr.h"
+#include "WorldPacket.h"
 #include "DBCStores.h"
+#include "World.h"
 #include "GameObjectAI.h"
 #include "Vehicle.h"
+#include "MapReference.h"
 #include "Player.h"
 #include "Cell.h"
 #include "CellImpl.h"
@@ -32,7 +36,7 @@
 Transport::Transport() : GameObject(),
     _transportInfo(NULL), _isMoving(true), _pendingStop(false),
     _triggeredArrivalEvent(false), _triggeredDepartureEvent(false),
-    _passengerTeleportItr(_passengers.begin()), _delayedAddModel(false), _delayedTeleport(false)
+    _passengerTeleportItr(_passengers.begin()), _delayedAddModel(false)
 {
     m_updateFlag = UPDATEFLAG_TRANSPORT | UPDATEFLAG_LOWGUID | UPDATEFLAG_STATIONARY_POSITION | UPDATEFLAG_ROTATION;
 }
@@ -125,7 +129,7 @@ void Transport::Update(uint32 diff)
     if (IsMoving() || !_pendingStop)
         m_goValue.Transport.PathProgress += diff;
 
-    uint32 timer = m_goValue.Transport.PathProgress % GetTransportPeriod();
+    uint32 timer = m_goValue.Transport.PathProgress % GetPeriod();
 
     // Set current waypoint
     // Desired outcome: _currentFrame->DepartureTime < timer < _nextFrame->ArriveTime
@@ -147,8 +151,8 @@ void Transport::Update(uint32 diff)
                 if (_pendingStop && GetGoState() != GO_STATE_READY)
                 {
                     SetGoState(GO_STATE_READY);
-                    m_goValue.Transport.PathProgress = (m_goValue.Transport.PathProgress / GetTransportPeriod());
-                    m_goValue.Transport.PathProgress *= GetTransportPeriod();
+                    m_goValue.Transport.PathProgress = (m_goValue.Transport.PathProgress / GetPeriod());
+                    m_goValue.Transport.PathProgress *= GetPeriod();
                     m_goValue.Transport.PathProgress += _currentFrame->ArriveTime;
                 }
                 break;  // its a stop frame and we are waiting
@@ -173,13 +177,13 @@ void Transport::Update(uint32 diff)
 
         MoveToNextWaypoint();
 
-        sScriptMgr->OnRelocate(this, _currentFrame->Node->NodeIndex, _currentFrame->Node->MapID, _currentFrame->Node->LocX, _currentFrame->Node->LocY, _currentFrame->Node->LocZ);
+        sScriptMgr->OnRelocate(this, _currentFrame->Node->index, _currentFrame->Node->mapid, _currentFrame->Node->x, _currentFrame->Node->y, _currentFrame->Node->z);
 
-        TC_LOG_DEBUG("entities.transport", "Transport %u (%s) moved to node %u %u %f %f %f", GetEntry(), GetName().c_str(), _currentFrame->Node->NodeIndex, _currentFrame->Node->MapID, _currentFrame->Node->LocX, _currentFrame->Node->LocY, _currentFrame->Node->LocZ);
+        TC_LOG_DEBUG("entities.transport", "Transport %u (%s) moved to node %u %u %f %f %f", GetEntry(), GetName().c_str(), _currentFrame->Node->index, _currentFrame->Node->mapid, _currentFrame->Node->x, _currentFrame->Node->y, _currentFrame->Node->z);
 
         // Departure event
         if (_currentFrame->IsTeleportFrame())
-            if (TeleportTransport(_nextFrame->Node->MapID, _nextFrame->Node->LocX, _nextFrame->Node->LocY, _nextFrame->Node->LocZ, _nextFrame->InitialOrientation))
+            if (TeleportTransport(_nextFrame->Node->mapid, _nextFrame->Node->x, _nextFrame->Node->y, _nextFrame->Node->z, _nextFrame->InitialOrientation))
                 return; // Update more in new map thread
     }
 
@@ -224,14 +228,6 @@ void Transport::Update(uint32 diff)
     }
 
     sScriptMgr->OnTransportUpdate(this, diff);
-}
-
-void Transport::DelayedUpdate(uint32 /*diff*/)
-{
-    if (GetKeyFrames().size() <= 1)
-        return;
-
-    DelayedTeleportTransport();
 }
 
 void Transport::AddPassenger(WorldObject* passenger)
@@ -338,8 +334,6 @@ GameObject* Transport::CreateGOPassenger(uint32 guid, GameObjectData const* data
         delete go;
         return NULL;
     }
-
-    ASSERT(data);
 
     float x = data->posX;
     float y = data->posY;
@@ -599,8 +593,36 @@ bool Transport::TeleportTransport(uint32 newMapid, float x, float y, float z, fl
 
     if (oldMap->GetId() != newMapid)
     {
-        _delayedTeleport = true;
+        Map* newMap = sMapMgr->CreateBaseMap(newMapid);
         UnloadStaticPassengers();
+        GetMap()->RemoveFromMap<Transport>(this, false);
+        SetMap(newMap);
+
+        for (_passengerTeleportItr = _passengers.begin(); _passengerTeleportItr != _passengers.end();)
+        {
+            WorldObject* obj = (*_passengerTeleportItr++);
+
+            float destX, destY, destZ, destO;
+            obj->m_movementInfo.transport.pos.GetPosition(destX, destY, destZ, destO);
+            TransportBase::CalculatePassengerPosition(destX, destY, destZ, &destO, x, y, z, o);
+
+            switch (obj->GetTypeId())
+            {
+                case TYPEID_PLAYER:
+                    if (!obj->ToPlayer()->TeleportTo(newMapid, destX, destY, destZ, destO, TELE_TO_NOT_LEAVE_TRANSPORT))
+                        RemovePassenger(obj);
+                    break;
+                case TYPEID_DYNAMICOBJECT:
+                    obj->AddObjectToRemoveList();
+                    break;
+                default:
+                    RemovePassenger(obj);
+                    break;
+            }
+        }
+
+        Relocate(x, y, z, o);
+        GetMap()->AddToMap<Transport>(this);
         return true;
     }
     else
@@ -621,48 +643,6 @@ bool Transport::TeleportTransport(uint32 newMapid, float x, float y, float z, fl
         UpdatePosition(x, y, z, o);
         return false;
     }
-}
-
-void Transport::DelayedTeleportTransport()
-{
-    if (!_delayedTeleport)
-        return;
-
-    _delayedTeleport = false;
-    Map* newMap = sMapMgr->CreateBaseMap(_nextFrame->Node->MapID);
-    GetMap()->RemoveFromMap<Transport>(this, false);
-    SetMap(newMap);
-
-    float x = _nextFrame->Node->LocX,
-          y = _nextFrame->Node->LocY,
-          z = _nextFrame->Node->LocZ,
-          o =_nextFrame->InitialOrientation;
-
-    for (_passengerTeleportItr = _passengers.begin(); _passengerTeleportItr != _passengers.end();)
-    {
-        WorldObject* obj = (*_passengerTeleportItr++);
-
-        float destX, destY, destZ, destO;
-        obj->m_movementInfo.transport.pos.GetPosition(destX, destY, destZ, destO);
-        TransportBase::CalculatePassengerPosition(destX, destY, destZ, &destO, x, y, z, o);
-
-        switch (obj->GetTypeId())
-        {
-            case TYPEID_PLAYER:
-                if (!obj->ToPlayer()->TeleportTo(_nextFrame->Node->MapID, destX, destY, destZ, destO, TELE_TO_NOT_LEAVE_TRANSPORT))
-                    RemovePassenger(obj);
-                break;
-            case TYPEID_DYNAMICOBJECT:
-                obj->AddObjectToRemoveList();
-                break;
-            default:
-                RemovePassenger(obj);
-                break;
-        }
-    }
-
-    Relocate(x, y, z, o);
-    GetMap()->AddToMap<Transport>(this);
 }
 
 void Transport::UpdatePassengerPositions(PassengerSet& passengers)
@@ -719,9 +699,9 @@ void Transport::UpdatePassengerPositions(PassengerSet& passengers)
 
 void Transport::DoEventIfAny(KeyFrame const& node, bool departure)
 {
-    if (uint32 eventid = departure ? node.Node->DepartureEventID : node.Node->ArrivalEventID)
+    if (uint32 eventid = departure ? node.Node->departureEventID : node.Node->arrivalEventID)
     {
-        TC_LOG_DEBUG("maps.script", "Taxi %s event %u of node %u of %s path", departure ? "departure" : "arrival", eventid, node.Node->NodeIndex, GetName().c_str());
+        TC_LOG_DEBUG("maps.script", "Taxi %s event %u of node %u of %s path", departure ? "departure" : "arrival", eventid, node.Node->index, GetName().c_str());
         GetMap()->ScriptsStart(sEventScripts, eventid, this, this);
         EventInform(eventid);
     }

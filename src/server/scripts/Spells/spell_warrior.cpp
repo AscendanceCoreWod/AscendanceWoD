@@ -23,7 +23,6 @@
 
 #include "Player.h"
 #include "ScriptMgr.h"
-#include "SpellHistory.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 
@@ -848,7 +847,7 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
 
                 // Remove Taunt cooldown
                 if (Player* target = GetHitPlayer())
-                    target->GetSpellHistory()->ResetCooldown(SPELL_WARRIOR_TAUNT, true);
+                    target->RemoveSpellCooldown(SPELL_WARRIOR_TAUNT, true);
             }
 
             void Register() override

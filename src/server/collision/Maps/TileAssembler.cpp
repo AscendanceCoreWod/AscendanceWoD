@@ -24,6 +24,7 @@
 #include <set>
 #include <iomanip>
 #include <sstream>
+#include <iomanip>
 
 using G3D::Vector3;
 using G3D::AABox;

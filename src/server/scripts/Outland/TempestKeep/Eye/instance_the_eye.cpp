@@ -27,6 +27,8 @@ EndScriptData */
 #include "InstanceScript.h"
 #include "the_eye.h"
 
+#define MAX_ENCOUNTER 5
+
 /* The Eye encounters:
 0 - Kael'thas event
 1 - Al' ar event
@@ -37,16 +39,20 @@ EndScriptData */
 class instance_the_eye : public InstanceMapScript
 {
     public:
-        instance_the_eye() : InstanceMapScript("instance_the_eye", 550) { }
+        instance_the_eye()
+            : InstanceMapScript("instance_the_eye", 550)
+        {
+        }
 
         struct instance_the_eye_InstanceMapScript : public InstanceScript
         {
             instance_the_eye_InstanceMapScript(Map* map) : InstanceScript(map)
             {
                 SetHeaders(DataHeader);
-                SetBossNumber(EncounterCount);
+                memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
                 KaelthasEventPhase = 0;
+                AlarEventPhase = 0;
             }
 
             ObjectGuid ThaladredTheDarkener;
@@ -57,34 +63,44 @@ class instance_the_eye : public InstanceMapScript
             ObjectGuid Astromancer;
             ObjectGuid Alar;
             uint8 KaelthasEventPhase;
+            uint8 AlarEventPhase;
+
+            uint32 m_auiEncounter[MAX_ENCOUNTER];
+
+            bool IsEncounterInProgress() const override
+            {
+                for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                    if (m_auiEncounter[i] == IN_PROGRESS)
+                        return true;
+
+                return false;
+            }
 
             void OnCreatureCreate(Creature* creature) override
             {
                 switch (creature->GetEntry())
                 {
-                    case NPC_SANGUINAR:
-                        LordSanguinar = creature->GetGUID();
-                        break;
-                    case NPC_CAPERNIAN:
-                        GrandAstromancerCapernian = creature->GetGUID();
-                        break;
-                    case NPC_TELONICUS:
-                        MasterEngineerTelonicus = creature->GetGUID();
-                        break;
-                    case NPC_THALADRED:
-                        ThaladredTheDarkener = creature->GetGUID();
-                        break;
-                    case NPC_KAELTHAS:
-                        Kaelthas = creature->GetGUID();
-                        break;
-                    case NPC_HIGH_ASTROMANCER_SOLARIAN:
-                        Astromancer = creature->GetGUID();
-                        break;
-                    case NPC_ALAR:
-                        Alar = creature->GetGUID();
-                        break;
-                    default:
-                        break;
+                case 20064:
+                    ThaladredTheDarkener = creature->GetGUID();
+                    break;
+                case 20063:
+                    MasterEngineerTelonicus = creature->GetGUID();
+                    break;
+                case 20062:
+                    GrandAstromancerCapernian = creature->GetGUID();
+                    break;
+                case 20060:
+                    LordSanguinar = creature->GetGUID();
+                    break;
+                case 19622:
+                    Kaelthas = creature->GetGUID();
+                    break;
+                case 18805:
+                    Astromancer = creature->GetGUID();
+                    break;
+                case 19514:
+                    Alar = creature->GetGUID();
+                    break;
                 }
             }
 
@@ -97,7 +113,7 @@ class instance_the_eye : public InstanceMapScript
                 case DATA_GRANDASTROMANCERCAPERNIAN:    return GrandAstromancerCapernian;
                 case DATA_MASTERENGINEERTELONICUS:      return MasterEngineerTelonicus;
                 case DATA_KAELTHAS:                     return Kaelthas;
-                case DATA_HIGH_ASTROMANCER_SOLARIAN:    return Astromancer;
+                case DATA_ASTROMANCER:                  return Astromancer;
                 case DATA_ALAR:                         return Alar;
                 }
                 return ObjectGuid::Empty;
@@ -107,22 +123,63 @@ class instance_the_eye : public InstanceMapScript
             {
                 switch (type)
                 {
-                    case DATA_KAELTHASEVENT:
-                        KaelthasEventPhase = data;
-                        break;
-                    default:
-                        break;
+                case DATA_ALAREVENT:
+                    AlarEventPhase = data;
+                    m_auiEncounter[0] = data;
+                    break;
+                case DATA_HIGHASTROMANCERSOLARIANEVENT:
+                    m_auiEncounter[1] = data;
+                    break;
+                case DATA_VOIDREAVEREVENT:
+                    m_auiEncounter[2] = data;
+                    break;
+                case DATA_KAELTHASEVENT:
+                    KaelthasEventPhase = data;
+                    m_auiEncounter[3] = data;
+                    break;
                 }
+                if (data == DONE)
+                    SaveToDB();
             }
 
             uint32 GetData(uint32 type) const override
             {
                 switch (type)
                 {
-                    case DATA_KAELTHASEVENT:
-                        return KaelthasEventPhase;
+                case DATA_ALAREVENT:                        return AlarEventPhase;
+                case DATA_HIGHASTROMANCERSOLARIANEVENT:     return m_auiEncounter[1];
+                case DATA_VOIDREAVEREVENT:                  return m_auiEncounter[2];
+                case DATA_KAELTHASEVENT:                    return KaelthasEventPhase;
                 }
                 return 0;
+            }
+
+            std::string GetSaveData() override
+            {
+                OUT_SAVE_INST_DATA;
+
+                std::ostringstream stream;
+                stream << m_auiEncounter[0] << ' ' << m_auiEncounter[1] << ' ' << m_auiEncounter[2] << ' ' << m_auiEncounter[3];
+
+                OUT_SAVE_INST_DATA_COMPLETE;
+                return stream.str();
+            }
+
+            void Load(const char* in) override
+            {
+                if (!in)
+                {
+                    OUT_LOAD_INST_DATA_FAIL;
+                    return;
+                }
+                OUT_LOAD_INST_DATA(in);
+
+                std::istringstream stream(in);
+                stream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3];
+                for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                    if (m_auiEncounter[i] == IN_PROGRESS)                // Do not load an encounter as "In Progress" - reset it instead.
+                        m_auiEncounter[i] = NOT_STARTED;
+                OUT_LOAD_INST_DATA_COMPLETE;
             }
         };
 

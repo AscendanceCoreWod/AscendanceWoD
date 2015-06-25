@@ -24,7 +24,6 @@
 #include "PassiveAI.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
-#include "SpellHistory.h"
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "Transport.h"
@@ -645,10 +644,10 @@ protected:
     {
         if (Instance->GetBossState(DATA_ICECROWN_GUNSHIP_BATTLE) == IN_PROGRESS &&
             !me->HasUnitState(UNIT_STATE_CASTING) && !me->HasReactState(REACT_PASSIVE) &&
-            !me->GetSpellHistory()->HasCooldown(BurningPitchId))
+            !me->HasSpellCooldown(BurningPitchId))
         {
             DoCastAOE(BurningPitchId, true);
-            me->GetSpellHistory()->AddCooldown(BurningPitchId, 0, std::chrono::milliseconds(urand(3000, 4000)));
+            me->_AddCreatureSpellCooldown(BurningPitchId, time(NULL) + urand(3000, 4000) / IN_MILLISECONDS);
         }
     }
 
@@ -1470,7 +1469,7 @@ struct npc_gunship_boarding_addAI : public gunship_npc_AI
             DoCast(me, SPELL_BATTLE_EXPERIENCE, true);
             DoCast(me, SPELL_TELEPORT_TO_ENEMY_SHIP, true);
             DoCast(me, Instance->GetData(DATA_TEAM_IN_INSTANCE) == HORDE ? SPELL_MELEE_TARGETING_ON_ORGRIMS_HAMMER : SPELL_MELEE_TARGETING_ON_SKYBREAKER, true);
-            me->GetSpellHistory()->AddCooldown(BurningPitchId, 0, std::chrono::seconds(3));
+            me->_AddCreatureSpellCooldown(BurningPitchId, time(NULL) + 3);
 
             std::list<Player*> players;
             Trinity::UnitAuraCheck check(true, Instance->GetData(DATA_TEAM_IN_INSTANCE) == HORDE ? SPELL_ON_ORGRIMS_HAMMER_DECK : SPELL_ON_SKYBREAKER_DECK);
@@ -1699,11 +1698,11 @@ class npc_gunship_rocketeer : public CreatureScript
                     return;
 
                 uint32 spellId = me->GetEntry() == NPC_SKYBREAKER_MORTAR_SOLDIER ? SPELL_ROCKET_ARTILLERY_A : SPELL_ROCKET_ARTILLERY_H;
-                if (me->GetSpellHistory()->HasCooldown(spellId))
+                if (me->HasSpellCooldown(spellId))
                     return;
 
                 DoCastAOE(spellId, true);
-                me->GetSpellHistory()->AddCooldown(spellId, 0, std::chrono::seconds(9));
+                me->_AddCreatureSpellCooldown(spellId, time(NULL) + 9);
             }
         };
 
@@ -1874,7 +1873,7 @@ class spell_igb_rocket_pack_useable : public SpellScriptLoader
         {
             PrepareAuraScript(spell_igb_rocket_pack_useable_AuraScript);
 
-            bool Load() override
+            bool Load()
             {
                 return GetOwner()->GetInstanceScript() != nullptr;
             }
@@ -2002,7 +2001,7 @@ class spell_igb_cannon_blast : public SpellScriptLoader
         {
             PrepareSpellScript(spell_igb_cannon_blast_SpellScript);
 
-            bool Load() override
+            bool Load()
             {
                 return GetCaster()->GetTypeId() == TYPEID_UNIT;
             }
@@ -2344,7 +2343,7 @@ class spell_igb_gunship_fall_teleport : public SpellScriptLoader
         {
             PrepareSpellScript(spell_igb_gunship_fall_teleport_SpellScript);
 
-            bool Load() override
+            bool Load()
             {
                 return GetCaster()->GetInstanceScript() != nullptr;
             }

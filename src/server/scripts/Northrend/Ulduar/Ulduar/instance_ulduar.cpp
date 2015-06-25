@@ -448,7 +448,7 @@ class instance_ulduar : public InstanceMapScript
                 }
             }
 
-            void OnGameObjectCreate(GameObject* gameObject) override
+            void OnGameObjectCreate(GameObject* gameObject)
             {
                 switch (gameObject->GetEntry())
                 {

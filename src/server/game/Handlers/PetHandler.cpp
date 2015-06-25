@@ -30,7 +30,6 @@
 #include "Pet.h"
 #include "World.h"
 #include "Group.h"
-#include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "Player.h"
 
@@ -345,6 +344,8 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
 
             if (result == SPELL_CAST_OK)
             {
+                pet->ToCreature()->AddCreatureSpellCooldown(spellid);
+
                 unit_target = spell->m_targets.GetUnitTarget();
 
                 //10% chance to play special pet attack talk, else growl
@@ -378,8 +379,8 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
                 else
                     spell->SendPetCastResult(result);
 
-                if (!pet->GetSpellHistory()->HasCooldown(spellid))
-                    pet->GetSpellHistory()->ResetCooldown(spellid, true);
+                if (!pet->ToCreature()->HasSpellCooldown(spellid))
+                    GetPlayer()->SendClearCooldown(spellid, pet);
 
                 spell->finish(false);
                 delete spell;
@@ -793,6 +794,7 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     {
         if (Creature* creature = caster->ToCreature())
         {
+            creature->AddCreatureSpellCooldown(spellId);
             if (Pet* pet = creature->ToPet())
             {
                 // 10% chance to play special pet attack talk, else growl
@@ -810,8 +812,16 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     {
         spell->SendPetCastResult(result);
 
-        if (!caster->GetSpellHistory()->HasCooldown(spellId))
-            caster->GetSpellHistory()->ResetCooldown(spellId, true);
+        if (caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (!caster->ToPlayer()->HasSpellCooldown(spellId))
+                GetPlayer()->SendClearCooldown(spellId, caster);
+        }
+        else
+        {
+            if (!caster->ToCreature()->HasSpellCooldown(spellId))
+                GetPlayer()->SendClearCooldown(spellId, caster);
+        }
 
         spell->finish(false);
         delete spell;

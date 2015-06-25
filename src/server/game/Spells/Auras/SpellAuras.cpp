@@ -25,7 +25,6 @@
 #include "Player.h"
 #include "Unit.h"
 #include "Spell.h"
-#include "SpellHistory.h"
 #include "SpellAuraEffects.h"
 #include "DynamicObject.h"
 #include "ObjectAccessor.h"
@@ -419,7 +418,7 @@ void Aura::_ApplyForTarget(Unit* target, Unit* caster, AuraApplication * auraApp
         if (m_spellInfo->IsCooldownStartedOnEvent())
         {
             Item* castItem = m_castItemGuid ? caster->ToPlayer()->GetItemByGuid(m_castItemGuid) : NULL;
-            caster->GetSpellHistory()->StartCooldown(m_spellInfo, castItem ? castItem->GetEntry() : 0, nullptr, true);
+            caster->ToPlayer()->AddSpellAndCategoryCooldowns(m_spellInfo, castItem ? castItem->GetEntry() : 0, NULL, true);
         }
     }
 }
@@ -447,9 +446,12 @@ void Aura::_UnapplyForTarget(Unit* target, Unit* caster, AuraApplication * auraA
     m_removedApplications.push_back(auraApp);
 
     // reset cooldown state for spells
-    if (caster && GetSpellInfo()->IsCooldownStartedOnEvent())
-        // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existed cases)
-        caster->GetSpellHistory()->SendCooldownEvent(GetSpellInfo());
+    if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        if (GetSpellInfo()->IsCooldownStartedOnEvent())
+            // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existed cases)
+            caster->ToPlayer()->SendCooldownEvent(GetSpellInfo());
+    }
 }
 
 // removes aura from all targets
@@ -1213,7 +1215,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         break;
                     case 60970: // Heroic Fury (remove Intercept cooldown)
                         if (target->GetTypeId() == TYPEID_PLAYER)
-                            target->GetSpellHistory()->ResetCooldown(20252, true);
+                            target->ToPlayer()->RemoveSpellCooldown(20252, true);
                         break;
                 }
                 break;
@@ -1495,15 +1497,15 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         // check cooldown
                         if (caster->GetTypeId() == TYPEID_PLAYER)
                         {
-                            if (caster->GetSpellHistory()->HasCooldown(aura->GetId()))
+                            if (caster->ToPlayer()->HasSpellCooldown(aura->GetId()))
                             {
                                 // This additional check is needed to add a minimal delay before cooldown in in effect
                                 // to allow all bubbles broken by a single damage source proc mana return
-                                if (caster->GetSpellHistory()->GetRemainingCooldown(aura->GetId()) <= 11)
+                                if (caster->ToPlayer()->GetSpellCooldownDelay(aura->GetId()) <= 11)
                                     break;
                             }
                             else    // and add if needed
-                                caster->GetSpellHistory()->AddCooldown(aura->GetId(), 0, std::chrono::seconds(12));
+                                caster->ToPlayer()->AddSpellCooldown(aura->GetId(), 0, uint32(time(NULL) + 12));
                         }
 
                         // effect on caster
@@ -1556,14 +1558,14 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         // Glyph of Guardian Spirit
                         if (AuraEffect* aurEff = player->GetAuraEffect(63231, 0))
                         {
-                            if (!player->GetSpellHistory()->HasCooldown(47788))
+                            if (!player->HasSpellCooldown(47788))
                                 break;
 
-                            player->GetSpellHistory()->ResetCooldown(GetSpellInfo()->Id, true);
-                            player->GetSpellHistory()->AddCooldown(GetSpellInfo()->Id, 0, std::chrono::seconds(aurEff->GetAmount()));
+                            player->RemoveSpellCooldown(GetSpellInfo()->Id, true);
+                            player->AddSpellCooldown(GetSpellInfo()->Id, 0, uint32(time(NULL) + aurEff->GetAmount()));
 
                             WorldPacket data;
-                            player->GetSpellHistory()->BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_NONE, GetSpellInfo()->Id, aurEff->GetAmount() * IN_MILLISECONDS);
+                            player->BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_NONE, GetSpellInfo()->Id, aurEff->GetAmount()*IN_MILLISECONDS);
                             player->SendDirectMessage(&data);
                         }
                         break;

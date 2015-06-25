@@ -93,7 +93,7 @@ class boss_ambassador_hellmaw : public CreatureScript
             {
             }
 
-            void DoAction(int32 actionId) override
+            void DoAction(int32 actionId)
             {
                 if (actionId == ACTION_AMBASSADOR_HELLMAW_INTRO)
                     DoIntro();

@@ -53,7 +53,6 @@ EndContentData */
 #include "GridNotifiersImpl.h"
 #include "Cell.h"
 #include "CellImpl.h"
-#include "SpellHistory.h"
 #include "SpellAuras.h"
 #include "Pet.h"
 #include "CreatureTextMgr.h"
@@ -1215,14 +1214,14 @@ public:
         if (creature->IsQuestGiver())
             player->PrepareQuestMenu(creature->GetGUID());
 
-        if (player->GetSpellHistory()->HasCooldown(SPELL_INT) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_ARM) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_DMG) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_RES) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_STR) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_AGI) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_STM) ||
-            player->GetSpellHistory()->HasCooldown(SPELL_SPI))
+        if (player->HasSpellCooldown(SPELL_INT) ||
+            player->HasSpellCooldown(SPELL_ARM) ||
+            player->HasSpellCooldown(SPELL_DMG) ||
+            player->HasSpellCooldown(SPELL_RES) ||
+            player->HasSpellCooldown(SPELL_STR) ||
+            player->HasSpellCooldown(SPELL_AGI) ||
+            player->HasSpellCooldown(SPELL_STM) ||
+            player->HasSpellCooldown(SPELL_SPI))
             player->SEND_GOSSIP_MENU(7393, creature->GetGUID());
         else
         {
@@ -1282,43 +1281,51 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override
     {
         player->PlayerTalkClass->ClearMenus();
-        uint32 spellId = 0;
         switch (sender)
         {
             case GOSSIP_SENDER_MAIN:
                 SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 1:
-                spellId = SPELL_DMG;
+                creature->CastSpell(player, SPELL_DMG, false);
+                player->AddSpellCooldown(SPELL_DMG, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 2:
-                spellId = SPELL_RES;
+                creature->CastSpell(player, SPELL_RES, false);
+                player->AddSpellCooldown(SPELL_RES, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 3:
-                spellId = SPELL_ARM;
+                creature->CastSpell(player, SPELL_ARM, false);
+                player->AddSpellCooldown(SPELL_ARM, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 4:
-                spellId = SPELL_SPI;
+                creature->CastSpell(player, SPELL_SPI, false);
+                player->AddSpellCooldown(SPELL_SPI, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 5:
-                spellId = SPELL_INT;
+                creature->CastSpell(player, SPELL_INT, false);
+                player->AddSpellCooldown(SPELL_INT, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 6:
-                spellId = SPELL_STM;
+                creature->CastSpell(player, SPELL_STM, false);
+                player->AddSpellCooldown(SPELL_STM, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 7:
-                spellId = SPELL_STR;
+                creature->CastSpell(player, SPELL_STR, false);
+                player->AddSpellCooldown(SPELL_STR, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
             case GOSSIP_SENDER_MAIN + 8:
-                spellId = SPELL_AGI;
+                creature->CastSpell(player, SPELL_AGI, false);
+                player->AddSpellCooldown(SPELL_AGI, 0, time(NULL) + 7200);
+                SendAction(player, creature, action);
                 break;
-        }
-
-        if (spellId)
-        {
-            creature->CastSpell(player, spellId, false);
-            player->GetSpellHistory()->AddCooldown(spellId, 0, std::chrono::hours(2));
-            SendAction(player, creature, action);
         }
         return true;
     }

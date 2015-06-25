@@ -27,7 +27,6 @@
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
-#include "SpellHistory.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 
@@ -247,7 +246,7 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                     if (spellId)
                         caster->CastCustomSpell(unitTarget, spellId, &basePoint, 0, 0, true);
                     if (spellId == SPELL_HUNTER_CHIMERA_SHOT_SCORPID && caster->ToPlayer()) // Scorpid Sting - Add 1 minute cooldown
-                        caster->GetSpellHistory()->AddCooldown(spellId, 0, std::chrono::minutes(1));
+                        caster->ToPlayer()->AddSpellCooldown(spellId, 0, uint32(time(NULL) + 60));
                 }
             }
 
@@ -655,20 +654,24 @@ class spell_hun_readiness : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                Player* caster = GetCaster()->ToPlayer();
                 // immediately finishes the cooldown on your other Hunter abilities except Bestial Wrath
-                GetCaster()->GetSpellHistory()->ResetCooldowns([](SpellHistory::CooldownStorageType::iterator itr) -> bool
+                const SpellCooldowns& cm = caster->ToPlayer()->GetSpellCooldownMap();
+                for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                 {
-                    SpellInfo const* spellInfo = sSpellMgr->EnsureSpellInfo(itr->first);
+                    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(itr->first);
 
                     ///! If spellId in cooldown map isn't valid, the above will return a null pointer.
-                    if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER &&
+                    if (spellInfo &&
+                        spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER &&
                         spellInfo->Id != SPELL_HUNTER_READINESS &&
                         spellInfo->Id != SPELL_HUNTER_BESTIAL_WRATH &&
                         spellInfo->Id != SPELL_DRAENEI_GIFT_OF_THE_NAARU &&
                         spellInfo->GetRecoveryTime() > 0)
-                        return true;
-                    return false;
-                }, true);
+                        caster->RemoveSpellCooldown((itr++)->first, true);
+                    else
+                        ++itr;
+                }
             }
 
             void Register() override

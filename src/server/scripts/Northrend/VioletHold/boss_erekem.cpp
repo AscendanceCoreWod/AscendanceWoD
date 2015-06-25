@@ -24,7 +24,9 @@ enum Spells
     SPELL_BLOODLUST                             = 54516,
     SPELL_BREAK_BONDS                           = 59463,
     SPELL_CHAIN_HEAL                            = 54481,
+    H_SPELL_CHAIN_HEAL                          = 59473,
     SPELL_EARTH_SHIELD                          = 54479,
+    H_SPELL_EARTH_SHIELD                        = 59471,
     SPELL_EARTH_SHOCK                           = 54511,
     SPELL_LIGHTNING_BOLT                        = 53044,
     SPELL_STORMSTRIKE                           = 51876
@@ -44,6 +46,11 @@ class boss_erekem : public CreatureScript
 {
 public:
     boss_erekem() : CreatureScript("boss_erekem") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<boss_erekemAI>(creature);
+    }
 
     struct boss_erekemAI : public ScriptedAI
     {
@@ -74,9 +81,9 @@ public:
         {
             Initialize();
             if (instance->GetData(DATA_WAVE_COUNT) == 6)
-                instance->SetBossState(DATA_1ST_BOSS_EVENT, NOT_STARTED);
+                instance->SetData(DATA_1ST_BOSS_EVENT, NOT_STARTED);
             else if (instance->GetData(DATA_WAVE_COUNT) == 12)
-                instance->SetBossState(DATA_2ND_BOSS_EVENT, NOT_STARTED);
+                instance->SetData(DATA_2ND_BOSS_EVENT, NOT_STARTED);
 
             if (Creature* pGuard1 = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_EREKEM_GUARD_1)))
             {
@@ -122,23 +129,25 @@ public:
             Talk(SAY_AGGRO);
             DoCast(me, SPELL_EARTH_SHIELD);
 
-            if (GameObject* door = instance->GetGameObject(DATA_EREKEM_CELL))
-                if (door->GetGoState() == GO_STATE_READY)
+            if (GameObject* pDoor = instance->instance->GetGameObject(instance->GetGuidData(DATA_EREKEM_CELL)))
+                if (pDoor->GetGoState() == GO_STATE_READY)
                 {
                     EnterEvadeMode();
                     return;
                 }
 
             if (instance->GetData(DATA_WAVE_COUNT) == 6)
-                instance->SetBossState(DATA_1ST_BOSS_EVENT, IN_PROGRESS);
+                instance->SetData(DATA_1ST_BOSS_EVENT, IN_PROGRESS);
             else if (instance->GetData(DATA_WAVE_COUNT) == 12)
-                instance->SetBossState(DATA_2ND_BOSS_EVENT, IN_PROGRESS);
+                instance->SetData(DATA_2ND_BOSS_EVENT, IN_PROGRESS);
         }
 
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
+
         void UpdateAI(uint32 diff) override
         {
+            //Return since we have no target
             if (!UpdateVictim())
                 return;
 
@@ -203,20 +212,22 @@ public:
 
             if (instance->GetData(DATA_WAVE_COUNT) == 6)
             {
-                instance->SetBossState(DATA_1ST_BOSS_EVENT, DONE);
+                instance->SetData(DATA_1ST_BOSS_EVENT, DONE);
                 instance->SetData(DATA_WAVE_COUNT, 7);
             }
             else if (instance->GetData(DATA_WAVE_COUNT) == 12)
             {
-                instance->SetBossState(DATA_2ND_BOSS_EVENT, DONE);
+                instance->SetData(DATA_2ND_BOSS_EVENT, DONE);
                 instance->SetData(DATA_WAVE_COUNT, 13);
             }
         }
 
         void KilledUnit(Unit* victim) override
         {
-            if (victim->GetTypeId() == TYPEID_PLAYER)
-                Talk(SAY_SLAY);
+            if (victim->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Talk(SAY_SLAY);
         }
 
         ObjectGuid GetChainHealTargetGUID()
@@ -236,10 +247,6 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<boss_erekemAI>(creature);
-    }
 };
 
 enum GuardSpells
@@ -253,6 +260,11 @@ class npc_erekem_guard : public CreatureScript
 {
 public:
     npc_erekem_guard() : CreatureScript("npc_erekem_guard") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_erekem_guardAI>(creature);
+    }
 
     struct npc_erekem_guardAI : public ScriptedAI
     {
@@ -296,6 +308,7 @@ public:
 
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
+
         void UpdateAI(uint32 diff) override
         {
             if (!UpdateVictim())
@@ -323,10 +336,6 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_erekem_guardAI>(creature);
-    }
 };
 
 void AddSC_boss_erekem()

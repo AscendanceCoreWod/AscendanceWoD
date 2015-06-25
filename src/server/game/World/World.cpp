@@ -1523,9 +1523,6 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Gameobject Data...");
     sObjectMgr->LoadGameobjects();
-    
-    TC_LOG_INFO("server.loading", "Loading GameObject Addon Data...");
-    sObjectMgr->LoadGameObjectAddons();                          // must be after LoadGameObjectTemplate() and LoadGameobjects()
 
     TC_LOG_INFO("server.loading", "Loading Creature Linked Respawn...");
     sObjectMgr->LoadLinkedRespawn();                             // must be after LoadCreatures(), LoadGameObjects()
@@ -1710,9 +1707,6 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading faction change spell pairs...");
     sObjectMgr->LoadFactionChangeSpells();
-
-    TC_LOG_INFO("server.loading", "Loading faction change quest pairs...");
-    sObjectMgr->LoadFactionChangeQuests();
 
     TC_LOG_INFO("server.loading", "Loading faction change item pairs...");
     sObjectMgr->LoadFactionChangeItems();
@@ -1920,24 +1914,28 @@ void World::DetectDBCLang()
     TC_LOG_INFO("server.loading", "Using %s DBC Locale as default. All available DBC locales: %s", localeNames[m_defaultDbcLocale], availableLocalsStr.empty() ? "<none>" : availableLocalsStr.c_str());
 }
 
-void World::ResetTimeDiffRecord()
+void World::RecordTimeDiff(const char *text, ...)
 {
     if (m_updateTimeCount != 1)
         return;
-
-    m_currentTime = getMSTime();
-}
-
-void World::RecordTimeDiff(std::string const& text)
-{
-    if (m_updateTimeCount != 1)
+    if (!text)
+    {
+        m_currentTime = getMSTime();
         return;
+    }
 
     uint32 thisTime = getMSTime();
     uint32 diff = getMSTimeDiff(m_currentTime, thisTime);
 
     if (diff > m_int_configs[CONFIG_MIN_LOG_UPDATE])
-        TC_LOG_INFO("misc", "Difftime %s: %u.", text.c_str(), diff);
+    {
+        va_list ap;
+        char str[256];
+        va_start(ap, text);
+        vsnprintf(str, 256, text, ap);
+        va_end(ap);
+        TC_LOG_INFO("misc", "Difftime %s: %u.", str, diff);
+    }
 
     m_currentTime = thisTime;
 }
@@ -2054,7 +2052,7 @@ void World::Update(uint32 diff)
     }
 
     /// <li> Handle session updates when the timer has passed
-    ResetTimeDiffRecord();
+    RecordTimeDiff(NULL);
     UpdateSessions(diff);
     RecordTimeDiff("UpdateSessions");
 
@@ -2101,7 +2099,7 @@ void World::Update(uint32 diff)
 
     /// <li> Handle all other objects
     ///- Update objects when the timer has passed (maps, transport, creatures, ...)
-    ResetTimeDiffRecord();
+    RecordTimeDiff(NULL);
     sMapMgr->Update(diff);
     RecordTimeDiff("UpdateMapMgr");
 
@@ -2279,49 +2277,6 @@ void World::SendWorldText(uint32 string_id, ...)
     }
 
     va_end(ap);
-}
-
-/// Send a World Chat Message to all players (except self if mentioned)
-void World::SendWorldChat(uint32 string_id, ...)
-{
-	va_list ap;
-	va_start(ap, string_id);
-
-	Trinity::WorldWorldTextBuilder wt_builder(string_id, &ap);
-	Trinity::LocalizedPacketListDo<Trinity::WorldWorldTextBuilder> wt_do(wt_builder);
-	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-	{
-		if (!itr->second || !itr->second->GetPlayer() || !itr->second->GetPlayer()->IsInWorld())
-			continue;
-
-		if (!itr->second->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_CHAT))
-			continue;
-
-		wt_do(itr->second->GetPlayer());
-	}
-
-	va_end(ap);
-}
-
-void World::SendWorldBroadcast(uint32 string_id, ...)
-{
-	va_list ap;
-	va_start(ap, string_id);
-
-	Trinity::WorldWorldTextBuilder wt_builder(string_id, &ap);
-	Trinity::LocalizedPacketListDo<Trinity::WorldWorldTextBuilder> wt_do(wt_builder);
-	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-	{
-		if (!itr->second || !itr->second->GetPlayer() || !itr->second->GetPlayer()->IsInWorld())
-			continue;
-
-		if (!itr->second->GetPlayer()->GetCommandStatus(TOGGLE_WORLD_HINT))
-			continue;
-
-		wt_do(itr->second->GetPlayer());
-	}
-
-	va_end(ap);
 }
 
 /// Send a System Message to all GMs (except self if mentioned)

@@ -44,7 +44,7 @@ class instance_ruby_sanctum : public InstanceMapScript
                 BaltharusSharedHealth    = 0;
             }
 
-            void OnPlayerEnter(Player* /*player*/) override
+            void OnPlayerEnter(Player* /*player*/)
             {
                 if (!GetGuidData(DATA_HALION_CONTROLLER) && GetBossState(DATA_HALION) != DONE && GetBossState(DATA_GENERAL_ZARITHRIAN) == DONE)
                 {

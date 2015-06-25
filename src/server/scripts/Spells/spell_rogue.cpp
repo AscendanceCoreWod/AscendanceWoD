@@ -25,7 +25,6 @@
 #include "ScriptMgr.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
-#include "SpellHistory.h"
 #include "Containers.h"
 
 enum RogueSpells
@@ -140,11 +139,11 @@ class spell_rog_cheat_death : public SpellScriptLoader
             void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
             {
                 Player* target = GetTarget()->ToPlayer();
-                if (dmgInfo.GetDamage() < target->GetHealth() || target->GetSpellHistory()->HasCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN) || !roll_chance_i(absorbChance))
+                if (dmgInfo.GetDamage() < target->GetHealth() || target->HasSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN) ||  !roll_chance_i(absorbChance))
                     return;
 
                 target->CastSpell(target, SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, true);
-                target->GetSpellHistory()->AddCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, 0, std::chrono::minutes(1));
+                target->AddSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, 0, time(NULL) + 60);
 
                 uint32 health10 = target->CountPctFromMaxHealth(10);
 
@@ -444,21 +443,35 @@ class spell_rog_preparation : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                Unit* caster = GetCaster();
-                caster->GetSpellHistory()->ResetCooldowns([caster](SpellHistory::CooldownStorageType::iterator itr) -> bool
+                Player* caster = GetCaster()->ToPlayer();
+
+                //immediately finishes the cooldown on certain Rogue abilities
+                const SpellCooldowns& cm = caster->GetSpellCooldownMap();
+                for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                 {
                     SpellInfo const* spellInfo = sSpellMgr->EnsureSpellInfo(itr->first);
-                    if (spellInfo->SpellFamilyName != SPELLFAMILY_ROGUE)
-                        return false;
 
-                    return (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||  // Cold Blood, Shadowstep
-                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT) ||       // Vanish, Evasion, Sprint
-                        (caster->HasAura(SPELL_ROGUE_GLYPH_OF_PREPARATION) &&
-                        (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_DISMANTLE ||            // Dismantle
-                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_KICK ||                   // Kick
-                        (spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_BLADE_FLURRY &&          // Blade Flurry
-                        spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_BLADE_FLURRY)));
-                }, true);
+                    if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
+                    {
+                        if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||      // Cold Blood, Shadowstep
+                            spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT)           // Vanish, Evasion, Sprint
+                            caster->RemoveSpellCooldown((itr++)->first, true);
+                        else if (caster->HasAura(SPELL_ROGUE_GLYPH_OF_PREPARATION))
+                        {
+                            if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_DISMANTLE ||         // Dismantle
+                                spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_KICK ||               // Kick
+                                (spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_BLADE_FLURRY &&     // Blade Flurry
+                                spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_BLADE_FLURRY))
+                                caster->RemoveSpellCooldown((itr++)->first, true);
+                            else
+                                ++itr;
+                        }
+                        else
+                            ++itr;
+                    }
+                    else
+                        ++itr;
+                }
             }
 
             void Register() override

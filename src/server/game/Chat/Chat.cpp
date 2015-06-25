@@ -32,6 +32,7 @@
 #include "Opcodes.h"
 #include "Player.h"
 #include "UpdateMask.h"
+#include "SpellMgr.h"
 #include "ScriptMgr.h"
 #include "ChatLink.h"
 
@@ -78,7 +79,6 @@ ChatCommand* ChatHandler::getCommandTable()
 
             // cache top-level commands
             size_t added = 0;
-            free(commandTableCache);
             commandTableCache = (ChatCommand*)malloc(sizeof(ChatCommand) * total);
             ASSERT(commandTableCache);
             memset(commandTableCache, 0, sizeof(ChatCommand) * total);

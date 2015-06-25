@@ -27,12 +27,12 @@
 #include "ObjectAccessor.h"
 #include "Util.h"
 #include "Spell.h"
-#include "SpellHistory.h"
 #include "SpellAuraEffects.h"
 #include "Battleground.h"
 #include "OutdoorPvPMgr.h"
 #include "Formulas.h"
 #include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 #include "CellImpl.h"
 #include "ScriptMgr.h"
 #include "Vehicle.h"
@@ -1109,13 +1109,15 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
         // Remove cooldown of spells triggered on stance change - they may share cooldown with stance spell
         if (spellId)
         {
-            target->GetSpellHistory()->ResetCooldown(spellId);
+            if (target->GetTypeId() == TYPEID_PLAYER)
+                target->ToPlayer()->RemoveSpellCooldown(spellId);
             target->CastSpell(target, spellId, true, NULL, this);
         }
 
         if (spellId2)
         {
-            target->GetSpellHistory()->ResetCooldown(spellId2);
+            if (target->GetTypeId() == TYPEID_PLAYER)
+                target->ToPlayer()->RemoveSpellCooldown(spellId2);
             target->CastSpell(target, spellId2, true, NULL, this);
         }
 
@@ -3851,11 +3853,10 @@ void AuraEffect::HandleAuraModIncreaseHealth(AuraApplication const* aurApp, uint
     }
     else
     {
-        if (target->GetHealth() > 0)
-        {
-            int32 value = std::min<int32>(target->GetHealth() - 1, GetAmount());
-            target->ModifyHealth(-value);
-        }
+        if (int32(target->GetHealth()) > GetAmount())
+            target->ModifyHealth(-GetAmount());
+        else
+            target->SetHealth(1);
         target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(GetAmount()), apply);
     }
 }
@@ -3867,15 +3868,19 @@ void AuraEffect::HandleAuraModIncreaseMaxHealth(AuraApplication const* aurApp, u
 
     Unit* target = aurApp->GetTarget();
 
-    float percent = target->GetHealthPct();
+    uint32 oldhealth = target->GetHealth();
+    double healthPercentage = (double)oldhealth / (double)target->GetMaxHealth();
 
     target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(GetAmount()), apply);
 
     // refresh percentage
-    if (target->GetHealth() > 0)
+    if (oldhealth > 0)
     {
-        uint32 newHealth = std::max<uint32>(target->CountPctFromMaxHealth(int32(percent)), 1);
-        target->SetHealth(newHealth);
+        uint32 newhealth = uint32(ceil((double)target->GetMaxHealth() * healthPercentage));
+        if (newhealth == 0)
+            newhealth = 1;
+
+        target->SetHealth(newhealth);
     }
 }
 
@@ -3939,12 +3944,8 @@ void AuraEffect::HandleAuraModIncreaseHealthPercent(AuraApplication const* aurAp
     // Unit will keep hp% after MaxHealth being modified if unit is alive.
     float percent = target->GetHealthPct();
     target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_PCT, float(GetAmount()), apply);
-
-    if (target->GetHealth() > 0)
-    {
-        uint32 newHealth = std::max<uint32>(target->CountPctFromMaxHealth(int32(percent)), 1);
-        target->SetHealth(newHealth);
-    }
+    if (target->IsAlive())
+        target->SetHealth(target->CountPctFromMaxHealth(int32(percent)));
 }
 
 void AuraEffect::HandleAuraIncreaseBaseHealthPercent(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -5845,9 +5846,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
         else
             damage = std::max(int32(damage * GetDonePct()), 0);
 
-        if (Player* modOwner = caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(GetSpellInfo()->Id, SPELLMOD_DOT, damage);
-
         damage = target->SpellDamageBonusTaken(caster, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount());
 
         // Calculate armor mitigation
@@ -5980,7 +5978,7 @@ void AuraEffect::HandlePeriodicHealthLeechAuraTick(Unit* target, Unit* caster) c
     if (isAreaAura)
         damage = caster->SpellDamageBonusDone(target, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount()) * caster->SpellDamagePctDone(target, m_spellInfo, DOT);
     else
-        damage = std::max(int32(damage * GetDonePct()), 0);
+    	damage = std::max(int32(damage * GetDonePct()), 0);
 
     damage = target->SpellDamageBonusTaken(caster, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount());
 
@@ -6150,9 +6148,6 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
             damage = caster->SpellHealingBonusDone(target, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount()) * caster->SpellHealingPctDone(target, m_spellInfo);
         else
             damage = std::max(int32(damage * GetDonePct()), 0);
-
-        if (Player* modOwner = caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(GetSpellInfo()->Id, SPELLMOD_DOT, damage);
 
         damage = target->SpellHealingBonusTaken(caster, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount());
     }
@@ -6423,9 +6418,6 @@ void AuraEffect::HandleProcTriggerSpellWithValueAuraProc(AuraApplication* aurApp
 
 void AuraEffect::HandleProcTriggerDamageAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo)
 {
-    if (!aurApp)
-        return;
-
     Unit* target = aurApp->GetTarget();
     Unit* triggerTarget = eventInfo.GetProcTarget();
     SpellNonMeleeDamage damageInfo(target, triggerTarget, GetId(), GetSpellInfo()->SchoolMask);

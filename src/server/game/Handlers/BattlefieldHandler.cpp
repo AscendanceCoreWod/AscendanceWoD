@@ -15,6 +15,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Opcodes.h"
 #include "Player.h"
 #include "WorldPacket.h"

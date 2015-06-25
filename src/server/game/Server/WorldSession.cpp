@@ -36,12 +36,16 @@
 #include "Group.h"
 #include "Guild.h"
 #include "World.h"
+#include "ObjectAccessor.h"
 #include "BattlegroundMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "MapManager.h"
 #include "SocialMgr.h"
 #include "zlib.h"
 #include "ScriptMgr.h"
+#include "Transport.h"
 #include "WardenWin.h"
+#include "WardenMac.h"
 #include "MoveSpline.h"
 
 namespace {
@@ -225,7 +229,6 @@ void WorldSession::SendPacket(WorldPacket* packet)
 
     sScriptMgr->OnPacketSend(this, *packet);
 
-    TC_LOG_TRACE("network.opcode", "S->C: %s %s", GetPlayerInfo().c_str(), GetOpcodeNameForLogging(packet->GetOpcode()).c_str());
     m_Socket->SendPacket(*packet);
 }
 
@@ -1370,7 +1373,6 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case MSG_RANDOM_ROLL:                           // not profiled
         case CMSG_TIME_SYNC_RESP:                       // not profiled
         case CMSG_TRAINER_BUY_SPELL:                    // not profiled
-        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:           // not profiled
         {
             // "0" is a magic number meaning there's no limit for the opcode.
             // All the opcodes above must cause little CPU usage and no sync/async database queries at all

@@ -17,10 +17,11 @@
  */
 
 #include "Totem.h"
+#include "Log.h"
 #include "Group.h"
+#include "ObjectMgr.h"
 #include "Opcodes.h"
 #include "Player.h"
-#include "SpellHistory.h"
 #include "SpellMgr.h"
 #include "SpellInfo.h"
 #include "WorldPacket.h"
@@ -129,7 +130,7 @@ void Totem::UnSummon(uint32 msTime)
         owner->SendAutoRepeatCancel(this);
 
         if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(GetUInt32Value(UNIT_CREATED_BY_SPELL)))
-            GetSpellHistory()->SendCooldownEvent(spell, 0, nullptr, false);
+            owner->SendCooldownEvent(spell, 0, NULL, false);
 
         if (Group* group = owner->GetGroup())
         {

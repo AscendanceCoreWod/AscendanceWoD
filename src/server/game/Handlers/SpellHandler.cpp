@@ -26,6 +26,9 @@
 #include "Opcodes.h"
 #include "Spell.h"
 #include "Totem.h"
+#include "TemporarySummon.h"
+#include "SpellAuras.h"
+#include "CreatureAI.h"
 #include "ScriptMgr.h"
 #include "GameObjectAI.h"
 #include "SpellAuraEffects.h"
@@ -491,6 +494,8 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
     }
 
     pet->RemoveOwnedAura(spellId, ObjectGuid::Empty, 0, AURA_REMOVE_BY_CANCEL);
+
+    pet->AddCreatureSpellCooldown(spellId);
 }
 
 void WorldSession::HandleCancelGrowthAuraOpcode(WorldPacket& /*recvPacket*/) { }

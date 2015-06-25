@@ -688,9 +688,8 @@ class EventMap
 
         /**
         * @name RepeatEvent
-        * @brief Repeats the mostly recently executed event, Equivalent to Repeat(urand(minTime, maxTime).
-        * @param minTime Minimum time until the event occurs.
-        * @param maxTime Maximum time until the event occurs.
+        * @brief Repeats the mostly recently executed event.
+        * @param time Time until the event occurs. Equivalent to Repeat(urand(minTime, maxTime).
         */
         void Repeat(uint32 minTime, uint32 maxTime)
         {
@@ -840,7 +839,7 @@ class EventMap
         /**
         * @name GetTimeUntilEvent
         * @brief Returns time in milliseconds until next event.
-        * @param eventId of the event.
+        * @param Id of the event.
         * @return Time of next event.
         */
         uint32 GetTimeUntilEvent(uint32 eventId) const;

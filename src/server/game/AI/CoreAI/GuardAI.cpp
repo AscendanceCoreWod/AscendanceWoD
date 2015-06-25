@@ -19,6 +19,9 @@
 #include "GuardAI.h"
 #include "Errors.h"
 #include "Player.h"
+#include "ObjectAccessor.h"
+#include "World.h"
+#include "CreatureAIImpl.h"
 
 int GuardAI::Permissible(Creature const* creature)
 {

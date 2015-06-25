@@ -236,7 +236,7 @@ public:
             OUT_LOAD_INST_DATA_COMPLETE;
         }
 
-        void Update(uint32 uiDiff) override
+        void Update(uint32 uiDiff)
         {
             if (GetData(TYPE_FENRUS) != DONE)
                 return;

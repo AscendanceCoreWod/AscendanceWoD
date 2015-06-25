@@ -32,18 +32,18 @@
 
 enum PortalCreatures
 {
-    NPC_AZURE_INVADER_1         = 30661,
-    NPC_AZURE_INVADER_2         = 30961,
-    NPC_AZURE_SPELLBREAKER_1    = 30662,
-    NPC_AZURE_SPELLBREAKER_2    = 30962,
-    NPC_AZURE_BINDER_1          = 30663,
-    NPC_AZURE_BINDER_2          = 30918,
-    NPC_AZURE_MAGE_SLAYER_1     = 30664,
-    NPC_AZURE_MAGE_SLAYER_2     = 30963,
-    NPC_AZURE_CAPTAIN           = 30666,
-    NPC_AZURE_SORCEROR          = 30667,
-    NPC_AZURE_RAIDER            = 30668,
-    NPC_AZURE_STALKER           = 32191
+    CREATURE_AZURE_INVADER_1          = 30661,
+    CREATURE_AZURE_INVADER_2          = 30961,
+    CREATURE_AZURE_SPELLBREAKER_1     = 30662,
+    CREATURE_AZURE_SPELLBREAKER_2     = 30962,
+    CREATURE_AZURE_BINDER_1           = 30663,
+    CREATURE_AZURE_BINDER_2           = 30918,
+    CREATURE_AZURE_MAGE_SLAYER_1      = 30664,
+    CREATURE_AZURE_MAGE_SLAYER_2      = 30963,
+    CREATURE_AZURE_CAPTAIN            = 30666,
+    CREATURE_AZURE_SORCEROR           = 30667,
+    CREATURE_AZURE_RAIDER             = 30668,
+    CREATURE_AZURE_STALKER            = 32191
 };
 
 enum AzureInvaderSpells
@@ -258,7 +258,7 @@ public:
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->CLOSE_GOSSIP_MENU();
-                ENSURE_AI(npc_sinclari_vh::npc_sinclariAI, creature->AI())->uiPhase = 1;
+                ENSURE_AI(npc_sinclari_vh::npc_sinclariAI, (creature->AI()))->uiPhase = 1;
                 if (InstanceScript* instance = creature->GetInstanceScript())
                     instance->SetData(DATA_MAIN_EVENT_PHASE, SPECIAL);
                 break;
@@ -296,12 +296,17 @@ public:
         return true;
     }
 
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_sinclariAI>(creature);
+    }
+
     struct npc_sinclariAI : public ScriptedAI
     {
         npc_sinclariAI(Creature* creature) : ScriptedAI(creature)
         {
             Initialize();
-            instance = creature->GetInstanceScript();
+           instance = creature->GetInstanceScript();
         }
 
         void Initialize()
@@ -340,6 +345,8 @@ public:
 
         void UpdateAI(uint32 uiDiff) override
         {
+            ScriptedAI::UpdateAI(uiDiff);
+
             if (uiPhase)
             {
                 if (uiTimer <= uiDiff)
@@ -408,10 +415,6 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_sinclariAI>(creature);
-    }
 };
 
 class npc_azure_saboteur : public CreatureScript
@@ -419,9 +422,14 @@ class npc_azure_saboteur : public CreatureScript
 public:
     npc_azure_saboteur() : CreatureScript("npc_azure_saboteur") { }
 
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_saboteurAI>(creature);
+    }
+
     struct npc_azure_saboteurAI : public npc_escortAI
     {
-        npc_azure_saboteurAI(Creature* creature) : npc_escortAI(creature)
+        npc_azure_saboteurAI(Creature* creature):npc_escortAI(creature)
         {
             instance = creature->GetInstanceScript();
             bHasGotMovingPoints = false;
@@ -524,22 +532,24 @@ public:
         {
             me->CastSpell(me, SABOTEUR_SHIELD_DISRUPTION, false);
             me->DisappearAndDie();
-            if (Creature* pSaboPort = ObjectAccessor::GetCreature((*me), instance->GetGuidData(DATA_SABOTEUR_PORTAL)))
+            Creature* pSaboPort = ObjectAccessor::GetCreature((*me), instance->GetGuidData(DATA_SABOTEUR_PORTAL));
+            if (pSaboPort)
                 pSaboPort->DisappearAndDie();
             instance->SetData(DATA_START_BOSS_ENCOUNTER, 1);
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_saboteurAI>(creature);
-    }
 };
 
 class npc_teleportation_portal_vh : public CreatureScript
 {
 public:
     npc_teleportation_portal_vh() : CreatureScript("npc_teleportation_portal_vh") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_teleportation_portalAI>(creature);
+    }
 
     struct npc_teleportation_portalAI : public ScriptedAI
     {
@@ -573,6 +583,7 @@ public:
 
         void MoveInLineOfSight(Unit* /*who*/) override { }
 
+
         void UpdateAI(uint32 diff) override
         {
             if (instance->GetData(DATA_REMOVE_NPC) == 1)
@@ -597,7 +608,7 @@ public:
                             uint8 k = uiWaveCount < 12 ? 2 : 3;
                             for (uint8 i = 0; i < k; ++i)
                             {
-                                uint32 entry = RAND(NPC_AZURE_CAPTAIN, NPC_AZURE_RAIDER, NPC_AZURE_STALKER, NPC_AZURE_SORCEROR);
+                                uint32 entry = RAND(CREATURE_AZURE_CAPTAIN, CREATURE_AZURE_RAIDER, CREATURE_AZURE_STALKER, CREATURE_AZURE_SORCEROR);
                                 DoSummon(entry, me, 2.0f, 20000, TEMPSUMMON_DEAD_DESPAWN);
                             }
                             me->SetVisible(false);
@@ -622,14 +633,14 @@ public:
                             uint8 k = instance->GetData(DATA_WAVE_COUNT) < 12 ? 3 : 4;
                             for (uint8 i = 0; i < k; ++i)
                             {
-                                uint32 entry = RAND(NPC_AZURE_INVADER_1, NPC_AZURE_INVADER_2, NPC_AZURE_SPELLBREAKER_1, NPC_AZURE_SPELLBREAKER_2, NPC_AZURE_MAGE_SLAYER_1, NPC_AZURE_MAGE_SLAYER_2, NPC_AZURE_BINDER_1, NPC_AZURE_BINDER_2);
+                                uint32 entry = RAND(CREATURE_AZURE_INVADER_1, CREATURE_AZURE_INVADER_2, CREATURE_AZURE_SPELLBREAKER_1, CREATURE_AZURE_SPELLBREAKER_2, CREATURE_AZURE_MAGE_SLAYER_1, CREATURE_AZURE_MAGE_SLAYER_2, CREATURE_AZURE_BINDER_1, CREATURE_AZURE_BINDER_2);
                                 DoSummon(entry, me, 2.0f, 20000, TEMPSUMMON_DEAD_DESPAWN);
                             }
                         }
                         else
                         {
                             bPortalGuardianOrKeeperOrEliteSpawn = true;
-                            uint32 entry = RAND(NPC_PORTAL_GUARDIAN, NPC_PORTAL_KEEPER);
+                            uint32 entry = RAND(CREATURE_PORTAL_GUARDIAN, CREATURE_PORTAL_KEEPER);
                             if (Creature* pPortalKeeper = DoSummon(entry, me, 2.0f, 0, TEMPSUMMON_DEAD_DESPAWN))
                                 me->CastSpell(pPortalKeeper, SPELL_PORTAL_CHANNEL, false);
                         }
@@ -663,15 +674,11 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_teleportation_portalAI>(creature);
-    }
 };
 
 struct violet_hold_trashAI : public npc_escortAI
 {
-    violet_hold_trashAI(Creature* creature) : npc_escortAI(creature)
+    violet_hold_trashAI(Creature* creature):npc_escortAI(creature)
     {
         instance = creature->GetInstanceScript();
         bHasGotMovingPoints = false;
@@ -716,7 +723,7 @@ struct violet_hold_trashAI : public npc_escortAI
         }
     }
 
-    void UpdateAI(uint32 diff) override
+    void UpdateAI(uint32) override
     {
         if (instance->GetData(DATA_MAIN_EVENT_PHASE) != IN_PROGRESS)
             me->CastStop();
@@ -771,8 +778,6 @@ struct violet_hold_trashAI : public npc_escortAI
             SetDespawnAtEnd(false);
             Start(true, true);
         }
-
-        npc_escortAI::UpdateAI(diff);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -786,12 +791,18 @@ struct violet_hold_trashAI : public npc_escortAI
         DoCast(SPELL_DESTROY_DOOR_SEAL);
         instance->SetData(DATA_NPC_PRESENCE_AT_DOOR_ADD, 1);
     }
+
 };
 
 class npc_azure_invader : public CreatureScript
 {
 public:
     npc_azure_invader() : CreatureScript("npc_azure_invader") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_invaderAI>(creature);
+    }
 
     struct npc_azure_invaderAI : public violet_hold_trashAI
     {
@@ -822,11 +833,12 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
 
-            if (me->GetEntry() == NPC_AZURE_INVADER_1)
+            if (me->GetEntry() == CREATURE_AZURE_INVADER_1)
             {
                 if (uiCleaveTimer <= diff)
                 {
@@ -836,13 +848,14 @@ public:
 
                 if (uiImpaleTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
                         DoCast(target, SPELL_IMPALE);
                     uiImpaleTimer = 4000;
                 } else uiImpaleTimer -= diff;
             }
 
-            if (me->GetEntry() == NPC_AZURE_INVADER_2)
+            if (me->GetEntry() == CREATURE_AZURE_INVADER_2)
             {
                 if (uiBrutalStrikeTimer <= diff)
                 {
@@ -863,16 +876,17 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_invaderAI>(creature);
-    }
 };
 
 class npc_azure_binder : public CreatureScript
 {
 public:
     npc_azure_binder() : CreatureScript("npc_azure_binder") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_binderAI>(creature);
+    }
 
     struct npc_azure_binderAI : public violet_hold_trashAI
     {
@@ -903,11 +917,12 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
 
-            if (me->GetEntry() == NPC_AZURE_BINDER_1)
+            if (me->GetEntry() == CREATURE_AZURE_BINDER_1)
             {
                 if (uiArcaneExplosionTimer <= diff)
                 {
@@ -915,15 +930,16 @@ public:
                     uiArcaneExplosionTimer = 5000;
                 } else uiArcaneExplosionTimer -= diff;
 
-                if (uiArcainBarrageTimer <= diff)
+                    if (uiArcainBarrageTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                        DoCast(target, SPELL_ARCANE_BARRAGE);
+                        Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
+                            DoCast(target, SPELL_ARCANE_BARRAGE);
                     uiArcainBarrageTimer = 6000;
                 } else uiArcainBarrageTimer -= diff;
             }
 
-            if (me->GetEntry() == NPC_AZURE_BINDER_2)
+            if (me->GetEntry() == CREATURE_AZURE_BINDER_2)
             {
                 if (uiFrostNovaTimer <= diff)
                 {
@@ -933,7 +949,8 @@ public:
 
                 if (uiFrostboltTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
                         DoCast(target, SPELL_FROSTBOLT);
                     uiFrostboltTimer = 6000;
                 } else uiFrostboltTimer -= diff;
@@ -943,16 +960,17 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_binderAI>(creature);
-    }
 };
 
 class npc_azure_mage_slayer : public CreatureScript
 {
 public:
     npc_azure_mage_slayer() : CreatureScript("npc_azure_mage_slayer") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_mage_slayerAI>(creature);
+    }
 
     struct npc_azure_mage_slayerAI : public violet_hold_trashAI
     {
@@ -979,11 +997,12 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
 
-            if (me->GetEntry() == NPC_AZURE_MAGE_SLAYER_1)
+            if (me->GetEntry() == CREATURE_AZURE_MAGE_SLAYER_1)
             {
                 if (uiArcaneEmpowermentTimer <= diff)
                 {
@@ -992,11 +1011,12 @@ public:
                 } else uiArcaneEmpowermentTimer -= diff;
             }
 
-            if (me->GetEntry() == NPC_AZURE_MAGE_SLAYER_2)
+            if (me->GetEntry() == CREATURE_AZURE_MAGE_SLAYER_2)
             {
                 if (uiSpellLockTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
                         DoCast(target, SPELL_SPELL_LOCK);
                     uiSpellLockTimer = 9000;
                 } else uiSpellLockTimer -= diff;
@@ -1006,16 +1026,17 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_mage_slayerAI>(creature);
-    }
 };
 
 class npc_azure_raider : public CreatureScript
 {
 public:
     npc_azure_raider() : CreatureScript("npc_azure_raider") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_raiderAI>(creature);
+    }
 
     struct npc_azure_raiderAI : public violet_hold_trashAI
     {
@@ -1042,6 +1063,7 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
@@ -1062,10 +1084,6 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_raiderAI>(creature);
-    }
 };
 
 class npc_azure_stalker : public CreatureScript
@@ -1096,6 +1114,7 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
@@ -1104,7 +1123,8 @@ public:
             {
                 if (_tacticalBlinkTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 40, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 40, true);
+                    if (target)
                         DoCast(target, SPELL_TACTICAL_BLINK);
                     _tacticalBlinkTimer = 6000;
                     _tacticalBlinkCast = true;
@@ -1115,8 +1135,8 @@ public:
             {
                 if (_backstabTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 10, true))
-                        DoCast(target, SPELL_BACKSTAB);
+                    Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 10, true);
+                    DoCast(target, SPELL_BACKSTAB);
                     _tacticalBlinkCast = false;
                     _backstabTimer =1300;
                 } else _backstabTimer -= diff;
@@ -1171,32 +1191,36 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
 
-            if (me->GetEntry() == NPC_AZURE_SPELLBREAKER_1)
+            if (me->GetEntry() == CREATURE_AZURE_SPELLBREAKER_1)
             {
                 if (uiArcaneBlastTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
                         DoCast(target, SPELL_ARCANE_BLAST);
                     uiArcaneBlastTimer = 6000;
                 } else uiArcaneBlastTimer -= diff;
 
                 if (uiSlowTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                        if (target)
                         DoCast(target, SPELL_SLOW);
                     uiSlowTimer = 5000;
                 } else uiSlowTimer -= diff;
             }
 
-            if (me->GetEntry() == NPC_AZURE_SPELLBREAKER_2)
+            if (me->GetEntry() == CREATURE_AZURE_SPELLBREAKER_2)
             {
                 if (uiChainsOfIceTimer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                    Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (target)
                         DoCast(target, SPELL_CHAINS_OF_ICE);
                     uiChainsOfIceTimer = 7000;
                 } else uiChainsOfIceTimer -= diff;
@@ -1223,6 +1247,11 @@ class npc_azure_captain : public CreatureScript
 public:
     npc_azure_captain() : CreatureScript("npc_azure_captain") { }
 
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_captainAI>(creature);
+    }
+
     struct  npc_azure_captainAI : public violet_hold_trashAI
     {
         npc_azure_captainAI(Creature* creature) : violet_hold_trashAI(creature)
@@ -1248,6 +1277,7 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
@@ -1268,16 +1298,17 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_captainAI>(creature);
-    }
 };
 
 class npc_azure_sorceror : public CreatureScript
 {
 public:
     npc_azure_sorceror() : CreatureScript("npc_azure_sorceror") { }
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetInstanceAI<npc_azure_sorcerorAI>(creature);
+    }
 
     struct  npc_azure_sorcerorAI : public violet_hold_trashAI
     {
@@ -1306,13 +1337,15 @@ public:
         void UpdateAI(uint32 diff) override
         {
             violet_hold_trashAI::UpdateAI(diff);
+            npc_escortAI::UpdateAI(diff);
 
             if (!UpdateVictim())
                 return;
 
             if (uiArcaneStreamTimer <= diff)
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                if (target)
                     DoCast(target, SPELL_ARCANE_STREAM);
                 uiArcaneStreamTimer = urand(0, 5000)+5000;
                 uiArcaneStreamTimerStartingValueHolder = uiArcaneStreamTimer;
@@ -1327,11 +1360,6 @@ public:
             DoMeleeAttackIfReady();
         }
     };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetInstanceAI<npc_azure_sorcerorAI>(creature);
-    }
 };
 
 

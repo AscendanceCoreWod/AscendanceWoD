@@ -32,6 +32,7 @@
 #include "WardenWin.h"
 #include "WardenModuleWin.h"
 #include "WardenCheckMgr.h"
+#include "AccountMgr.h"
 
 WardenWin::WardenWin() : Warden(), _serverTicks(0) {}
 

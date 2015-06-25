@@ -27,7 +27,7 @@
 
 class UpdateFetcher
 {
-    typedef boost::filesystem::path Path;
+    using Path = boost::filesystem::path;
 
 public:
     UpdateFetcher(Path const& updateDirectory,
@@ -35,7 +35,7 @@ public:
         std::function<void(Path const& path)> const& applyFile,
         std::function<QueryResult(std::string const&)> const& retrieve);
 
-    UpdateResult Update(bool const redundancyChecks, bool const allowRehash,
+    uint32 Update(bool const redundancyChecks, bool const allowRehash,
                   bool const archivedRedundancy, int32 const cleanDeadReferencesMaxCount) const;
 
 private:
@@ -53,9 +53,6 @@ private:
 
     struct AppliedFileEntry
     {
-        AppliedFileEntry(std::string const& name_, std::string const& hash_, State state_, uint64 timestamp_)
-            : name(name_), hash(hash_), state(state_), timestamp(timestamp_) { }
-
         std::string const name;
 
         std::string const hash;
@@ -82,14 +79,12 @@ private:
 
     struct DirectoryEntry
     {
-        DirectoryEntry(Path const& path_, State state_) : path(path_), state(state_) { }
-
         Path const path;
 
         State const state;
     };
 
-    typedef std::pair<Path, State> LocaleFileEntry;
+    using LocaleFileEntry = std::pair<Path, State>;
 
     struct PathCompare
     {
@@ -99,11 +94,11 @@ private:
         }
     };
 
-    typedef std::set<LocaleFileEntry, PathCompare> LocaleFileStorage;
-    typedef std::unordered_map<std::string, std::string> HashToFileNameStorage;
-    typedef std::unordered_map<std::string, AppliedFileEntry> AppliedFileStorage;
-    typedef std::vector<UpdateFetcher::DirectoryEntry> DirectoryStorage;
-    typedef std::shared_ptr<std::string> SQLUpdate;
+    using LocaleFileStorage = std::set<LocaleFileEntry, PathCompare>;
+    using HashToFileNameStorage = std::unordered_map<std::string, std::string>;
+    using AppliedFileStorage = std::unordered_map<std::string, AppliedFileEntry>;
+    using DirectoryStorage = std::vector<UpdateFetcher::DirectoryEntry>;
+    using SQLUpdate = std::shared_ptr<std::string>;
 
     LocaleFileStorage GetFileList() const;
     void FillFileListRecursively(Path const& path, LocaleFileStorage& storage, State const state, uint32 const depth) const;

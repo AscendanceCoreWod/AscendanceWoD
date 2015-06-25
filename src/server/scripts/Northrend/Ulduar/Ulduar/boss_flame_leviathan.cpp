@@ -482,47 +482,40 @@ class boss_flame_leviathan : public CreatureScript
                 if (action && action <= 4) // Tower destruction, debuff leviathan loot and reduce active tower count
                 {
                     if (me->HasLootMode(LOOT_MODE_DEFAULT | LOOT_MODE_HARD_MODE_1 | LOOT_MODE_HARD_MODE_2 | LOOT_MODE_HARD_MODE_3 | LOOT_MODE_HARD_MODE_4) && ActiveTowersCount == 4)
+                    {
                         me->RemoveLootMode(LOOT_MODE_HARD_MODE_4);
-
+                        --ActiveTowersCount;
+                    }
                     if (me->HasLootMode(LOOT_MODE_DEFAULT | LOOT_MODE_HARD_MODE_1 | LOOT_MODE_HARD_MODE_2 | LOOT_MODE_HARD_MODE_3) && ActiveTowersCount == 3)
+                    {
                         me->RemoveLootMode(LOOT_MODE_HARD_MODE_3);
-
+                        --ActiveTowersCount;
+                    }
                     if (me->HasLootMode(LOOT_MODE_DEFAULT | LOOT_MODE_HARD_MODE_1 | LOOT_MODE_HARD_MODE_2) && ActiveTowersCount == 2)
+                    {
                         me->RemoveLootMode(LOOT_MODE_HARD_MODE_2);
-
+                        --ActiveTowersCount;
+                    }
                     if (me->HasLootMode(LOOT_MODE_DEFAULT | LOOT_MODE_HARD_MODE_1) && ActiveTowersCount == 1)
+                    {
                         me->RemoveLootMode(LOOT_MODE_HARD_MODE_1);
+                        --ActiveTowersCount;
+                    }
                 }
 
                 switch (action)
                 {
                     case ACTION_TOWER_OF_STORM_DESTROYED:
-                        if (towerOfStorms)
-                        {
-                            towerOfStorms = false;
-                            --ActiveTowersCount;
-                        }
+                        towerOfStorms = false;
                         break;
                     case ACTION_TOWER_OF_FROST_DESTROYED:
-                        if (towerOfFrost)
-                        {
-                            towerOfFrost = false;
-                            --ActiveTowersCount;
-                        }
+                        towerOfFrost = false;
                         break;
                     case ACTION_TOWER_OF_FLAMES_DESTROYED:
-                        if (towerOfFlames)
-                        {
-                            towerOfFlames = false;
-                            --ActiveTowersCount;
-                        }
+                        towerOfFlames = false;
                         break;
                     case ACTION_TOWER_OF_LIFE_DESTROYED:
-                        if (towerOfLife)
-                        {
-                            towerOfLife = false;
-                            --ActiveTowersCount;
-                        }
+                        towerOfLife = false;
                         break;
                     case ACTION_START_HARD_MODE:  // Activate hard-mode enable all towers, apply buffs on leviathan
                         ActiveTowers = true;

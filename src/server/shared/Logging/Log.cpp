@@ -25,6 +25,7 @@
 #include "AppenderDB.h"
 #include "LogOperation.h"
 
+#include <cstdarg>
 #include <cstdio>
 #include <sstream>
 

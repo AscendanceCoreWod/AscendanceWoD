@@ -524,16 +524,14 @@ enum AreaIds
 class spell_trigger_spell_from_caster : public SpellScriptLoader
 {
     public:
-        spell_trigger_spell_from_caster(char const* scriptName, uint32 triggerId, TriggerCastFlags triggerFlags = TRIGGERED_FULL_MASK)
-            : SpellScriptLoader(scriptName), _triggerId(triggerId), _triggerFlags(triggerFlags) { }
+        spell_trigger_spell_from_caster(char const* scriptName, uint32 triggerId) : SpellScriptLoader(scriptName), _triggerId(triggerId) { }
 
         class spell_trigger_spell_from_caster_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_trigger_spell_from_caster_SpellScript);
 
         public:
-            spell_trigger_spell_from_caster_SpellScript(uint32 triggerId, TriggerCastFlags triggerFlags)
-                : SpellScript(), _triggerId(triggerId), _triggerFlags(triggerFlags) { }
+            spell_trigger_spell_from_caster_SpellScript(uint32 triggerId) : SpellScript(), _triggerId(triggerId) { }
 
             bool Validate(SpellInfo const* /*spell*/) override
             {
@@ -544,7 +542,7 @@ class spell_trigger_spell_from_caster : public SpellScriptLoader
 
             void HandleTrigger()
             {
-                GetCaster()->CastSpell(GetHitUnit(), _triggerId, _triggerFlags);
+                GetCaster()->CastSpell(GetHitUnit(), _triggerId, true);
             }
 
             void Register() override
@@ -553,17 +551,15 @@ class spell_trigger_spell_from_caster : public SpellScriptLoader
             }
 
             uint32 _triggerId;
-            TriggerCastFlags _triggerFlags;
         };
 
         SpellScript* GetSpellScript() const override
         {
-            return new spell_trigger_spell_from_caster_SpellScript(_triggerId, _triggerFlags);
+            return new spell_trigger_spell_from_caster_SpellScript(_triggerId);
         }
 
     private:
         uint32 _triggerId;
-        TriggerCastFlags _triggerFlags;
 };
 
 template<class AI>

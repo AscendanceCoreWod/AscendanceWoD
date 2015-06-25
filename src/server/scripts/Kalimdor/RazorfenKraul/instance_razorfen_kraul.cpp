@@ -76,7 +76,7 @@ public:
             }
         }
 
-        void Update(uint32 /*diff*/) override
+        void Update(uint32 /*diff*/)
         {
             if (WardKeeperDeath == WARD_KEEPERS_NR)
                 if (GameObject* go = instance->GetGameObject(DoorWardGUID))

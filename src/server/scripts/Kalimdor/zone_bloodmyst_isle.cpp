@@ -361,10 +361,7 @@ public:
 
     struct npc_demolitionist_legosoAI : public npc_escortAI
     {
-        npc_demolitionist_legosoAI(Creature* creature) : npc_escortAI(creature)
-        {
-            Initialize();
-        }
+        npc_demolitionist_legosoAI(Creature* creature) : npc_escortAI(creature) { }
 
         void sQuestAccept(Player* player, Quest const* quest) override
         {
@@ -398,16 +395,11 @@ public:
             }
         }
 
-        void Initialize()
+        void Reset() override
         {
             _phase = PHASE_NONE;
             _moveTimer = 0;
             _eventStarterGuidLow = 0;
-        }
-
-        void Reset() override
-        {
-            Initialize();
             me->SetCanDualWield(true);
 
             _events.Reset();

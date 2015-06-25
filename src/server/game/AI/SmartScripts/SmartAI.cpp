@@ -21,7 +21,11 @@
 #include "GridDefines.h"
 #include "GridNotifiers.h"
 #include "SpellMgr.h"
+#include "GridNotifiersImpl.h"
 #include "Cell.h"
+#include "CellImpl.h"
+#include "InstanceScript.h"
+#include "ScriptedCreature.h"
 #include "Group.h"
 #include "SmartAI.h"
 #include "ScriptMgr.h"
@@ -581,11 +585,7 @@ void SmartAI::JustDied(Unit* killer)
 {
     GetScript()->ProcessEventsFor(SMART_EVENT_DEATH, killer);
     if (HasEscortState(SMART_ESCORT_ESCORTING))
-    {
         EndPath(true);
-        me->StopMoving();//force stop
-        me->GetMotionMaster()->MoveIdle();
-    }
 }
 
 void SmartAI::KilledUnit(Unit* victim)

@@ -108,7 +108,6 @@ class boss_grand_warlock_nethekurse : public CreatureScript
 
             void Reset() override
             {
-                _Reset();
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
                 Initialize();
@@ -116,8 +115,9 @@ class boss_grand_warlock_nethekurse : public CreatureScript
 
             void JustDied(Unit* /*killer*/) override
             {
-                _JustDied();
                 Talk(SAY_DIE);
+
+                instance->SetBossState(DATA_NETHEKURSE, DONE);
             }
 
             void SetData(uint32 data, uint32 value) override

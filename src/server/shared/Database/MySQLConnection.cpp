@@ -22,9 +22,11 @@
   #include <winsock2.h>
 #endif
 #include <mysql.h>
+#include <mysqld_error.h>
 #include <errmsg.h>
 
 #include "MySQLConnection.h"
+#include "MySQLThreading.h"
 #include "QueryResult.h"
 #include "SQLOperation.h"
 #include "PreparedStatement.h"

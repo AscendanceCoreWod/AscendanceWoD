@@ -28,6 +28,8 @@
 #include "Opcodes.h"
 #include "Guild.h"
 #include "ArenaTeam.h"
+#include "GossipDef.h"
+#include "SocialMgr.h"
 
 #define CHARTER_DISPLAY_ID 16161
 

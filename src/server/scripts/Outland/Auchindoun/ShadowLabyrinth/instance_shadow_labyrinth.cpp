@@ -92,7 +92,7 @@ class instance_shadow_labyrinth : public InstanceMapScript
                 }
             }
 
-            void OnUnitDeath(Unit* unit) override
+            void OnUnitDeath(Unit* unit)
             {
                 Creature* creature = unit->ToCreature();
                 if (!creature)

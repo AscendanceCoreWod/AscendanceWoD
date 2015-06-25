@@ -17,7 +17,9 @@
  */
 
 #include "BattlegroundAB.h"
+#include "World.h"
 #include "WorldPacket.h"
+#include "ObjectMgr.h"
 #include "BattlegroundMgr.h"
 #include "Creature.h"
 #include "Language.h"

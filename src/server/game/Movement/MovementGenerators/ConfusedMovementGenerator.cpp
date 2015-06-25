@@ -17,8 +17,10 @@
  */
 
 #include "Creature.h"
+#include "MapManager.h"
 #include "ConfusedMovementGenerator.h"
 #include "PathGenerator.h"
+#include "VMapFactory.h"
 #include "MoveSplineInit.h"
 #include "MoveSpline.h"
 #include "Player.h"

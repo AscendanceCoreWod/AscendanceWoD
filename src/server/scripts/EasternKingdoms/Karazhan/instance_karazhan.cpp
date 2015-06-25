@@ -268,7 +268,7 @@ public:
             return ObjectGuid::Empty;
         }
 
-        void Load(char const* chrIn) override
+        void Load(char const* chrIn)
         {
             if (!chrIn)
             {

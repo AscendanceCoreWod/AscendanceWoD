@@ -20,6 +20,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Creature.h"
+#include "Vehicle.h"
 #include "GameObject.h"
 #include "DynamicObject.h"
 #include "Corpse.h"
