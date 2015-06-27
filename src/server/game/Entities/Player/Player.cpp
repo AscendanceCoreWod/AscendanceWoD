@@ -4585,21 +4585,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON);
-            stmt->setUInt64(0, guid);
-            trans->Append(stmt);
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BLUEPRINTS);
-            stmt->setUInt64(0, guid);
-            trans->Append(stmt);
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BUILDINGS);
-            stmt->setUInt64(0, guid);
-            trans->Append(stmt);
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_FOLLOWERS);
-            stmt->setUInt64(0, guid);
-            trans->Append(stmt);
+            Garrison::DeleteFromDB(guid, trans);
 
             CharacterDatabase.CommitTransaction(trans);
 
@@ -23726,8 +23712,8 @@ uint32 Player::GetResurrectionSpellId()
         }
     }
 
-    // Reincarnation (passive spell)  // prio: 1                  // Glyph of Renewed Life
-    if (prio < 1 && HasSpell(20608) && !GetSpellHistory()->HasCooldown(21169) && (HasAura(58059) || HasItemCount(17030)))
+    // Reincarnation (passive spell)  // prio: 1
+    if (prio < 1 && HasSpell(20608) && !GetSpellHistory()->HasCooldown(21169))
         spell_id = 21169;
 
     return spell_id;
@@ -26273,6 +26259,15 @@ void Player::CreateGarrison(uint32 garrSiteId)
     std::unique_ptr<Garrison> garrison(new Garrison(this));
     if (garrison->Create(garrSiteId))
         _garrison = std::move(garrison);
+}
+
+void Player::DeleteGarrison()
+{
+    if (_garrison)
+    {
+        _garrison->Delete();
+        _garrison.reset();
+    }
 }
 
 void Player::SendMovementSetCanTransitionBetweenSwimAndFly(bool apply)
