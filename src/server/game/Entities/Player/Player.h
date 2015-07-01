@@ -664,7 +664,7 @@ enum QuestSaveType
 typedef std::map<uint32, QuestSaveType> QuestStatusSaveMap;
 
 // Size of client completed quests bit map
-#define QUESTS_COMPLETED_BITS_SIZE 625
+#define QUESTS_COMPLETED_BITS_SIZE 875
 
 enum QuestSlotOffsets
 {
@@ -1980,7 +1980,7 @@ class Player : public Unit, public GridObject<Player>
             if (!IsResurrectRequested())
                 return false;
 
-            return _resurrectionData->GUID == guid;
+            return !_resurrectionData->GUID.IsEmpty() && _resurrectionData->GUID == guid;
         }
 
         bool IsResurrectRequested() const { return _resurrectionData != NULL; }

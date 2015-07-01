@@ -1240,593 +1240,594 @@ void GameObject::SwitchDoorOrButton(bool activate, bool alternative /* = false *
 
 void GameObject::Use(Unit* user)
 {
-	// by default spell caster is user
-	Unit* spellCaster = user;
-	uint32 spellId = 0;
-	bool triggered = false;
-
-	if (Player* playerUser = user->ToPlayer())
-	{
-		if (sScriptMgr->OnGossipHello(playerUser, this))
-			return;
-
-		if (AI()->GossipHello(playerUser))
-			return;
-	}
-
-	// If cooldown data present in template
-	if (uint32 cooldown = GetGOInfo()->GetCooldown())
-	{
-		if (m_cooldownTime > sWorld->GetGameTime())
-			return;
-
-		m_cooldownTime = sWorld->GetGameTime() + cooldown;
-	}
-
-	switch (GetGoType())
-	{
-	case GAMEOBJECT_TYPE_DOOR:                          //0
-	case GAMEOBJECT_TYPE_BUTTON:                        //1
-		//doors/buttons never really despawn, only reset to default state/flags
-		UseDoorOrButton(0, false, user);
-		return;
-	case GAMEOBJECT_TYPE_QUESTGIVER:                    //2
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID, true);
-		player->SendPreparedGossip(this);
-		return;
-	}
-	case GAMEOBJECT_TYPE_TRAP:                          //6
-	{
-		GameObjectTemplate const* goInfo = GetGOInfo();
-		if (goInfo->trap.spell)
-			CastSpell(user, goInfo->trap.spell);
-
-		m_cooldownTime = time(NULL) + (goInfo->trap.cooldown ? goInfo->trap.cooldown : uint32(4));   // template or 4 seconds
-
-		if (goInfo->trap.charges == 1)         // Deactivate after trigger
-			SetLootState(GO_JUST_DEACTIVATED);
-
-		return;
-	}
-	//Sitting: Wooden bench, chairs enzz
-	case GAMEOBJECT_TYPE_CHAIR:                         //7
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-		if (!info)
-			return;
-
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		if (ChairListSlots.empty())        // this is called once at first chair use to make list of available slots
-		{
-			if (info->chair.chairslots > 0)     // sometimes chairs in DB have error in fields and we dont know number of slots
-				for (uint32 i = 0; i < info->chair.chairslots; ++i)
-					ChairListSlots[i].Clear(); // Last user of current slot set to 0 (none sit here yet)
-			else
-				ChairListSlots[0].Clear();     // error in DB, make one default slot
-		}
-
-		Player* player = user->ToPlayer();
-
-		// a chair may have n slots. we have to calculate their positions and teleport the player to the nearest one
-
-		float lowestDist = DEFAULT_VISIBILITY_DISTANCE;
-
-		uint32 nearest_slot = 0;
-		float x_lowest = GetPositionX();
-		float y_lowest = GetPositionY();
-
-		// the object orientation + 1/2 pi
-		// every slot will be on that straight line
-		float orthogonalOrientation = GetOrientation() + float(M_PI) * 0.5f;
-		// find nearest slot
-		bool found_free_slot = false;
-		for (ChairSlotAndUser::iterator itr = ChairListSlots.begin(); itr != ChairListSlots.end(); ++itr)
-		{
-			// the distance between this slot and the center of the go - imagine a 1D space
-			float relativeDistance = (info->size*itr->first) - (info->size*(info->chair.chairslots - 1) / 2.0f);
-			if (const GameObjectData* data = GetGOData())
-				relativeDistance = (data->size*itr->first) - (data->size*(info->chair.chairslots - 1) / 2.0f);
-
-			float x_i = GetPositionX() + relativeDistance * std::cos(orthogonalOrientation);
-			float y_i = GetPositionY() + relativeDistance * std::sin(orthogonalOrientation);
-
-			if (!itr->second.IsEmpty())
-			{
-				if (Player* ChairUser = ObjectAccessor::FindPlayer(itr->second))
-				{
-					if (ChairUser->IsSitState() && ChairUser->GetStandState() != UNIT_STAND_STATE_SIT && ChairUser->GetExactDist2d(x_i, y_i) < 0.1f)
-						continue;        // This seat is already occupied by ChairUser. NOTE: Not sure if the ChairUser->GetStandState() != UNIT_STAND_STATE_SIT check is required.
-					else
-						itr->second.Clear(); // This seat is unoccupied.
-				}
-				else
-					itr->second.Clear();     // The seat may of had an occupant, but they're offline.
-			}
-
-			found_free_slot = true;
-
-			// calculate the distance between the player and this slot
-			float thisDistance = player->GetDistance2d(x_i, y_i);
-
-			if (thisDistance <= lowestDist)
-			{
-				nearest_slot = itr->first;
-				lowestDist = thisDistance;
-				x_lowest = x_i;
-				y_lowest = y_i;
-			}
-		}
-
-		if (found_free_slot)
-		{
-			ChairSlotAndUser::iterator itr = ChairListSlots.find(nearest_slot);
-			if (itr != ChairListSlots.end())
-			{
-				itr->second = player->GetGUID(); //this slot in now used by player
-				player->TeleportTo(GetMapId(), x_lowest, y_lowest, GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
-				player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->chair.chairheight));
-				return;
-			}
-		}
-
-		return;
-	}
-	//big gun, its a spell/aura
-	case GAMEOBJECT_TYPE_GOOBER:                        //10
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-
-		if (Player* player = user->ToPlayer())
-		{
-			if (info->goober.pageID)                    // show page...
-			{
-				WorldPackets::GameObject::PageText data;
-				data.GameObjectGUID = GetGUID();
-				player->SendDirectMessage(data.Write());
-			}
-			else if (info->goober.gossipID)
-			{
-				player->PrepareGossipMenu(this, info->goober.gossipID);
-				player->SendPreparedGossip(this);
-			}
-
-			if (info->goober.eventID)
-			{
-				TC_LOG_DEBUG("maps.script", "Goober ScriptStart id %u for GO entry %u (GUID " UI64FMTD ").", info->goober.eventID, GetEntry(), GetSpawnId());
-				GetMap()->ScriptsStart(sEventScripts, info->goober.eventID, player, this);
-				EventInform(info->goober.eventID, user);
-			}
-
-			// possible quest objective for active quests
-			if (info->goober.questID && sObjectMgr->GetQuestTemplate(info->goober.questID))
-			{
-				//Quest require to be active for GO using
-				if (player->GetQuestStatus(info->goober.questID) != QUEST_STATUS_INCOMPLETE)
-					break;
-			}
-
-			player->KillCreditGO(info->entry, GetGUID());
-		}
-
-		if (uint32 trapEntry = info->goober.linkedTrap)
-			TriggeringLinkedGameObject(trapEntry, user);
-
-		SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
-		SetLootState(GO_ACTIVATED, user);
-
-		// this appear to be ok, however others exist in addition to this that should have custom (ex: 190510, 188692, 187389)
-		if (info->goober.customAnim)
-			SendCustomAnim(GetGoAnimProgress());
-		else
-			SetGoState(GO_STATE_ACTIVE);
-
-		m_cooldownTime = time(NULL) + info->GetAutoCloseTime();
-
-		// cast this spell later if provided
-		spellId = info->goober.spell;
-		spellCaster = NULL;
-
-		break;
-	}
-	case GAMEOBJECT_TYPE_CAMERA:                        //13
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-		if (!info)
-			return;
-
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		if (info->camera.camera)
-			player->SendCinematicStart(info->camera.camera);
-
-		if (info->camera.eventID)
-			GetMap()->ScriptsStart(sEventScripts, info->camera.eventID, player, this);
-
-		return;
-	}
-	//fishing bobber
-	case GAMEOBJECT_TYPE_FISHINGNODE:                   //17
-	{
-		Player* player = user->ToPlayer();
-		if (!player)
-			return;
-
-		if (player->GetGUID() != GetOwnerGUID())
-			return;
-
-		switch (getLootState())
-		{
-		case GO_READY:                              // ready for loot
-		{
-			uint32 zone, subzone;
-			GetZoneAndAreaId(zone, subzone);
-
-			int32 zone_skill = sObjectMgr->GetFishingBaseSkillLevel(subzone);
-			if (!zone_skill)
-				zone_skill = sObjectMgr->GetFishingBaseSkillLevel(zone);
-
-			//provide error, no fishable zone or area should be 0
-			if (!zone_skill)
-				TC_LOG_ERROR("sql.sql", "Fishable areaId %u are not properly defined in `skill_fishing_base_level`.", subzone);
-
-			int32 skill = player->GetSkillValue(SKILL_FISHING);
-
-			int32 chance;
-			if (skill < zone_skill)
-			{
-				chance = int32(pow((double)skill / zone_skill, 2) * 100);
-				if (chance < 1)
-					chance = 1;
-			}
-			else
-				chance = 100;
-
-			int32 roll = irand(1, 100);
-
-			TC_LOG_DEBUG("misc", "Fishing check (skill: %i zone min skill: %i chance %i roll: %i", skill, zone_skill, chance, roll);
-
-			// but you will likely cause junk in areas that require a high fishing skill (not yet implemented)
-			if (chance >= roll)
-			{
-				player->UpdateFishingSkill();
-
-				/// @todo I do not understand this hack. Need some explanation.
-				// prevent removing GO at spell cancel
-				RemoveFromOwner();
-				SetOwnerGUID(player->GetGUID());
-				SetSpellId(0); // prevent removing unintended auras at Unit::RemoveGameObject
-
-				/// @todo find reasonable value for fishing hole search
-				GameObject* ok = LookupFishingHoleAround(20.0f + CONTACT_DISTANCE);
-				if (ok)
-				{
-					ok->Use(player);
-					SetLootState(GO_JUST_DEACTIVATED);
-				}
-				else
-					player->SendLoot(GetGUID(), LOOT_FISHING);
-			}
-			else // else: junk
-				player->SendLoot(GetGUID(), LOOT_FISHING_JUNK);
-			break;
-		}
-		case GO_JUST_DEACTIVATED:                   // nothing to do, will be deleted at next update
-			break;
-		default:
-		{
-			SetLootState(GO_JUST_DEACTIVATED);
-
-			WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
-			player->SendDirectMessage(&data);
-			break;
-		}
-		}
-
-		player->FinishSpell(CURRENT_CHANNELED_SPELL);
-		return;
-	}
-
-	case GAMEOBJECT_TYPE_RITUAL:              //18
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		Unit* owner = GetOwner();
-
-		GameObjectTemplate const* info = GetGOInfo();
-
-		Player* m_ritualOwner = NULL;
-		if (!m_ritualOwnerGUID.IsEmpty())
-			m_ritualOwner = ObjectAccessor::FindPlayer(m_ritualOwnerGUID);
-
-		// ritual owner is set for GO's without owner (not summoned)
-		if (!m_ritualOwner && !owner)
-		{
-			m_ritualOwnerGUID = player->GetGUID();
-			m_ritualOwner = player;
-		}
-
-		if (owner)
-		{
-			if (owner->GetTypeId() != TYPEID_PLAYER)
-				return;
-
-			// accept only use by player from same group as owner, excluding owner itself (unique use already added in spell effect)
-			if (player == owner->ToPlayer() || (info->ritual.castersGrouped && !player->IsInSameRaidWith(owner->ToPlayer())))
-				return;
-
-			// expect owner to already be channeling, so if not...
-			if (!owner->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
-				return;
-
-			// in case summoning ritual caster is GO creator
-			spellCaster = owner;
-		}
-		else
-		{
-			if (player != m_ritualOwner && (info->ritual.castersGrouped && !player->IsInSameRaidWith(m_ritualOwner)))
-				return;
-
-			spellCaster = player;
-		}
-
-		AddUniqueUse(player);
-
-		if (info->ritual.animSpell)
-		{
-			player->CastSpell(player, info->ritual.animSpell, true);
-
-			// for this case, summoningRitual.spellId is always triggered
-			triggered = true;
-		}
-
-		// full amount unique participants including original summoner
-		if (GetUniqueUseCount() == info->ritual.casters)
-		{
-			if (m_ritualOwner)
-				spellCaster = m_ritualOwner;
-
-			spellId = info->ritual.spell;
-
-			if (spellId == 62330)                       // GO store nonexistent spell, replace by expected
-			{
-				// spell have reagent and mana cost but it not expected use its
-				// it triggered spell in fact cast at currently channeled GO
-				spellId = 61993;
-				triggered = true;
-			}
-
-			// Cast casterTargetSpell at a random GO user
-			// on the current DB there is only one gameobject that uses this (Ritual of Doom)
-			// and its required target number is 1 (outter for loop will run once)
-			if (info->ritual.casterTargetSpell && info->ritual.casterTargetSpell != 1) // No idea why this field is a bool in some cases
-				for (uint32 i = 0; i < info->ritual.casterTargetSpellTargets; i++)
-					// m_unique_users can contain only player GUIDs
-					if (Player* target = ObjectAccessor::GetPlayer(*this, Trinity::Containers::SelectRandomContainerElement(m_unique_users)))
-						spellCaster->CastSpell(target, info->ritual.casterTargetSpell, true);
-
-			// finish owners spell
-			if (owner)
-				owner->FinishSpell(CURRENT_CHANNELED_SPELL);
-
-			// can be deleted now, if
-			if (!info->ritual.ritualPersistent)
-				SetLootState(GO_JUST_DEACTIVATED);
-			else
-			{
-				// reset ritual for this GO
-				m_ritualOwnerGUID.Clear();
-				m_unique_users.clear();
-				m_usetimes = 0;
-			}
-		}
-		else
-			return;
-
-		// go to end function to spell casting
-		break;
-	}
-	case GAMEOBJECT_TYPE_SPELLCASTER:                   //22
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-		if (!info)
-			return;
-
-		if (info->spellCaster.partyOnly)
-		{
-			Unit* caster = GetOwner();
-			if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
-				return;
-
-			if (user->GetTypeId() != TYPEID_PLAYER || !user->ToPlayer()->IsInSameRaidWith(caster->ToPlayer()))
-				return;
-		}
-
-		user->RemoveAurasByType(SPELL_AURA_MOUNTED);
-		spellId = info->spellCaster.spell;
-
-		AddUse();
-		break;
-	}
-	case GAMEOBJECT_TYPE_MEETINGSTONE:                  //23
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		Player* targetPlayer = ObjectAccessor::FindPlayer(player->GetTarget());
-
-		// accept only use by player from same raid as caster, except caster itself
-		if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameRaidWith(player))
-			return;
-
-		//required lvl checks!
-		uint8 level = player->getLevel();
-		if (level < info->meetingStone.minLevel)
-			return;
-		level = targetPlayer->getLevel();
-		if (level < info->meetingStone.minLevel)
-			return;
-
-		if (info->entry == 194097)
-			spellId = 61994;                            // Ritual of Summoning
-		else
-			spellId = 59782;                            // Summoning Stone Effect
-
-		break;
-	}
-
-	case GAMEOBJECT_TYPE_FLAGSTAND:                     // 24
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		if (player->CanUseBattlegroundObject(this))
-		{
-			// in battleground check
-			Battleground* bg = player->GetBattleground();
-			if (!bg)
-				return;
-
-			if (player->GetVehicle())
-				return;
-
-			player->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
-			player->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
-			// BG flag click
-			// AB:
-			// 15001
-			// 15002
-			// 15003
-			// 15004
-			// 15005
-			bg->EventPlayerClickedOnFlag(player, this);
-			return;                                     //we don;t need to delete flag ... it is despawned!
-		}
-		break;
-	}
-
-	case GAMEOBJECT_TYPE_FISHINGHOLE:                   // 25
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		player->SendLoot(GetGUID(), LOOT_FISHINGHOLE);
-		player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_FISH_IN_GAMEOBJECT, GetGOInfo()->entry);
-		return;
-	}
-
-	case GAMEOBJECT_TYPE_FLAGDROP:                      // 26
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		if (player->CanUseBattlegroundObject(this))
-		{
-			// in battleground check
-			Battleground* bg = player->GetBattleground();
-			if (!bg)
-				return;
-
-			if (player->GetVehicle())
-				return;
-
-			player->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
-			player->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
-			// BG flag dropped
-			// WS:
-			// 179785 - Silverwing Flag
-			// 179786 - Warsong Flag
-			// EotS:
-			// 184142 - Netherstorm Flag
-			GameObjectTemplate const* info = GetGOInfo();
-			if (info)
-			{
-				switch (info->entry)
-				{
-				case 179785:                        // Silverwing Flag
-				case 179786:                        // Warsong Flag
-					if (bg->GetTypeID(true) == BATTLEGROUND_WS)
-						bg->EventPlayerClickedOnFlag(player, this);
-					break;
-				case 184142:                        // Netherstorm Flag
-					if (bg->GetTypeID(true) == BATTLEGROUND_EY)
-						bg->EventPlayerClickedOnFlag(player, this);
-					break;
-				}
-			}
-			//this cause to call return, all flags must be deleted here!!
-			spellId = 0;
-			Delete();
-		}
-		break;
-	}
-	case GAMEOBJECT_TYPE_BARBER_CHAIR:                  //32
-	{
-		GameObjectTemplate const* info = GetGOInfo();
-		if (!info)
-			return;
-
-		if (user->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		Player* player = user->ToPlayer();
-
-		// fallback, will always work
-		player->TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
-
-		WorldPackets::Misc::EnableBarberShop packet;
-		player->SendDirectMessage(packet.Write());
-
-		player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->barberChair.chairheight));
-		return;
-	}
-	default:
-		if (GetGoType() >= MAX_GAMEOBJECT_TYPE)
-			TC_LOG_ERROR("misc", "GameObject::Use(): unit (type: %u, %s, name: %s) tries to use object (%s, name: %s) of unknown type (%u)",
-			user->GetTypeId(), user->GetGUID().ToString().c_str(), user->GetName().c_str(), GetGUID().ToString().c_str(), GetGOInfo()->name.c_str(), GetGoType());
-		break;
-	}
-
-	if (!spellId)
-		return;
-
-	SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-	if (!spellInfo)
-	{
-		if (user->GetTypeId() != TYPEID_PLAYER || !sOutdoorPvPMgr->HandleCustomSpell(user->ToPlayer(), spellId, this))
-			TC_LOG_ERROR("misc", "WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u)", spellId, GetEntry(), GetGoType());
-		else
-			TC_LOG_DEBUG("outdoorpvp", "WORLD: %u non-dbc spell was handled by OutdoorPvP", spellId);
-		return;
-	}
-
-	if (spellCaster)
-		spellCaster->CastSpell(user, spellInfo, triggered);
-	else
-		CastSpell(user, spellId);
+    // by default spell caster is user
+    Unit* spellCaster = user;
+    uint32 spellId = 0;
+    bool triggered = false;
+
+    if (Player* playerUser = user->ToPlayer())
+    {
+        if (sScriptMgr->OnGossipHello(playerUser, this))
+            return;
+
+        if (AI()->GossipHello(playerUser))
+            return;
+    }
+
+    // If cooldown data present in template
+    if (uint32 cooldown = GetGOInfo()->GetCooldown())
+    {
+        if (m_cooldownTime > sWorld->GetGameTime())
+            return;
+
+        m_cooldownTime = sWorld->GetGameTime() + cooldown;
+    }
+
+    switch (GetGoType())
+    {
+        case GAMEOBJECT_TYPE_DOOR:                          //0
+        case GAMEOBJECT_TYPE_BUTTON:                        //1
+            //doors/buttons never really despawn, only reset to default state/flags
+            UseDoorOrButton(0, false, user);
+            return;
+        case GAMEOBJECT_TYPE_QUESTGIVER:                    //2
+        {
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID, true);
+            player->SendPreparedGossip(this);
+            return;
+        }
+        case GAMEOBJECT_TYPE_TRAP:                          //6
+        {
+            GameObjectTemplate const* goInfo = GetGOInfo();
+            if (goInfo->trap.spell)
+                CastSpell(user, goInfo->trap.spell);
+
+            m_cooldownTime = time(NULL) + (goInfo->trap.cooldown ? goInfo->trap.cooldown :  uint32(4));   // template or 4 seconds
+
+            if (goInfo->trap.charges == 1)         // Deactivate after trigger
+                SetLootState(GO_JUST_DEACTIVATED);
+
+            return;
+        }
+        //Sitting: Wooden bench, chairs enzz
+        case GAMEOBJECT_TYPE_CHAIR:                         //7
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+            if (!info)
+                return;
+
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            if (ChairListSlots.empty())        // this is called once at first chair use to make list of available slots
+            {
+                if (info->chair.chairslots > 0)     // sometimes chairs in DB have error in fields and we dont know number of slots
+                    for (uint32 i = 0; i < info->chair.chairslots; ++i)
+                        ChairListSlots[i].Clear(); // Last user of current slot set to 0 (none sit here yet)
+                else
+                    ChairListSlots[0].Clear();     // error in DB, make one default slot
+            }
+
+            Player* player = user->ToPlayer();
+
+            // a chair may have n slots. we have to calculate their positions and teleport the player to the nearest one
+
+            float lowestDist = DEFAULT_VISIBILITY_DISTANCE;
+
+            uint32 nearest_slot = 0;
+            float x_lowest = GetPositionX();
+            float y_lowest = GetPositionY();
+
+            // the object orientation + 1/2 pi
+            // every slot will be on that straight line
+            float orthogonalOrientation = GetOrientation() + float(M_PI) * 0.5f;
+            // find nearest slot
+            bool found_free_slot = false;
+            for (ChairSlotAndUser::iterator itr = ChairListSlots.begin(); itr != ChairListSlots.end(); ++itr)
+            {
+                // the distance between this slot and the center of the go - imagine a 1D space
+                float relativeDistance = (info->size*itr->first) - (info->size*(info->chair.chairslots - 1) / 2.0f);
+
+                float x_i = GetPositionX() + relativeDistance * std::cos(orthogonalOrientation);
+                float y_i = GetPositionY() + relativeDistance * std::sin(orthogonalOrientation);
+
+                if (!itr->second.IsEmpty())
+                {
+                    if (Player* ChairUser = ObjectAccessor::FindPlayer(itr->second))
+                    {
+                        if (ChairUser->IsSitState() && ChairUser->GetStandState() != UNIT_STAND_STATE_SIT && ChairUser->GetExactDist2d(x_i, y_i) < 0.1f)
+                            continue;        // This seat is already occupied by ChairUser. NOTE: Not sure if the ChairUser->GetStandState() != UNIT_STAND_STATE_SIT check is required.
+                        else
+                            itr->second.Clear(); // This seat is unoccupied.
+                    }
+                    else
+                        itr->second.Clear();     // The seat may of had an occupant, but they're offline.
+                }
+
+                found_free_slot = true;
+
+                // calculate the distance between the player and this slot
+                float thisDistance = player->GetDistance2d(x_i, y_i);
+
+                if (thisDistance <= lowestDist)
+                {
+                    nearest_slot = itr->first;
+                    lowestDist = thisDistance;
+                    x_lowest = x_i;
+                    y_lowest = y_i;
+                }
+            }
+
+            if (found_free_slot)
+            {
+                ChairSlotAndUser::iterator itr = ChairListSlots.find(nearest_slot);
+                if (itr != ChairListSlots.end())
+                {
+                    itr->second = player->GetGUID(); //this slot in now used by player
+                    player->TeleportTo(GetMapId(), x_lowest, y_lowest, GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
+                    player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->chair.chairheight));
+                    return;
+                }
+            }
+
+            return;
+        }
+        //big gun, its a spell/aura
+        case GAMEOBJECT_TYPE_GOOBER:                        //10
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+
+            if (Player* player = user->ToPlayer())
+            {
+                if (info->goober.pageID)                    // show page...
+                {
+                    WorldPackets::GameObject::PageText data;
+                    data.GameObjectGUID = GetGUID();
+                    player->SendDirectMessage(data.Write());
+                }
+                else if (info->goober.gossipID)
+                {
+                    player->PrepareGossipMenu(this, info->goober.gossipID);
+                    player->SendPreparedGossip(this);
+                }
+
+                if (info->goober.eventID)
+                {
+                    TC_LOG_DEBUG("maps.script", "Goober ScriptStart id %u for GO entry %u (GUID " UI64FMTD ").", info->goober.eventID, GetEntry(), GetSpawnId());
+                    GetMap()->ScriptsStart(sEventScripts, info->goober.eventID, player, this);
+                    EventInform(info->goober.eventID, user);
+                }
+
+                // possible quest objective for active quests
+                if (info->goober.questID && sObjectMgr->GetQuestTemplate(info->goober.questID))
+                {
+                    //Quest require to be active for GO using
+                    if (player->GetQuestStatus(info->goober.questID) != QUEST_STATUS_INCOMPLETE)
+                        break;
+                }
+
+                player->KillCreditGO(info->entry, GetGUID());
+            }
+
+            if (uint32 trapEntry = info->goober.linkedTrap)
+                TriggeringLinkedGameObject(trapEntry, user);
+
+            SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+            SetLootState(GO_ACTIVATED, user);
+
+            // this appear to be ok, however others exist in addition to this that should have custom (ex: 190510, 188692, 187389)
+            if (info->goober.customAnim)
+                SendCustomAnim(GetGoAnimProgress());
+            else
+                SetGoState(GO_STATE_ACTIVE);
+
+            m_cooldownTime = time(NULL) + info->GetAutoCloseTime();
+
+            // cast this spell later if provided
+            spellId = info->goober.spell;
+            spellCaster = NULL;
+
+            break;
+        }
+        case GAMEOBJECT_TYPE_CAMERA:                        //13
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+            if (!info)
+                return;
+
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            if (info->camera.camera)
+                player->SendCinematicStart(info->camera.camera);
+
+            if (info->camera.eventID)
+                GetMap()->ScriptsStart(sEventScripts, info->camera.eventID, player, this);
+
+            return;
+        }
+        //fishing bobber
+        case GAMEOBJECT_TYPE_FISHINGNODE:                   //17
+        {
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            if (player->GetGUID() != GetOwnerGUID())
+                return;
+
+            switch (getLootState())
+            {
+                case GO_READY:                              // ready for loot
+                {
+                    uint32 zone, subzone;
+                    GetZoneAndAreaId(zone, subzone);
+
+                    int32 zone_skill = sObjectMgr->GetFishingBaseSkillLevel(subzone);
+                    if (!zone_skill)
+                        zone_skill = sObjectMgr->GetFishingBaseSkillLevel(zone);
+
+                    //provide error, no fishable zone or area should be 0
+                    if (!zone_skill)
+                        TC_LOG_ERROR("sql.sql", "Fishable areaId %u are not properly defined in `skill_fishing_base_level`.", subzone);
+
+                    int32 skill = player->GetSkillValue(SKILL_FISHING);
+
+                    int32 chance;
+                    if (skill < zone_skill)
+                    {
+                        chance = int32(pow((double)skill/zone_skill, 2) * 100);
+                        if (chance < 1)
+                            chance = 1;
+                    }
+                    else
+                        chance = 100;
+
+                    int32 roll = irand(1, 100);
+
+                    TC_LOG_DEBUG("misc", "Fishing check (skill: %i zone min skill: %i chance %i roll: %i", skill, zone_skill, chance, roll);
+
+                    // but you will likely cause junk in areas that require a high fishing skill (not yet implemented)
+                    if (chance >= roll)
+                    {
+                        player->UpdateFishingSkill();
+
+                        /// @todo I do not understand this hack. Need some explanation.
+                        // prevent removing GO at spell cancel
+                        RemoveFromOwner();
+                        SetOwnerGUID(player->GetGUID());
+                        SetSpellId(0); // prevent removing unintended auras at Unit::RemoveGameObject
+
+                        /// @todo find reasonable value for fishing hole search
+                        GameObject* ok = LookupFishingHoleAround(20.0f + CONTACT_DISTANCE);
+                        if (ok)
+                        {
+                            ok->Use(player);
+                            SetLootState(GO_JUST_DEACTIVATED);
+                        }
+                        else
+                            player->SendLoot(GetGUID(), LOOT_FISHING);
+                    }
+                    else // else: junk
+                        player->SendLoot(GetGUID(), LOOT_FISHING_JUNK);
+                    break;
+                }
+                case GO_JUST_DEACTIVATED:                   // nothing to do, will be deleted at next update
+                    break;
+                default:
+                {
+                    SetLootState(GO_JUST_DEACTIVATED);
+
+                    WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
+                    player->SendDirectMessage(&data);
+                    break;
+                }
+            }
+
+            player->FinishSpell(CURRENT_CHANNELED_SPELL);
+            return;
+        }
+
+        case GAMEOBJECT_TYPE_RITUAL:              //18
+        {
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            Unit* owner = GetOwner();
+
+            GameObjectTemplate const* info = GetGOInfo();
+
+            Player* m_ritualOwner = NULL;
+            if (!m_ritualOwnerGUID.IsEmpty())
+                m_ritualOwner = ObjectAccessor::FindPlayer(m_ritualOwnerGUID);
+
+            // ritual owner is set for GO's without owner (not summoned)
+            if (!m_ritualOwner && !owner)
+            {
+                m_ritualOwnerGUID = player->GetGUID();
+                m_ritualOwner = player;
+            }
+
+            if (owner)
+            {
+                if (owner->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                // accept only use by player from same group as owner, excluding owner itself (unique use already added in spell effect)
+                if (player == owner->ToPlayer() || (info->ritual.castersGrouped && !player->IsInSameRaidWith(owner->ToPlayer())))
+                    return;
+
+                // expect owner to already be channeling, so if not...
+                if (!owner->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
+                    return;
+
+                // in case summoning ritual caster is GO creator
+                spellCaster = owner;
+            }
+            else
+            {
+                if (player != m_ritualOwner && (info->ritual.castersGrouped && !player->IsInSameRaidWith(m_ritualOwner)))
+                    return;
+
+                spellCaster = player;
+            }
+
+            AddUniqueUse(player);
+
+            if (info->ritual.animSpell)
+            {
+                player->CastSpell(player, info->ritual.animSpell, true);
+
+                // for this case, summoningRitual.spellId is always triggered
+                triggered = true;
+            }
+
+            // full amount unique participants including original summoner
+            if (GetUniqueUseCount() == info->ritual.casters)
+            {
+                if (m_ritualOwner)
+                    spellCaster = m_ritualOwner;
+
+                spellId = info->ritual.spell;
+
+                if (spellId == 62330)                       // GO store nonexistent spell, replace by expected
+                {
+                    // spell have reagent and mana cost but it not expected use its
+                    // it triggered spell in fact cast at currently channeled GO
+                    spellId = 61993;
+                    triggered = true;
+                }
+
+                // Cast casterTargetSpell at a random GO user
+                // on the current DB there is only one gameobject that uses this (Ritual of Doom)
+                // and its required target number is 1 (outter for loop will run once)
+                if (info->ritual.casterTargetSpell && info->ritual.casterTargetSpell != 1) // No idea why this field is a bool in some cases
+                    for (uint32 i = 0; i < info->ritual.casterTargetSpellTargets; i++)
+                        // m_unique_users can contain only player GUIDs
+                        if (Player* target = ObjectAccessor::GetPlayer(*this, Trinity::Containers::SelectRandomContainerElement(m_unique_users)))
+                            spellCaster->CastSpell(target, info->ritual.casterTargetSpell, true);
+
+                // finish owners spell
+                if (owner)
+                    owner->FinishSpell(CURRENT_CHANNELED_SPELL);
+
+                // can be deleted now, if
+                if (!info->ritual.ritualPersistent)
+                    SetLootState(GO_JUST_DEACTIVATED);
+                else
+                {
+                    // reset ritual for this GO
+                    m_ritualOwnerGUID.Clear();
+                    m_unique_users.clear();
+                    m_usetimes = 0;
+                }
+            }
+            else
+                return;
+
+            // go to end function to spell casting
+            break;
+        }
+        case GAMEOBJECT_TYPE_SPELLCASTER:                   //22
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+            if (!info)
+                return;
+
+            if (info->spellCaster.partyOnly)
+            {
+                Unit* caster = GetOwner();
+                if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                if (user->GetTypeId() != TYPEID_PLAYER || !user->ToPlayer()->IsInSameRaidWith(caster->ToPlayer()))
+                    return;
+            }
+
+            user->RemoveAurasByType(SPELL_AURA_MOUNTED);
+            spellId = info->spellCaster.spell;
+
+            AddUse();
+            break;
+        }
+        case GAMEOBJECT_TYPE_MEETINGSTONE:                  //23
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            Player* targetPlayer = ObjectAccessor::FindPlayer(player->GetTarget());
+
+            // accept only use by player from same raid as caster, except caster itself
+            if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameRaidWith(player))
+                return;
+
+            //required lvl checks!
+            uint8 level = player->getLevel();
+            if (level < info->meetingStone.minLevel)
+                return;
+            level = targetPlayer->getLevel();
+            if (level < info->meetingStone.minLevel)
+                return;
+
+            if (info->entry == 194097)
+                spellId = 61994;                            // Ritual of Summoning
+            else
+                spellId = 59782;                            // Summoning Stone Effect
+
+            break;
+        }
+
+        case GAMEOBJECT_TYPE_FLAGSTAND:                     // 24
+        {
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            if (player->CanUseBattlegroundObject(this))
+            {
+                // in battleground check
+                Battleground* bg = player->GetBattleground();
+                if (!bg)
+                    return;
+
+                if (player->GetVehicle())
+                    return;
+
+                player->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                player->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
+                // BG flag click
+                // AB:
+                // 15001
+                // 15002
+                // 15003
+                // 15004
+                // 15005
+                bg->EventPlayerClickedOnFlag(player, this);
+                return;                                     //we don;t need to delete flag ... it is despawned!
+            }
+            break;
+        }
+
+        case GAMEOBJECT_TYPE_FISHINGHOLE:                   // 25
+        {
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            player->SendLoot(GetGUID(), LOOT_FISHINGHOLE);
+            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_FISH_IN_GAMEOBJECT, GetGOInfo()->entry);
+            return;
+        }
+
+        case GAMEOBJECT_TYPE_FLAGDROP:                      // 26
+        {
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            if (player->CanUseBattlegroundObject(this))
+            {
+                // in battleground check
+                Battleground* bg = player->GetBattleground();
+                if (!bg)
+                    return;
+
+                if (player->GetVehicle())
+                    return;
+
+                player->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                player->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
+                // BG flag dropped
+                // WS:
+                // 179785 - Silverwing Flag
+                // 179786 - Warsong Flag
+                // EotS:
+                // 184142 - Netherstorm Flag
+                GameObjectTemplate const* info = GetGOInfo();
+                if (info)
+                {
+                    switch (info->entry)
+                    {
+                        case 179785:                        // Silverwing Flag
+                        case 179786:                        // Warsong Flag
+                            if (bg->GetTypeID(true) == BATTLEGROUND_WS)
+                                bg->EventPlayerClickedOnFlag(player, this);
+                            break;
+                        case 184142:                        // Netherstorm Flag
+                            if (bg->GetTypeID(true) == BATTLEGROUND_EY)
+                                bg->EventPlayerClickedOnFlag(player, this);
+                            break;
+                    }
+                }
+                //this cause to call return, all flags must be deleted here!!
+                spellId = 0;
+                Delete();
+            }
+            break;
+        }
+        case GAMEOBJECT_TYPE_BARBER_CHAIR:                  //32
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+            if (!info)
+                return;
+
+            if (user->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = user->ToPlayer();
+
+            // fallback, will always work
+            player->TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
+
+            WorldPackets::Misc::EnableBarberShop packet;
+            player->SendDirectMessage(packet.Write());
+
+            player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->barberChair.chairheight));
+            return;
+        }
+        default:
+            if (GetGoType() >= MAX_GAMEOBJECT_TYPE)
+                TC_LOG_ERROR("misc", "GameObject::Use(): unit (type: %u, %s, name: %s) tries to use object (%s, name: %s) of unknown type (%u)",
+                    user->GetTypeId(), user->GetGUID().ToString().c_str(), user->GetName().c_str(), GetGUID().ToString().c_str(), GetGOInfo()->name.c_str(), GetGoType());
+            break;
+    }
+
+    if (!spellId)
+        return;
+
+    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+    if (!spellInfo)
+    {
+        if (user->GetTypeId() != TYPEID_PLAYER || !sOutdoorPvPMgr->HandleCustomSpell(user->ToPlayer(), spellId, this))
+            TC_LOG_ERROR("misc", "WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u)", spellId, GetEntry(), GetGoType());
+        else
+            TC_LOG_DEBUG("outdoorpvp", "WORLD: %u non-dbc spell was handled by OutdoorPvP", spellId);
+        return;
+    }
+
+    if (Player* player = user->ToPlayer())
+        sOutdoorPvPMgr->HandleCustomSpell(player, spellId, this);
+
+    if (spellCaster)
+        spellCaster->CastSpell(user, spellInfo, triggered);
+    else
+        CastSpell(user, spellId);
 }
 
 void GameObject::CastSpell(Unit* target, uint32 spellId, bool triggered /*= true*/)

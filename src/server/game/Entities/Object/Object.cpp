@@ -924,44 +924,47 @@ uint32 Object::GetUpdateFieldData(Player const* target, uint32*& flags) const
 
 uint32 Object::GetDynamicUpdateFieldData(Player const* target, uint32*& flags) const
 {
-	uint32 visibleFlag = UF_FLAG_PUBLIC;
+    uint32 visibleFlag = UF_FLAG_PUBLIC;
 
-	if (target == this)
-		visibleFlag |= UF_FLAG_PRIVATE;
+    if (target == this)
+        visibleFlag |= UF_FLAG_PRIVATE;
 
-	switch (GetTypeId())
-	{
-	case TYPEID_ITEM:
-	case TYPEID_CONTAINER:
-		flags = ItemDynamicUpdateFieldFlags;
-		if (((Item const*)this)->GetOwnerGUID() == target->GetGUID())
-			visibleFlag |= UF_FLAG_OWNER | UF_FLAG_ITEM_OWNER;
-		break;
-	case TYPEID_UNIT:
-	case TYPEID_PLAYER:
-	{
-		Player* plr = ToUnit()->GetCharmerOrOwnerPlayerOrPlayerItself();
-		flags = UnitDynamicUpdateFieldFlags;
-		if (ToUnit()->GetOwnerGUID() == target->GetGUID())
-			visibleFlag |= UF_FLAG_OWNER;
+    switch (GetTypeId())
+    {
+        case TYPEID_ITEM:
+        case TYPEID_CONTAINER:
+            flags = ItemDynamicUpdateFieldFlags;
+            if (((Item const*)this)->GetOwnerGUID() == target->GetGUID())
+                visibleFlag |= UF_FLAG_OWNER | UF_FLAG_ITEM_OWNER;
+            break;
+        case TYPEID_UNIT:
+        case TYPEID_PLAYER:
+        {
+            Player* plr = ToUnit()->GetCharmerOrOwnerPlayerOrPlayerItself();
+            flags = UnitDynamicUpdateFieldFlags;
+            if (ToUnit()->GetOwnerGUID() == target->GetGUID())
+                visibleFlag |= UF_FLAG_OWNER;
 
-		if (HasFlag(OBJECT_DYNAMIC_FLAGS, UNIT_DYNFLAG_SPECIALINFO))
-			if (ToUnit()->HasAuraTypeWithCaster(SPELL_AURA_EMPATHY, target->GetGUID()))
-				visibleFlag |= UF_FLAG_SPECIAL_INFO;
+            if (HasFlag(OBJECT_DYNAMIC_FLAGS, UNIT_DYNFLAG_SPECIALINFO))
+                if (ToUnit()->HasAuraTypeWithCaster(SPELL_AURA_EMPATHY, target->GetGUID()))
+                    visibleFlag |= UF_FLAG_SPECIAL_INFO;
 
-		if (plr && plr->IsInSameRaidWith(target))
-			visibleFlag |= UF_FLAG_PARTY_MEMBER;
-		break;
-	}
-	case TYPEID_CONVERSATION:
-		flags = ConversationDynamicUpdateFieldFlags;
-		break;
-	default:
-		flags = nullptr;
-		break;
-	}
+            if (plr && plr->IsInSameRaidWith(target))
+                visibleFlag |= UF_FLAG_PARTY_MEMBER;
+            break;
+        }
+        case TYPEID_GAMEOBJECT:
+            flags = GameObjectDynamicUpdateFieldFlags;
+            break;
+        case TYPEID_CONVERSATION:
+            flags = ConversationDynamicUpdateFieldFlags;
+            break;
+        default:
+            flags = nullptr;
+            break;
+    }
 
-	return visibleFlag;
+    return visibleFlag;
 }
 
 void Object::_LoadIntoDataField(std::string const& data, uint32 startOffset, uint32 count)
