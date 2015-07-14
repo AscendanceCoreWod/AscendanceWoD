@@ -949,298 +949,298 @@ void Group::SendLooter(Creature* creature, Player* groupLooter)
 
 void Group::GroupLoot(Loot* loot, WorldObject* pLootedObject)
 {
-    std::vector<LootItem>::iterator i;
-    ItemTemplate const* item;
-    uint8 itemSlot = 0;
+	std::vector<LootItem>::iterator i;
+	ItemTemplate const* item;
+	uint8 itemSlot = 0;
 
-    for (i = loot->items.begin(); i != loot->items.end(); ++i, ++itemSlot)
-    {
-        if (i->freeforall)
-            continue;
+	for (i = loot->items.begin(); i != loot->items.end(); ++i, ++itemSlot)
+	{
+		if (i->freeforall)
+			continue;
 
-        item = sObjectMgr->GetItemTemplate(i->itemid);
-        if (!item)
-        {
-            //TC_LOG_DEBUG("misc", "Group::GroupLoot: missing item prototype for item with id: %d", i->itemid);
-            continue;
-        }
+		item = sObjectMgr->GetItemTemplate(i->itemid);
+		if (!item)
+		{
+			//TC_LOG_DEBUG("misc", "Group::GroupLoot: missing item prototype for item with id: %d", i->itemid);
+			continue;
+		}
 
-        //roll for over-threshold item if it's one-player loot
-        if (item->GetQuality() >= uint32(m_lootThreshold))
-        {
-            ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
-            Roll* r = new Roll(newitemGUID, *i);
+		//roll for over-threshold item if it's one-player loot
+		if (item->GetQuality() >= uint32(m_lootThreshold))
+		{
+			ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
+			Roll* r = new Roll(newitemGUID, *i);
 
-            //a vector is filled with only near party members
-            for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
-            {
-                Player* member = itr->GetSource();
-                if (!member || !member->GetSession())
-                    continue;
-                if (i->AllowedForPlayer(member))
-                {
-                    if (member->IsAtGroupRewardDistance(pLootedObject))
-                    {
-                        r->totalPlayersRolling++;
+			//a vector is filled with only near party members
+			for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* member = itr->GetSource();
+				if (!member || !member->GetSession())
+					continue;
+				if (i->AllowedForPlayer(member))
+				{
+					if (member->IsAtGroupRewardDistance(pLootedObject))
+					{
+						r->totalPlayersRolling++;
 
-                        if (member->GetPassOnGroupLoot())
-                        {
-                            r->playerVote[member->GetGUID()] = PASS;
-                            r->totalPass++;
-                            // can't broadcast the pass now. need to wait until all rolling players are known.
-                        }
-                        else
-                            r->playerVote[member->GetGUID()] = NOT_EMITED_YET;
-                    }
-                }
-            }
+						if (member->GetPassOnGroupLoot())
+						{
+							r->playerVote[member->GetGUID()] = PASS;
+							r->totalPass++;
+							// can't broadcast the pass now. need to wait until all rolling players are known.
+						}
+						else
+							r->playerVote[member->GetGUID()] = NOT_EMITED_YET;
+					}
+				}
+			}
 
-            if (r->totalPlayersRolling > 0)
-            {
-                r->setLoot(loot);
-                r->itemSlot = itemSlot;
-                if (item->DisenchantID && m_maxEnchantingLevel >= item->RequiredDisenchantSkill)
-                    r->rollVoteMask |= ROLL_FLAG_TYPE_DISENCHANT;
+			if (r->totalPlayersRolling > 0)
+			{
+				r->setLoot(loot);
+				r->itemSlot = itemSlot;
+				if (item->DisenchantID && m_maxEnchantingLevel >= item->RequiredDisenchantSkill)
+					r->rollVoteMask |= ROLL_FLAG_TYPE_DISENCHANT;
 
-                loot->items[itemSlot].is_blocked = true;
+				loot->items[itemSlot].is_blocked = true;
 
-                // If there is any "auto pass", broadcast the pass now.
-                if (r->totalPass)
-                {
-                    for (Roll::PlayerVote::const_iterator itr=r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
-                    {
-                        Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
-                        if (!p || !p->GetSession())
-                            continue;
+				// If there is any "auto pass", broadcast the pass now.
+				if (r->totalPass)
+				{
+					for (Roll::PlayerVote::const_iterator itr = r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
+					{
+						Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
+						if (!p || !p->GetSession())
+							continue;
 
-                        if (itr->second == PASS)
-                            SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
-                    }
-                }
+						if (itr->second == PASS)
+							SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
+					}
+				}
 
-                SendLootStartRoll(60000, pLootedObject->GetMapId(), *r);
+				SendLootStartRoll(60000, pLootedObject->GetMapId(), *r);
 
-                RollId.push_back(r);
+				RollId.push_back(r);
 
-                if (Creature* creature = pLootedObject->ToCreature())
-                {
-                    creature->m_groupLootTimer = 60000;
-                    creature->lootingGroupLowGUID = GetGUID();
-                }
-                else if (GameObject* go = pLootedObject->ToGameObject())
-                {
-                    go->m_groupLootTimer = 60000;
-                    go->lootingGroupLowGUID = GetGUID();
-                }
-            }
-            else
-                delete r;
-        }
-        else
-            i->is_underthreshold = true;
-    }
+				if (Creature* creature = pLootedObject->ToCreature())
+				{
+					creature->m_groupLootTimer = 60000;
+					creature->lootingGroupLowGUID = GetGUID();
+				}
+				else if (GameObject* go = pLootedObject->ToGameObject())
+				{
+					go->m_groupLootTimer = 60000;
+					go->lootingGroupLowGUID = GetGUID();
+				}
+			}
+			else
+				delete r;
+		}
+		else
+			i->is_underthreshold = true;
+	}
 
-    for (i = loot->quest_items.begin(); i != loot->quest_items.end(); ++i, ++itemSlot)
-    {
-        if (!i->follow_loot_rules)
-            continue;
+	for (i = loot->quest_items.begin(); i != loot->quest_items.end(); ++i, ++itemSlot)
+	{
+		if (!i->follow_loot_rules)
+			continue;
 
-        item = sObjectMgr->GetItemTemplate(i->itemid);
-        if (!item)
-        {
-            //TC_LOG_DEBUG("misc", "Group::GroupLoot: missing item prototype for item with id: %d", i->itemid);
-            continue;
-        }
+		item = sObjectMgr->GetItemTemplate(i->itemid);
+		if (!item)
+		{
+			//TC_LOG_DEBUG("misc", "Group::GroupLoot: missing item prototype for item with id: %d", i->itemid);
+			continue;
+		}
 
-        ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
-        Roll* r = new Roll(newitemGUID, *i);
+		ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
+		Roll* r = new Roll(newitemGUID, *i);
 
-        //a vector is filled with only near party members
-        for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
-        {
-            Player* member = itr->GetSource();
-            if (!member || !member->GetSession())
-                continue;
+		//a vector is filled with only near party members
+		for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
+		{
+			Player* member = itr->GetSource();
+			if (!member || !member->GetSession())
+				continue;
 
-            if (i->AllowedForPlayer(member))
-            {
-                if (member->IsAtGroupRewardDistance(pLootedObject))
-                {
-                    r->totalPlayersRolling++;
-                    r->playerVote[member->GetGUID()] = NOT_EMITED_YET;
-                }
-            }
-        }
+			if (i->AllowedForPlayer(member))
+			{
+				if (member->IsAtGroupRewardDistance(pLootedObject))
+				{
+					r->totalPlayersRolling++;
+					r->playerVote[member->GetGUID()] = NOT_EMITED_YET;
+				}
+			}
+		}
 
-        if (r->totalPlayersRolling > 0)
-        {
-            r->setLoot(loot);
-            r->itemSlot = itemSlot;
+		if (r->totalPlayersRolling > 0)
+		{
+			r->setLoot(loot);
+			r->itemSlot = itemSlot;
 
-            loot->quest_items[itemSlot - loot->items.size()].is_blocked = true;
+			loot->quest_items[itemSlot - loot->items.size()].is_blocked = true;
 
-            SendLootStartRoll(60000, pLootedObject->GetMapId(), *r);
+			SendLootStartRoll(60000, pLootedObject->GetMapId(), *r);
 
-            RollId.push_back(r);
+			RollId.push_back(r);
 
-            if (Creature* creature = pLootedObject->ToCreature())
-            {
-                creature->m_groupLootTimer = 60000;
-                creature->lootingGroupLowGUID = GetGUID();
-            }
-            else if (GameObject* go = pLootedObject->ToGameObject())
-            {
-                go->m_groupLootTimer = 60000;
-                go->lootingGroupLowGUID = GetGUID();
-            }
-        }
-        else
-            delete r;
-    }
+			if (Creature* creature = pLootedObject->ToCreature())
+			{
+				creature->m_groupLootTimer = 60000;
+				creature->lootingGroupLowGUID = GetGUID();
+			}
+			else if (GameObject* go = pLootedObject->ToGameObject())
+			{
+				go->m_groupLootTimer = 60000;
+				go->lootingGroupLowGUID = GetGUID();
+			}
+		}
+		else
+			delete r;
+	}
 }
 
 void Group::NeedBeforeGreed(Loot* loot, WorldObject* lootedObject)
 {
-    ItemTemplate const* item;
-    uint8 itemSlot = 0;
-    for (std::vector<LootItem>::iterator i = loot->items.begin(); i != loot->items.end(); ++i, ++itemSlot)
-    {
-        if (i->freeforall)
-            continue;
+	ItemTemplate const* item;
+	uint8 itemSlot = 0;
+	for (std::vector<LootItem>::iterator i = loot->items.begin(); i != loot->items.end(); ++i, ++itemSlot)
+	{
+		if (i->freeforall)
+			continue;
 
-        item = sObjectMgr->GetItemTemplate(i->itemid);
+		item = sObjectMgr->GetItemTemplate(i->itemid);
 
-        //roll for over-threshold item if it's one-player loot
-        if (item->GetQuality() >= uint32(m_lootThreshold))
-        {
-            ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
-            Roll* r = new Roll(newitemGUID, *i);
+		//roll for over-threshold item if it's one-player loot
+		if (item->GetQuality() >= uint32(m_lootThreshold))
+		{
+			ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
+			Roll* r = new Roll(newitemGUID, *i);
 
-            for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
-            {
-                Player* playerToRoll = itr->GetSource();
-                if (!playerToRoll || !playerToRoll->GetSession())
-                    continue;
+			for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* playerToRoll = itr->GetSource();
+				if (!playerToRoll || !playerToRoll->GetSession())
+					continue;
 
-                bool allowedForPlayer = i->AllowedForPlayer(playerToRoll);
-                if (allowedForPlayer && playerToRoll->IsAtGroupRewardDistance(lootedObject))
-                {
-                    r->totalPlayersRolling++;
-                    if (playerToRoll->GetPassOnGroupLoot())
-                    {
-                        r->playerVote[playerToRoll->GetGUID()] = PASS;
-                        r->totalPass++;
-                        // can't broadcast the pass now. need to wait until all rolling players are known.
-                    }
-                    else
-                        r->playerVote[playerToRoll->GetGUID()] = NOT_EMITED_YET;
-                }
-            }
+				bool allowedForPlayer = i->AllowedForPlayer(playerToRoll);
+				if (allowedForPlayer && playerToRoll->IsAtGroupRewardDistance(lootedObject))
+				{
+					r->totalPlayersRolling++;
+					if (playerToRoll->GetPassOnGroupLoot())
+					{
+						r->playerVote[playerToRoll->GetGUID()] = PASS;
+						r->totalPass++;
+						// can't broadcast the pass now. need to wait until all rolling players are known.
+					}
+					else
+						r->playerVote[playerToRoll->GetGUID()] = NOT_EMITED_YET;
+				}
+			}
 
-            if (r->totalPlayersRolling > 0)
-            {
-                r->setLoot(loot);
-                r->itemSlot = itemSlot;
-                if (item->DisenchantID && m_maxEnchantingLevel >= item->RequiredDisenchantSkill)
-                    r->rollVoteMask |= ROLL_FLAG_TYPE_DISENCHANT;
+			if (r->totalPlayersRolling > 0)
+			{
+				r->setLoot(loot);
+				r->itemSlot = itemSlot;
+				if (item->DisenchantID && m_maxEnchantingLevel >= item->RequiredDisenchantSkill)
+					r->rollVoteMask |= ROLL_FLAG_TYPE_DISENCHANT;
 
-                if (item->GetFlags2() & ITEM_FLAG2_NEED_ROLL_DISABLED)
-                    r->rollVoteMask &= ~ROLL_FLAG_TYPE_NEED;
+				if (item->GetFlags2() & ITEM_FLAG2_NEED_ROLL_DISABLED)
+					r->rollVoteMask &= ~ROLL_FLAG_TYPE_NEED;
 
-                loot->items[itemSlot].is_blocked = true;
+				loot->items[itemSlot].is_blocked = true;
 
-                //Broadcast Pass and Send Rollstart
-                for (Roll::PlayerVote::const_iterator itr = r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
-                {
-                    Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
-                    if (!p || !p->GetSession())
-                        continue;
+				//Broadcast Pass and Send Rollstart
+				for (Roll::PlayerVote::const_iterator itr = r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
+				{
+					Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
+					if (!p || !p->GetSession())
+						continue;
 
-                    if (itr->second == PASS)
-                        SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
-                    else
-                        SendLootStartRollToPlayer(60000, lootedObject->GetMapId(), p, p->CanRollForItemInLFG(item, lootedObject) == EQUIP_ERR_OK, *r);
-                }
+					if (itr->second == PASS)
+						SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
+					else
+						SendLootStartRollToPlayer(60000, lootedObject->GetMapId(), p, p->CanRollForItemInLFG(item, lootedObject) == EQUIP_ERR_OK, *r);
+				}
 
-                RollId.push_back(r);
+				RollId.push_back(r);
 
-                if (Creature* creature = lootedObject->ToCreature())
-                {
-                    creature->m_groupLootTimer = 60000;
-                    creature->lootingGroupLowGUID = GetGUID();
-                }
-                else if (GameObject* go = lootedObject->ToGameObject())
-                {
-                    go->m_groupLootTimer = 60000;
-                    go->lootingGroupLowGUID = GetGUID();
-                }
-            }
-            else
-                delete r;
-        }
-        else
-            i->is_underthreshold = true;
-    }
+				if (Creature* creature = lootedObject->ToCreature())
+				{
+					creature->m_groupLootTimer = 60000;
+					creature->lootingGroupLowGUID = GetGUID();
+				}
+				else if (GameObject* go = lootedObject->ToGameObject())
+				{
+					go->m_groupLootTimer = 60000;
+					go->lootingGroupLowGUID = GetGUID();
+				}
+			}
+			else
+				delete r;
+		}
+		else
+			i->is_underthreshold = true;
+	}
 
-    for (std::vector<LootItem>::iterator i = loot->quest_items.begin(); i != loot->quest_items.end(); ++i, ++itemSlot)
-    {
-        if (!i->follow_loot_rules)
-            continue;
+	for (std::vector<LootItem>::iterator i = loot->quest_items.begin(); i != loot->quest_items.end(); ++i, ++itemSlot)
+	{
+		if (!i->follow_loot_rules)
+			continue;
 
-        item = sObjectMgr->GetItemTemplate(i->itemid);
-        ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
-        Roll* r = new Roll(newitemGUID, *i);
+		item = sObjectMgr->GetItemTemplate(i->itemid);
+		ObjectGuid newitemGUID = ObjectGuid::Create<HighGuid::Item>(sObjectMgr->GetGenerator<HighGuid::Item>().Generate());
+		Roll* r = new Roll(newitemGUID, *i);
 
-        for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
-        {
-            Player* playerToRoll = itr->GetSource();
-            if (!playerToRoll || !playerToRoll->GetSession())
-                continue;
+		for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
+		{
+			Player* playerToRoll = itr->GetSource();
+			if (!playerToRoll || !playerToRoll->GetSession())
+				continue;
 
-            bool allowedForPlayer = i->AllowedForPlayer(playerToRoll);
-            if (allowedForPlayer && playerToRoll->IsAtGroupRewardDistance(lootedObject))
-            {
-                r->totalPlayersRolling++;
-                r->playerVote[playerToRoll->GetGUID()] = NOT_EMITED_YET;
-            }
-        }
+			bool allowedForPlayer = i->AllowedForPlayer(playerToRoll);
+			if (allowedForPlayer && playerToRoll->IsAtGroupRewardDistance(lootedObject))
+			{
+				r->totalPlayersRolling++;
+				r->playerVote[playerToRoll->GetGUID()] = NOT_EMITED_YET;
+			}
+		}
 
-        if (r->totalPlayersRolling > 0)
-        {
-            r->setLoot(loot);
-            r->itemSlot = itemSlot;
+		if (r->totalPlayersRolling > 0)
+		{
+			r->setLoot(loot);
+			r->itemSlot = itemSlot;
 
-            loot->quest_items[itemSlot - loot->items.size()].is_blocked = true;
+			loot->quest_items[itemSlot - loot->items.size()].is_blocked = true;
 
-            //Broadcast Pass and Send Rollstart
-            for (Roll::PlayerVote::const_iterator itr = r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
-            {
-                Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
-                if (!p || !p->GetSession())
-                    continue;
+			//Broadcast Pass and Send Rollstart
+			for (Roll::PlayerVote::const_iterator itr = r->playerVote.begin(); itr != r->playerVote.end(); ++itr)
+			{
+				Player* p = ObjectAccessor::FindConnectedPlayer(itr->first);
+				if (!p || !p->GetSession())
+					continue;
 
-                if (itr->second == PASS)
-                    SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
-                else
-                    SendLootStartRollToPlayer(60000, lootedObject->GetMapId(), p, p->CanRollForItemInLFG(item, lootedObject) == EQUIP_ERR_OK, *r);
-            }
+				if (itr->second == PASS)
+					SendLootRoll(newitemGUID, p->GetGUID(), 128, ROLL_PASS, *r);
+				else
+					SendLootStartRollToPlayer(60000, lootedObject->GetMapId(), p, p->CanRollForItemInLFG(item, lootedObject) == EQUIP_ERR_OK, *r);
+			}
 
-            RollId.push_back(r);
+			RollId.push_back(r);
 
-            if (Creature* creature = lootedObject->ToCreature())
-            {
-                creature->m_groupLootTimer = 60000;
-                creature->lootingGroupLowGUID = GetGUID();
-            }
-            else if (GameObject* go = lootedObject->ToGameObject())
-            {
-                go->m_groupLootTimer = 60000;
-                go->lootingGroupLowGUID = GetGUID();
-            }
-        }
-        else
-            delete r;
-    }
+			if (Creature* creature = lootedObject->ToCreature())
+			{
+				creature->m_groupLootTimer = 60000;
+				creature->lootingGroupLowGUID = GetGUID();
+			}
+			else if (GameObject* go = lootedObject->ToGameObject())
+			{
+				go->m_groupLootTimer = 60000;
+				go->lootingGroupLowGUID = GetGUID();
+			}
+		}
+		else
+			delete r;
+	}
 }
 
 void Group::MasterLoot(Loot* loot, WorldObject* pLootedObject)
@@ -1274,21 +1274,21 @@ void Group::MasterLoot(Loot* loot, WorldObject* pLootedObject)
 		if (!looter->IsInWorld())
 			continue;
 
-        if (looter->IsAtGroupRewardDistance(pLootedObject))
-        {
-            data << looter->GetGUID();
-            ++real_count;
-        }
-    }
+		if (looter->IsAtGroupRewardDistance(pLootedObject))
+		{
+			data << looter->GetGUID();
+			++real_count;
+		}
+	}
 
 	data.put<uint8>(0, real_count);
 
-    for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
-    {
-        Player* looter = itr->GetSource();
-        if (looter->IsAtGroupRewardDistance(pLootedObject))
-            looter->GetSession()->SendPacket(&data);
-    }
+	for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
+	{
+		Player* looter = itr->GetSource();
+		if (looter->IsAtGroupRewardDistance(pLootedObject))
+			looter->GetSession()->SendPacket(&data);
+	}
 }
 
 void Group::CountRollVote(ObjectGuid playerGUID, ObjectGuid Guid, uint8 Choice)
@@ -1559,12 +1559,9 @@ void Group::SendUpdateToPlayer(ObjectGuid playerGUID, MemberSlot* slot)
 
 	WorldPackets::Party::PartyUpdate partyUpdate;
 
-    partyUpdate.PartyType = m_groupType;
-    partyUpdate.PartyIndex = 0;
-    partyUpdate.PartyFlags = uint8(IsCreated());
-
-    partyUpdate.PartyGUID = m_guid;
-    partyUpdate.LeaderGUID = m_leaderGuid;
+	partyUpdate.PartyType = m_groupType;
+	partyUpdate.PartyIndex = 0;
+	partyUpdate.PartyFlags = uint8(IsCreated());
 
 	partyUpdate.PartyGUID = m_guid;
 	partyUpdate.LeaderGUID = m_leaderGuid;
@@ -1825,146 +1822,146 @@ void Group::SwapMembersGroups(ObjectGuid firstGuid, ObjectGuid secondGuid)
 //      if not, he loses his turn.
 void Group::UpdateLooterGuid(WorldObject* pLootedObject, bool ifneed)
 {
-    // round robin style looting applies for all low
-    // quality items in each loot method except free for all
-    if (GetLootMethod() == FREE_FOR_ALL)
-        return;
+	// round robin style looting applies for all low
+	// quality items in each loot method except free for all
+	if (GetLootMethod() == FREE_FOR_ALL)
+		return;
 
-    ObjectGuid oldLooterGUID = GetLooterGuid();
-    member_citerator guid_itr = _getMemberCSlot(oldLooterGUID);
-    if (guid_itr != m_memberSlots.end())
-    {
-        if (ifneed)
-        {
-            // not update if only update if need and ok
-            Player* looter = ObjectAccessor::FindPlayer(guid_itr->guid);
-            if (looter && looter->IsAtGroupRewardDistance(pLootedObject))
-                return;
-        }
-        ++guid_itr;
-    }
+	ObjectGuid oldLooterGUID = GetLooterGuid();
+	member_citerator guid_itr = _getMemberCSlot(oldLooterGUID);
+	if (guid_itr != m_memberSlots.end())
+	{
+		if (ifneed)
+		{
+			// not update if only update if need and ok
+			Player* looter = ObjectAccessor::FindPlayer(guid_itr->guid);
+			if (looter && looter->IsAtGroupRewardDistance(pLootedObject))
+				return;
+		}
+		++guid_itr;
+	}
 
-    // search next after current
-    Player* pNewLooter = NULL;
-    for (member_citerator itr = guid_itr; itr != m_memberSlots.end(); ++itr)
-    {
-        if (Player* player = ObjectAccessor::FindPlayer(itr->guid))
-            if (player->IsAtGroupRewardDistance(pLootedObject))
-            {
-                pNewLooter = player;
-                break;
-            }
-    }
+	// search next after current
+	Player* pNewLooter = NULL;
+	for (member_citerator itr = guid_itr; itr != m_memberSlots.end(); ++itr)
+	{
+		if (Player* player = ObjectAccessor::FindPlayer(itr->guid))
+			if (player->IsAtGroupRewardDistance(pLootedObject))
+			{
+				pNewLooter = player;
+				break;
+			}
+	}
 
-    if (!pNewLooter)
-    {
-        // search from start
-        for (member_citerator itr = m_memberSlots.begin(); itr != guid_itr; ++itr)
-        {
-            if (Player* player = ObjectAccessor::FindPlayer(itr->guid))
-                if (player->IsAtGroupRewardDistance(pLootedObject))
-                {
-                    pNewLooter = player;
-                    break;
-                }
-        }
-    }
+	if (!pNewLooter)
+	{
+		// search from start
+		for (member_citerator itr = m_memberSlots.begin(); itr != guid_itr; ++itr)
+		{
+			if (Player* player = ObjectAccessor::FindPlayer(itr->guid))
+				if (player->IsAtGroupRewardDistance(pLootedObject))
+				{
+					pNewLooter = player;
+					break;
+				}
+		}
+	}
 
-    if (pNewLooter)
-    {
-        if (oldLooterGUID != pNewLooter->GetGUID())
-        {
-            SetLooterGuid(pNewLooter->GetGUID());
-            SendUpdate();
-        }
-    }
-    else
-    {
-        SetLooterGuid(ObjectGuid::Empty);
-        SendUpdate();
-    }
+	if (pNewLooter)
+	{
+		if (oldLooterGUID != pNewLooter->GetGUID())
+		{
+			SetLooterGuid(pNewLooter->GetGUID());
+			SendUpdate();
+		}
+	}
+	else
+	{
+		SetLooterGuid(ObjectGuid::Empty);
+		SendUpdate();
+	}
 }
 
 GroupJoinBattlegroundResult Group::CanJoinBattlegroundQueue(Battleground const* bgOrTemplate, BattlegroundQueueTypeId bgQueueTypeId, uint32 MinPlayerCount, uint32 /*MaxPlayerCount*/, bool isRated, uint32 arenaSlot, ObjectGuid& errorGuid)
 {
-    // check if this group is LFG group
-    if (isLFGGroup())
-        return ERR_LFG_CANT_USE_BATTLEGROUND;
+	// check if this group is LFG group
+	if (isLFGGroup())
+		return ERR_LFG_CANT_USE_BATTLEGROUND;
 
-    BattlemasterListEntry const* bgEntry = sBattlemasterListStore.LookupEntry(bgOrTemplate->GetTypeID());
-    if (!bgEntry)
-        return ERR_BATTLEGROUND_JOIN_FAILED;            // shouldn't happen
+	BattlemasterListEntry const* bgEntry = sBattlemasterListStore.LookupEntry(bgOrTemplate->GetTypeID());
+	if (!bgEntry)
+		return ERR_BATTLEGROUND_JOIN_FAILED;            // shouldn't happen
 
-    // check for min / max count
-    uint32 memberscount = GetMembersCount();
+	// check for min / max count
+	uint32 memberscount = GetMembersCount();
 
-    if (memberscount > bgEntry->MaxGroupSize)                // no MinPlayerCount for battlegrounds
-        return ERR_BATTLEGROUND_NONE;                        // ERR_GROUP_JOIN_BATTLEGROUND_TOO_MANY handled on client side
+	if (memberscount > bgEntry->MaxGroupSize)                // no MinPlayerCount for battlegrounds
+		return ERR_BATTLEGROUND_NONE;                        // ERR_GROUP_JOIN_BATTLEGROUND_TOO_MANY handled on client side
 
-    // get a player as reference, to compare other players' stats to (arena team id, queue id based on level, etc.)
-    Player* reference = ASSERT_NOTNULL(GetFirstMember())->GetSource();
-    // no reference found, can't join this way
-    if (!reference)
-        return ERR_BATTLEGROUND_JOIN_FAILED;
+	// get a player as reference, to compare other players' stats to (arena team id, queue id based on level, etc.)
+	Player* reference = ASSERT_NOTNULL(GetFirstMember())->GetSource();
+	// no reference found, can't join this way
+	if (!reference)
+		return ERR_BATTLEGROUND_JOIN_FAILED;
 
-    PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bgOrTemplate->GetMapId(), reference->getLevel());
-    if (!bracketEntry)
-        return ERR_BATTLEGROUND_JOIN_FAILED;
+	PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bgOrTemplate->GetMapId(), reference->getLevel());
+	if (!bracketEntry)
+		return ERR_BATTLEGROUND_JOIN_FAILED;
 
-    uint32 arenaTeamId = reference->GetArenaTeamId(arenaSlot);
-    uint32 team = reference->GetTeam();
+	uint32 arenaTeamId = reference->GetArenaTeamId(arenaSlot);
+	uint32 team = reference->GetTeam();
 
-    BattlegroundQueueTypeId bgQueueTypeIdRandom = BattlegroundMgr::BGQueueTypeId(BATTLEGROUND_RB, 0);
+	BattlegroundQueueTypeId bgQueueTypeIdRandom = BattlegroundMgr::BGQueueTypeId(BATTLEGROUND_RB, 0);
 
-    // check every member of the group to be able to join
-    memberscount = 0;
-    for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next(), ++memberscount)
-    {
-        Player* member = itr->GetSource();
-        // offline member? don't let join
-        if (!member)
-            return ERR_BATTLEGROUND_JOIN_FAILED;
-        // don't allow cross-faction join as group
-        if (member->GetTeam() != team)
-        {
-            errorGuid = member->GetGUID();
-            return ERR_BATTLEGROUND_JOIN_TIMED_OUT;
-        }
-        // not in the same battleground level braket, don't let join
-        PvPDifficultyEntry const* memberBracketEntry = GetBattlegroundBracketByLevel(bracketEntry->MapID, member->getLevel());
-        if (memberBracketEntry != bracketEntry)
-            return ERR_BATTLEGROUND_JOIN_RANGE_INDEX;
-        // don't let join rated matches if the arena team id doesn't match
-        if (isRated && member->GetArenaTeamId(arenaSlot) != arenaTeamId)
-            return ERR_BATTLEGROUND_JOIN_FAILED;
-        // don't let join if someone from the group is already in that bg queue
-        if (member->InBattlegroundQueueForBattlegroundQueueType(bgQueueTypeId))
-            return ERR_BATTLEGROUND_JOIN_FAILED;            // not blizz-like
-        // don't let join if someone from the group is in bg queue random
-        if (member->InBattlegroundQueueForBattlegroundQueueType(bgQueueTypeIdRandom))
-            return ERR_IN_RANDOM_BG;
-        // don't let join to bg queue random if someone from the group is already in bg queue
-        if (bgOrTemplate->GetTypeID() == BATTLEGROUND_RB && member->InBattlegroundQueue())
-            return ERR_IN_NON_RANDOM_BG;
-        // check for deserter debuff in case not arena queue
-        if (bgOrTemplate->GetTypeID() != BATTLEGROUND_AA && !member->CanJoinToBattleground(bgOrTemplate))
-            return ERR_GROUP_JOIN_BATTLEGROUND_DESERTERS;
-        // check if member can join any more battleground queues
-        if (!member->HasFreeBattlegroundQueueId())
-            return ERR_BATTLEGROUND_TOO_MANY_QUEUES;        // not blizz-like
-        // check if someone in party is using dungeon system
-        if (member->isUsingLfg())
-            return ERR_LFG_CANT_USE_BATTLEGROUND;
-        // check Freeze debuff
-        if (member->HasAura(9454))
-            return ERR_BATTLEGROUND_JOIN_FAILED;
-    }
+	// check every member of the group to be able to join
+	memberscount = 0;
+	for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next(), ++memberscount)
+	{
+		Player* member = itr->GetSource();
+		// offline member? don't let join
+		if (!member)
+			return ERR_BATTLEGROUND_JOIN_FAILED;
+		// don't allow cross-faction join as group
+		if (member->GetTeam() != team)
+		{
+			errorGuid = member->GetGUID();
+			return ERR_BATTLEGROUND_JOIN_TIMED_OUT;
+		}
+		// not in the same battleground level braket, don't let join
+		PvPDifficultyEntry const* memberBracketEntry = GetBattlegroundBracketByLevel(bracketEntry->MapID, member->getLevel());
+		if (memberBracketEntry != bracketEntry)
+			return ERR_BATTLEGROUND_JOIN_RANGE_INDEX;
+		// don't let join rated matches if the arena team id doesn't match
+		if (isRated && member->GetArenaTeamId(arenaSlot) != arenaTeamId)
+			return ERR_BATTLEGROUND_JOIN_FAILED;
+		// don't let join if someone from the group is already in that bg queue
+		if (member->InBattlegroundQueueForBattlegroundQueueType(bgQueueTypeId))
+			return ERR_BATTLEGROUND_JOIN_FAILED;            // not blizz-like
+		// don't let join if someone from the group is in bg queue random
+		if (member->InBattlegroundQueueForBattlegroundQueueType(bgQueueTypeIdRandom))
+			return ERR_IN_RANDOM_BG;
+		// don't let join to bg queue random if someone from the group is already in bg queue
+		if (bgOrTemplate->GetTypeID() == BATTLEGROUND_RB && member->InBattlegroundQueue())
+			return ERR_IN_NON_RANDOM_BG;
+		// check for deserter debuff in case not arena queue
+		if (bgOrTemplate->GetTypeID() != BATTLEGROUND_AA && !member->CanJoinToBattleground(bgOrTemplate))
+			return ERR_GROUP_JOIN_BATTLEGROUND_DESERTERS;
+		// check if member can join any more battleground queues
+		if (!member->HasFreeBattlegroundQueueId())
+			return ERR_BATTLEGROUND_TOO_MANY_QUEUES;        // not blizz-like
+		// check if someone in party is using dungeon system
+		if (member->isUsingLfg())
+			return ERR_LFG_CANT_USE_BATTLEGROUND;
+		// check Freeze debuff
+		if (member->HasAura(9454))
+			return ERR_BATTLEGROUND_JOIN_FAILED;
+	}
 
-    // only check for MinPlayerCount since MinPlayerCount == MaxPlayerCount for arenas...
-    if (bgOrTemplate->isArena() && memberscount != MinPlayerCount)
-        return ERR_ARENA_TEAM_PARTY_SIZE;
+	// only check for MinPlayerCount since MinPlayerCount == MaxPlayerCount for arenas...
+	if (bgOrTemplate->isArena() && memberscount != MinPlayerCount)
+		return ERR_ARENA_TEAM_PARTY_SIZE;
 
-    return ERR_BATTLEGROUND_NONE;
+	return ERR_BATTLEGROUND_NONE;
 }
 
 //===================================================
