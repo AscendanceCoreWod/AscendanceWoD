@@ -76,10 +76,10 @@ WorldPacket const* WorldPackets::Party::PartyInvite::Write()
 	_worldPacket.WriteBit(IsLocal);
 	_worldPacket.WriteBit(Unk2);
 
-    _worldPacket.WriteBits(InviterRealmNameActual.size(), 8);
-    _worldPacket.WriteBits(InviterRealmNameNormalized.size(), 8);
-    _worldPacket.WriteString(InviterRealmNameActual);
-    _worldPacket.WriteString(InviterRealmNameNormalized);
+	_worldPacket.WriteBits(InviterRealmNameActual.size(), 8);
+	_worldPacket.WriteBits(InviterRealmNameNormalized.size(), 8);
+	_worldPacket.WriteString(InviterRealmNameActual);
+	_worldPacket.WriteString(InviterRealmNameNormalized);
 
 	_worldPacket << ProposedRoles;
 	_worldPacket << int32(LfgSlots.size());
@@ -663,15 +663,8 @@ ByteBuffer& operator<<(ByteBuffer& data, std::vector<WorldPackets::Party::GroupP
 
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Party::GroupPlayerInfos const& playerInfos)
 {
-    data.WriteBits(playerInfos.Name.size(), 6);
-    data.FlushBits();
-
-    data << playerInfos.GUID;
-    data << playerInfos.Status;
-    data << playerInfos.Subgroup;
-    data << playerInfos.Flags;
-    data << playerInfos.RolesAssigned;
-    data << playerInfos.Class;
+	data.WriteBits(playerInfos.Name.size(), 6);
+	data.FlushBits();
 
 	data << playerInfos.GUID;
 	data << playerInfos.Status;
