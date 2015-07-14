@@ -663,8 +663,15 @@ ByteBuffer& operator<<(ByteBuffer& data, std::vector<WorldPackets::Party::GroupP
 
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Party::GroupPlayerInfos const& playerInfos)
 {
-	data.WriteBits(playerInfos.Name.size(), 6);
-	data.FlushBits();
+    data.WriteBits(playerInfos.Name.size(), 6);
+    data.FlushBits();
+
+    data << playerInfos.GUID;
+    data << playerInfos.Status;
+    data << playerInfos.Subgroup;
+    data << playerInfos.Flags;
+    data << playerInfos.RolesAssigned;
+    data << playerInfos.Class;
 
 	data << playerInfos.GUID;
 	data << playerInfos.Status;

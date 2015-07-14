@@ -190,18 +190,18 @@ enum OpcodeClient : uint32
     CMSG_CHAT_JOIN_CHANNEL                            = 0x0829,
     CMSG_CHAT_LEAVE_CHANNEL                           = 0x03EE,
     CMSG_CHAT_MESSAGE_AFK                             = 0x05A9,
-    CMSG_CHAT_MESSAGE_CHANNEL                         = 0x09FE,
-    CMSG_CHAT_MESSAGE_DND                             = 0x01BA,
-    CMSG_CHAT_MESSAGE_EMOTE                           = 0x093D,
-    CMSG_CHAT_MESSAGE_GUILD                           = 0x0AE9,
-    CMSG_CHAT_MESSAGE_INSTANCE_CHAT                   = 0x07BE,
-    CMSG_CHAT_MESSAGE_OFFICER                         = 0x046E,
-    CMSG_CHAT_MESSAGE_PARTY                           = 0x012E,
-    CMSG_CHAT_MESSAGE_RAID                            = 0x02A9,
-    CMSG_CHAT_MESSAGE_RAID_WARNING                    = 0x06FA,
-    CMSG_CHAT_MESSAGE_SAY                             = 0x0BB9,
-    CMSG_CHAT_MESSAGE_WHISPER                         = 0x0479,
-    CMSG_CHAT_MESSAGE_YELL                            = 0x007D,
+    CMSG_CHAT_MESSAGE_CHANNEL                         = 0x0479,
+    CMSG_CHAT_MESSAGE_DND                             = 0x093D,
+    CMSG_CHAT_MESSAGE_EMOTE                           = 0x01BA,
+    CMSG_CHAT_MESSAGE_GUILD                           = 0x06FA,
+    CMSG_CHAT_MESSAGE_INSTANCE_CHAT                   = 0x012E,
+    CMSG_CHAT_MESSAGE_OFFICER                         = 0x02A9,
+    CMSG_CHAT_MESSAGE_PARTY                           = 0x007D,
+    CMSG_CHAT_MESSAGE_RAID                            = 0x0BB9,
+    CMSG_CHAT_MESSAGE_RAID_WARNING                    = 0x07BE,
+    CMSG_CHAT_MESSAGE_SAY                             = 0x0AE9,
+    CMSG_CHAT_MESSAGE_WHISPER                         = 0x09FE,
+    CMSG_CHAT_MESSAGE_YELL                            = 0x046E,
     CMSG_CHAT_REGISTER_ADDON_PREFIXES                 = 0x0569,
     CMSG_CHAT_REPORT_FILTERED                         = 0x092D,
     CMSG_CHAT_REPORT_IGNORED                          = 0x097D,
@@ -716,15 +716,7 @@ enum OpcodeClient : uint32
     CMSG_WHO_IS                                       = 0x0126,
     CMSG_WORLD_PORT_RESPONSE                          = 0x04B6,
     CMSG_WORLD_TELEPORT                               = 0x0A35,
-    CMSG_WRAP_ITEM                                    = 0x0363,
-
-    // Deleted opcodes, remove as soon as their uses are removed
-    CMSG_GM_SURVEY_SUBMIT                             = 0xBADD,
-    CMSG_GM_TICKET_CREATE                             = 0xBADD,
-    CMSG_GM_TICKET_DELETE_TICKET                      = 0xBADD,
-    CMSG_GM_TICKET_GET_TICKET                         = 0xBADD,
-    CMSG_GM_TICKET_RESPONSE_RESOLVE                   = 0xBADD,
-    CMSG_GM_TICKET_UPDATE_TEXT                        = 0xBADD
+    CMSG_WRAP_ITEM                                    = 0x0363
 };
 
 enum OpcodeServer : uint32
@@ -732,6 +724,7 @@ enum OpcodeServer : uint32
     SMSG_ABORT_NEW_WORLD                              = 0x0895,
     SMSG_ACCOUNT_CRITERIA_UPDATE                      = 0x09C5,
     SMSG_ACCOUNT_DATA_TIMES                           = 0x000C,
+    SMSG_ACCOUNT_HEIRLOOM_UPDATE                      = 0x0521,
     SMSG_ACCOUNT_MOUNT_UPDATE                         = 0x085C,
     SMSG_ACCOUNT_TOYS_UPDATE                          = 0x0ACF,
     SMSG_ACHIEVEMENT_DELETED                          = 0x0093,
@@ -751,7 +744,7 @@ enum OpcodeServer : uint32
     SMSG_ALL_GUILD_ACHIEVEMENTS                       = 0x08E3,
     SMSG_ARCHAEOLOGY_SURVERY_CAST                     = 0x0825,
     SMSG_AREA_SPIRIT_HEALER_TIME                      = 0x03D5,
-    SMSG_AREA_TRIGGER_DENIED                          = 0x0922,
+    SMSG_AREA_TRIGGER_DENIED                          = 0x0436,
     SMSG_AREA_TRIGGER_NO_CORPSE                       = 0x0E90,
     SMSG_AREA_TRIGGER_RE_PATH                         = 0x05A5,
     SMSG_AREA_TRIGGER_RE_SHAPE                        = 0x0C13,
@@ -1023,6 +1016,7 @@ enum OpcodeServer : uint32
     SMSG_GARRISON_LIST_MISSIONS_CHEAT_RESULT          = 0x0661,
     SMSG_GARRISON_MISSION_AREA_BONUS_ADDED            = 0x04E1,
     SMSG_GARRISON_MISSION_BONUS_ROLL_RESULT           = 0x01F2,
+    SMSG_GARRISON_MISSION_UPDATE_CAN_START            = 0x0BE2,
     SMSG_GARRISON_NUM_FOLLOWER_ACTIVATIONS_REMAINING  = 0x0862,
     SMSG_GARRISON_OPEN_ARCHITECT                      = 0x0A65,
     SMSG_GARRISON_OPEN_MISSION_NPC                    = 0x0566,
@@ -1646,13 +1640,7 @@ enum OpcodeServer : uint32
 
     // Deleted opcodes, here only to allow compile
     SMSG_ARENA_TEAM_STATS                             = 0xBADD,
-    SMSG_BUY_BANK_SLOT_RESULT                         = 0xBADD,
-    SMSG_GM_TICKET_GET_TICKET_RESPONSE                = 0xBADD,
-    SMSG_GM_TICKET_RESOLVE_RESPONSE                   = 0xBADD,
-    SMSG_GM_TICKET_RESPONSE                           = 0xBADD,
-    SMSG_GM_TICKET_RESPONSE_ERROR                     = 0xBADD,
-    SMSG_GM_TICKET_STATUS_UPDATE                      = 0xBADD,
-    SMSG_GM_TICKET_UPDATE                             = 0xBADD,
+    SMSG_BUY_BANK_SLOT_RESULT                         = 0xBADD
 };
 
 inline bool IsInstanceOnlyOpcode(uint32 opcode)

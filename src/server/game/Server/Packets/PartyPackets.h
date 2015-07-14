@@ -24,228 +24,238 @@
 
 namespace WorldPackets
 {
-	namespace Party
-	{
-		class PartyCommandResult final : public ServerPacket
-		{
-		public:
-			PartyCommandResult() : ServerPacket(SMSG_PARTY_COMMAND_RESULT, 23) { }
+    namespace Party
+    {
+        class PartyCommandResult final : public ServerPacket
+        {
+        public:
+            PartyCommandResult() : ServerPacket(SMSG_PARTY_COMMAND_RESULT, 23) { }
 
-			WorldPacket const* Write() override;
+            WorldPacket const* Write() override;
 
-			std::string Name;
-			uint8 Command = 0u;
-			uint8 Result = 0u;
-			uint32 ResultData = 0u;
-			ObjectGuid ResultGUID;
-		};
+            std::string Name;
+            uint8 Command = 0u;
+            uint8 Result = 0u;
+            uint32 ResultData = 0u;
+            ObjectGuid ResultGUID;
+        };
 
-		class PartyInviteClient final : public ClientPacket
-		{
-		public:
-			PartyInviteClient(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_INVITE, std::move(packet)) { }
+        class PartyInviteClient final : public ClientPacket
+        {
+        public:
+            PartyInviteClient(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_INVITE, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			int32 ProposedRoles = 0;
-			int32 TargetCfgRealmID = 0;
-			std::string TargetName;
-			std::string TargetRealm;
-			ObjectGuid TargetGUID;
-		};
+            int8 PartyIndex = 0;
+            int32 ProposedRoles = 0;
+            int32 TargetCfgRealmID = 0;
+            std::string TargetName;
+            std::string TargetRealm;
+            ObjectGuid TargetGUID;
+        };
 
-		class PartyInvite final : public ServerPacket
-		{
-		public:
-			PartyInvite() : ServerPacket(SMSG_PARTY_INVITE, 55) { }
+        class PartyInvite final : public ServerPacket
+        {
+        public:
+            PartyInvite() : ServerPacket(SMSG_PARTY_INVITE, 55) { }
 
-			WorldPacket const* Write() override;
-			void Initialize(Player* const inviter, int32 proposedRoles, bool canAccept);
+            WorldPacket const* Write() override;
+            void Initialize(Player* const inviter, int32 proposedRoles, bool canAccept);
 
-			bool MightCRZYou = false;
-			bool MustBeBNetFriend = false;
-			bool AllowMultipleRoles = false;
-			bool Unk2 = false;
-			int16 Unk1 = 0;
+            bool MightCRZYou = false;
+            bool MustBeBNetFriend = false;
+            bool AllowMultipleRoles = false;
+            bool Unk2 = false;
+            int16 Unk1 = 0;
 
-			bool CanAccept = false;
+            bool CanAccept = false;
 
-			// Inviter
-			ObjectGuid InviterGUID;
-			ObjectGuid InviterBNetAccountId;
-			std::string InviterName;
+            // Inviter
+            ObjectGuid InviterGUID;
+            ObjectGuid InviterBNetAccountId;
+            std::string InviterName;
 
-			// Realm
-			bool IsXRealm = false;
-			bool IsLocal = true;
-			uint32 InviterVirtualRealmAddress = 0u;
-			std::string InviterRealmNameActual;
-			std::string InviterRealmNameNormalized;
+            // Realm
+            bool IsXRealm = false;
+            bool IsLocal = true;
+            uint32 InviterVirtualRealmAddress = 0u;
+            std::string InviterRealmNameActual;
+            std::string InviterRealmNameNormalized;
 
-			// Lfg
-			int32 ProposedRoles = 0;
-			int32 LfgCompletedMask = 0;
-			std::vector<int32> LfgSlots;
-		};
+            // Lfg
+            int32 ProposedRoles = 0;
+            int32 LfgCompletedMask = 0;
+            std::vector<int32> LfgSlots;
+        };
 
-		class PartyInviteResponse final : public ClientPacket
-		{
-		public:
-			PartyInviteResponse(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_INVITE_RESPONSE, std::move(packet)) { }
+        class PartyInviteResponse final : public ClientPacket
+        {
+        public:
+            PartyInviteResponse(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_INVITE_RESPONSE, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			bool Accept = false;
-			Optional<int32> RolesDesired;
-		};
+            int8 PartyIndex = 0;
+            bool Accept = false;
+            Optional<int32> RolesDesired;
+        };
 
-		class PartyUninvite final : public ClientPacket
-		{
-		public:
-			PartyUninvite(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_UNINVITE, std::move(packet)) { }
+        class PartyUninvite final : public ClientPacket
+        {
+        public:
+            PartyUninvite(WorldPacket&& packet) : ClientPacket(CMSG_PARTY_UNINVITE, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			ObjectGuid TargetGUID;
-			std::string Reason;
-		};
+            int8 PartyIndex = 0;
+            ObjectGuid TargetGUID;
+            std::string Reason;
+        };
 
-		class GroupDecline final : public ServerPacket
-		{
-		public:
-			GroupDecline(std::string const& name) : ServerPacket(SMSG_GROUP_DECLINE, 2 + name.size()), Name(name) { }
+        class GroupDecline final : public ServerPacket
+        {
+        public:
+            GroupDecline(std::string const& name) : ServerPacket(SMSG_GROUP_DECLINE, 2 + name.size()), Name(name) { }
 
-			WorldPacket const* Write() override;
+            WorldPacket const* Write() override;
 
-			std::string Name;
-		};
+            std::string Name;
+        };
 
-		class RequestPartyMemberStats final : public ClientPacket
-		{
-		public:
-			RequestPartyMemberStats(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_PARTY_MEMBER_STATS, std::move(packet)) { }
+        class RequestPartyMemberStats final : public ClientPacket
+        {
+        public:
+            RequestPartyMemberStats(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_PARTY_MEMBER_STATS, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			ObjectGuid TargetGUID;
-		};
+            int8 PartyIndex = 0;
+            ObjectGuid TargetGUID;
+        };
 
-		struct GroupPhase
-		{
-			uint16 Flags = 0u;
-			uint16 Id = 0u;
-		};
+        struct GroupPhase
+        {
+            uint16 Flags = 0u;
+            uint16 Id = 0u;
+        };
 
-		struct GroupPhases
-		{
-			int32 PhaseShiftFlags = 0;
-			ObjectGuid PersonalGUID;
-			std::vector<GroupPhase> List;
-		};
+        struct GroupPhases
+        {
+            int32 PhaseShiftFlags = 0;
+            ObjectGuid PersonalGUID;
+            std::vector<GroupPhase> List;
+        };
 
-		struct GroupAura
-		{
-			uint32 SpellId = 0u;
-			uint8 Scalings = 0;
-			uint32 EffectMask = 0u;
-			std::vector<float> EffectScales;
-		};
+        struct GroupAura
+        {
+            uint32 SpellId = 0u;
+            uint8 Scalings = 0;
+            uint32 EffectMask = 0u;
+            std::vector<float> EffectScales;
+        };
 
-		struct GroupPetStats
-		{
-			ObjectGuid GUID;
-			std::string Name;
-			int16 ModelId = 0;
+        struct GroupPetStats
+        {
+            ObjectGuid GUID;
+            std::string Name;
+            int16 ModelId = 0;
 
-			int32 CurrentHealth = 0;
-			int32 MaxHealth = 0;
+            int32 CurrentHealth = 0;
+            int32 MaxHealth = 0;
 
-			std::vector<GroupAura> AuraList;
-		};
+            std::vector<GroupAura> AuraList;
+        };
 
-		struct GroupMemberStats
-		{
-			ObjectGuid GUID;
-			int16 Level = 0;
-			int16 Status = 0;
+        struct GroupMemberStats
+        {
+            ObjectGuid GUID;
+            int16 Level = 0;
+            int16 Status = 0;
 
-			int32 CurrentHealth = 0;
-			int32 MaxHealth;
+            int32 CurrentHealth = 0;
+            int32 MaxHealth;
 
-			uint8 PowerType = 0u;
-			int16 CurrentPower = 0;
-			int16 MaxPower = 0;
+            uint8 PowerType = 0u;
+            int16 CurrentPower = 0;
+            int16 MaxPower = 0;
 
-			int16 ZoneID = 0;
-			int16 PositionX = 0;
-			int16 PositionY = 0;
-			int16 PositionZ = 0;
+            int16 ZoneID = 0;
+            int16 PositionX = 0;
+            int16 PositionY = 0;
+            int16 PositionZ = 0;
 
-			int32 VehicleSeat = 0;
+            int32 VehicleSeat = 0;
 
-			GroupPhases Phases;
-			std::vector<GroupAura> AuraList;
-			Optional<GroupPetStats> PetStats;
+            GroupPhases Phases;
+            std::vector<GroupAura> AuraList;
+            Optional<GroupPetStats> PetStats;
 
-			int16 Unk322 = 0;
-			int16 Unk200000 = 0;
-			int16 Unk2000000 = 0;
-			int32 Unk4000000 = 0;
-			int8 Unk704[2];
-		};
+            int16 Unk322 = 0;
+            int16 Unk200000 = 0;
+            int16 Unk2000000 = 0;
+            int32 Unk4000000 = 0;
+            int8 Unk704[2];
+        };
 
-		class PartyMemberStats final : public ServerPacket
-		{
-		public:
-			PartyMemberStats() : ServerPacket(SMSG_PARTY_MEMBER_STATE, 80) { }
+        class PartyMemberStats final : public ServerPacket
+        {
+        public:
+            PartyMemberStats() : ServerPacket(SMSG_PARTY_MEMBER_STATE, 80) { }
 
-			WorldPacket const* Write() override;
-			void Initialize(Player const* player);
+            WorldPacket const* Write() override;
+            void Initialize(Player const* player);
 
-			GroupMemberStats MemberStats;
-			bool ForEnemy = false;
-		};
+            GroupMemberStats MemberStats;
+            bool ForEnemy = false;
+        };
 
-		class SetPartyLeader final : public ClientPacket
-		{
-		public:
-			SetPartyLeader(WorldPacket&& packet) : ClientPacket(CMSG_SET_PARTY_LEADER, std::move(packet)) { }
+        class SetPartyLeader final : public ClientPacket
+        {
+        public:
+            SetPartyLeader(WorldPacket&& packet) : ClientPacket(CMSG_SET_PARTY_LEADER, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			ObjectGuid TargetGUID;
-		};
+            int8 PartyIndex = 0;
+            ObjectGuid TargetGUID;
+        };
 
-		class SetRole final : public ClientPacket
-		{
-		public:
-			SetRole(WorldPacket&& packet) : ClientPacket(CMSG_SET_ROLE, std::move(packet)) { }
+        class SetRole final : public ClientPacket
+        {
+        public:
+            SetRole(WorldPacket&& packet) : ClientPacket(CMSG_SET_ROLE, std::move(packet)) { }
 
-			void Read() override;
+            void Read() override;
 
-			int8 PartyIndex = 0;
-			ObjectGuid TargetGUID;
-			int32 Role = 0;
-		};
+            int8 PartyIndex = 0;
+            ObjectGuid TargetGUID;
+            int32 Role = 0;
+        };
 
-		class RoleChangedInform final : public ServerPacket
-		{
-		public:
-			RoleChangedInform() : ServerPacket(SMSG_ROLE_CHANGED_INFORM, 41) { }
+        class RoleChangedInform final : public ServerPacket
+        {
+        public:
+            RoleChangedInform() : ServerPacket(SMSG_ROLE_CHANGED_INFORM, 41) { }
 
-			WorldPacket const* Write() override;
+            WorldPacket const* Write() override;
 
-			int8 PartyIndex = 0;
-			ObjectGuid From;
-			ObjectGuid ChangedUnit;
-			int32 OldRole = 0;
-			int32 NewRole = 0;
-		};
+            int8 PartyIndex = 0;
+            ObjectGuid From;
+            ObjectGuid ChangedUnit;
+            int32 OldRole = 0;
+            int32 NewRole = 0;
+        };
+
+        class LeaveGroup final : public ClientPacket
+        {
+        public:
+            LeaveGroup(WorldPacket&& packet) : ClientPacket(CMSG_LEAVE_GROUP, std::move(packet)) { }
+
+            void Read() override;
+
+            int8 PartyIndex = 0;
+        };
 
 		class LeaveGroup final : public ClientPacket
 		{
@@ -506,12 +516,12 @@ namespace WorldPackets
 			uint8 Threshold = 0u;
 		};
 
-		struct GroupDifficultySettings
-		{
-			uint32 DungeonDifficultyID = 0u;
-			uint32 RaidDifficultyID = 0u;
-			uint32 LegacyRaidDifficultyID = 0u;
-		};
+            int8 PartyFlags = 0;
+            int8 PartyIndex = 0;
+            int8 PartyType = 0;
+
+            ObjectGuid PartyGUID;
+            ObjectGuid LeaderGUID;
 
 		class PartyUpdate final : public ServerPacket
 		{

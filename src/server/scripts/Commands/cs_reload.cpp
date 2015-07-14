@@ -192,7 +192,6 @@ public:
     static bool HandleReloadSupportSystemCommand(ChatHandler* handler, const char* /*args*/)
     {
         TC_LOG_INFO("misc", "Re-Loading Support System Tables...");
-        sSupportMgr->LoadGmTickets();
         sSupportMgr->LoadBugTickets();
         sSupportMgr->LoadComplaintTickets();
         sSupportMgr->LoadSuggestionTickets();

@@ -5625,7 +5625,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 70664:
                 {
                     // Proc only from normal Rejuvenation
-                    if (procSpell->SpellVisual[0] != 32)
+                    if (procSpell->Id != 774)
                         return false;
 
                     Player* caster = ToPlayer();
@@ -5707,7 +5707,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     // At melee attack or Hammer of the Righteous spell damage considered as melee attack
                     bool stacker = !procSpell || procSpell->Id == 53595;
                     // spells with SPELL_DAMAGE_CLASS_MELEE excluding Judgements
-                    bool damager = procSpell && (procSpell->EquippedItemClass != -1 || (procSpell->SpellIconID == 243 && procSpell->SpellVisual[0] == 39));
+                    bool damager = procSpell && (procSpell->EquippedItemClass != -1 || procSpell->Id == 71433 || procSpell->Id == 71434);
 
                     if (!stacker && !damager)
                         return false;
@@ -9264,6 +9264,26 @@ bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo) const
     return false;
 }
 
+uint32 Unit::GetSchoolImmunityMask() const
+{
+    uint32 mask = 0;
+    SpellImmuneList const& mechanicList = m_spellImmune[IMMUNITY_SCHOOL];
+    for (SpellImmuneList::const_iterator itr = mechanicList.begin(); itr != mechanicList.end(); ++itr)
+        mask |= itr->type;
+
+    return mask;
+}
+
+uint32 Unit::GetMechanicImmunityMask() const
+{
+    uint32 mask = 0;
+    SpellImmuneList const& mechanicList = m_spellImmune[IMMUNITY_MECHANIC];
+    for (SpellImmuneList::const_iterator itr = mechanicList.begin(); itr != mechanicList.end(); ++itr)
+        mask |= (1 << itr->type);
+
+    return mask;
+}
+
 bool Unit::IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index) const
 {
     if (!spellInfo)
@@ -9701,11 +9721,11 @@ void Unit::Dismount()
 MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
 {
     if (!mountType)
-        return NULL;
+        return nullptr;
 
-    MountTypeEntry const* mountTypeEntry = sMountTypeStore.LookupEntry(mountType);
-    if (!mountTypeEntry)
-        return NULL;
+    DB2Manager::MountTypeXCapabilitySet const* capabilities = sDB2Manager.GetMountCapabilities(mountType);
+    if (!capabilities)
+        return nullptr;
 
     uint32 zoneId, areaId;
     GetZoneAndAreaId(zoneId, areaId);
@@ -9713,9 +9733,9 @@ MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
     if (GetTypeId() == TYPEID_PLAYER)
         ridingSkill = ToPlayer()->GetSkillValue(SKILL_RIDING);
 
-    for (uint32 i = MAX_MOUNT_CAPABILITIES; i > 0; --i)
+    for (MountTypeXCapabilityEntry const* mountTypeXCapability : *capabilities)
     {
-        MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(mountTypeEntry->MountCapability[i - 1]);
+        MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(mountTypeXCapability->MountCapabilityID);
         if (!mountCapability)
             continue;
 
@@ -9753,7 +9773,7 @@ MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
         return mountCapability;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool Unit::IsServiceProvider() const
@@ -10999,7 +11019,7 @@ void Unit::ModSpellCastTime(SpellInfo const* spellInfo, int32 & castTime, Spell*
         castTime = int32(float(castTime) * GetFloatValue(UNIT_MOD_CAST_SPEED));
     else if (spellInfo->HasAttribute(SPELL_ATTR0_REQ_AMMO) && !spellInfo->HasAttribute(SPELL_ATTR2_AUTOREPEAT_FLAG))
         castTime = int32(float(castTime) * m_modAttackSpeedPct[RANGED_ATTACK]);
-    else if (spellInfo->SpellVisual[0] == 3881 && HasAura(67556)) // cooking with Chef Hat.
+    else if (IsPartOfSkillLine(SKILL_COOKING, spellInfo->Id) && HasAura(67556)) // cooking with Chef Hat.
         castTime = 500;
 }
 
@@ -11505,7 +11525,7 @@ void Unit::SetMaxHealth(uint32 val)
 int32 Unit::GetPower(Powers power) const
 {
     uint32 powerIndex = GetPowerIndex(power);
-    if (powerIndex == MAX_POWERS)
+    if (powerIndex == MAX_POWERS || powerIndex >= MAX_POWERS_PER_CLASS)
         return 0;
 
     return GetUInt32Value(UNIT_FIELD_POWER + powerIndex);
@@ -11514,7 +11534,7 @@ int32 Unit::GetPower(Powers power) const
 int32 Unit::GetMaxPower(Powers power) const
 {
     uint32 powerIndex = GetPowerIndex(power);
-    if (powerIndex == MAX_POWERS)
+    if (powerIndex == MAX_POWERS || powerIndex >= MAX_POWERS_PER_CLASS)
         return 0;
 
     return GetInt32Value(UNIT_FIELD_MAXPOWER + powerIndex);
@@ -11523,7 +11543,7 @@ int32 Unit::GetMaxPower(Powers power) const
 void Unit::SetPower(Powers power, int32 val)
 {
     uint32 powerIndex = GetPowerIndex(power);
-    if (powerIndex == MAX_POWERS)
+    if (powerIndex == MAX_POWERS || powerIndex >= MAX_POWERS_PER_CLASS)
         return;
 
     int32 maxPower = int32(GetMaxPower(power));
@@ -11557,7 +11577,7 @@ void Unit::SetPower(Powers power, int32 val)
 void Unit::SetMaxPower(Powers power, int32 val)
 {
     uint32 powerIndex = GetPowerIndex(power);
-    if (powerIndex == MAX_POWERS)
+    if (powerIndex == MAX_POWERS || powerIndex >= MAX_POWERS_PER_CLASS)
         return;
 
     int32 cur_power = GetPower(power);
@@ -11589,7 +11609,7 @@ uint32 Unit::GetPowerIndex(uint32 powerType) const
     if (ToPet() && ToPet()->getPetType() == HUNTER_PET)
         classId = CLASS_HUNTER;
 
-    return GetPowerIndexByClass(powerType, classId);
+    return sDB2Manager.GetPowerIndexByClass(powerType, classId);
 }
 
 int32 Unit::GetCreatePowers(Powers power) const
@@ -12687,7 +12707,7 @@ bool Unit::IsStandState() const
     return !IsSitState() && s != UNIT_STAND_STATE_SLEEP && s != UNIT_STAND_STATE_KNEEL;
 }
 
-void Unit::SetStandState(UnitStandStateType state)
+void Unit::SetStandState(UnitStandStateType state, uint32 animKitID /* = 0*/)
 {
     SetByteValue(UNIT_FIELD_BYTES_1, 0, uint8(state));
 
@@ -12696,7 +12716,7 @@ void Unit::SetStandState(UnitStandStateType state)
 
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        WorldPackets::Misc::StandStateUpdate packet(state);
+        WorldPackets::Misc::StandStateUpdate packet(state, animKitID);
         ToPlayer()->GetSession()->SendPacket(packet.Write());
     }
 }
@@ -16424,9 +16444,12 @@ SpellInfo const* Unit::GetCastSpellInfo(SpellInfo const* spellInfo) const
         swaps.insert(swaps.end(), swaps2.begin(), swaps2.end());
 
     for (AuraEffect const* auraEffect : swaps)
-        if (auraEffect->IsAffectingSpell(spellInfo))
-            if (SpellInfo const* newInfo = sSpellMgr->GetSpellInfo(auraEffect->GetAmount()))
-                return newInfo;
+    {
+        if ((!auraEffect->GetSpellEffectInfo()->SpellClassMask && uint32(auraEffect->GetMiscValue()) == spellInfo->Id) ||
+            (auraEffect->GetSpellEffectInfo()->SpellClassMask && auraEffect->IsAffectingSpell(spellInfo)))
+                if (SpellInfo const* newInfo = sSpellMgr->GetSpellInfo(auraEffect->GetAmount()))
+                    return newInfo;
+    }
 
     return spellInfo;
 }

@@ -380,6 +380,7 @@ enum InventorySlot
 };
 
 struct FactionTemplateEntry;
+struct MountCapabilityEntry;
 struct SpellValue;
 
 class AuraApplication;
@@ -1466,7 +1467,7 @@ class Unit : public WorldObject
         UnitStandStateType GetStandState() const { return UnitStandStateType(GetByteValue(UNIT_FIELD_BYTES_1, 0)); }
         bool IsSitState() const;
         bool IsStandState() const;
-        void SetStandState(UnitStandStateType state);
+        void SetStandState(UnitStandStateType state, uint32 animKitID = 0);
 
         void  SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
         void  RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
@@ -2043,6 +2044,8 @@ class Unit : public WorldObject
         void ApplySpellImmune(uint32 spellId, uint32 op, uint32 type, bool apply);
         void ApplySpellDispelImmunity(const SpellInfo* spellProto, DispelType type, bool apply);
         virtual bool IsImmunedToSpell(SpellInfo const* spellInfo) const; // redefined in Creature
+        uint32 GetSchoolImmunityMask() const;
+        uint32 GetMechanicImmunityMask() const;
 
         bool IsImmunedToDamage(SpellSchoolMask meleeSchoolMask) const;
         bool IsImmunedToDamage(SpellInfo const* spellInfo) const;
