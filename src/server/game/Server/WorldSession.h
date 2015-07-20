@@ -360,6 +360,7 @@ namespace WorldPackets
         class SetActiveMover;
         class MoveSetCollisionHeightAck;
         class MoveTimeSkipped;
+        class SummonResponse;
     }
 
     namespace NPC
@@ -499,6 +500,7 @@ namespace WorldPackets
         class UnlearnSkill;
         class SelfRes;
         class GetMirrorImageData;
+        class SpellClick;
     }
 
     namespace Talent
@@ -1313,7 +1315,7 @@ class WorldSession
         void HandleQueryCorpseLocation(WorldPackets::Query::QueryCorpseLocationFromClient& packet);
         void HandleQueryCorpseTransport(WorldPackets::Query::QueryCorpseTransport& packet);
         void HandleResurrectResponse(WorldPackets::Misc::ResurrectResponse& packet);
-        void HandleSummonResponseOpcode(WorldPacket& recvData);
+        void HandleSummonResponseOpcode(WorldPackets::Movement::SummonResponse& packet);
 
         void HandleJoinChannel(WorldPackets::Channel::JoinChannel& packet);
         void HandleLeaveChannel(WorldPackets::Channel::LeaveChannel& packet);
@@ -1486,7 +1488,7 @@ class WorldSession
         void HandleTransmogrifyItems(WorldPacket& recvData);
 
         // Miscellaneous
-        void HandleSpellClick(WorldPacket& recvData);
+        void HandleSpellClick(WorldPackets::Spells::SpellClick& packet);
         void HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorImageData& packet);
         void HandleRemoveGlyph(WorldPacket& recvData);
         void HandleGuildSetFocusedAchievement(WorldPackets::Achievement::GuildSetFocusedAchievement& setFocusedAchievement);

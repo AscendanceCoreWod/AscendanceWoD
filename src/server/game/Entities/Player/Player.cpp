@@ -4733,7 +4733,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
 
     setDeathState(ALIVE);
 
-    SetWaterWalking(false);
+    SetWaterWalking(false, true);
     if (!HasUnitState(UNIT_STATE_STUNNED))
         SetRooted(false);
 
@@ -5519,7 +5519,7 @@ void Player::UpdateRating(CombatRating cr)
 
     switch (cr)
     {
-        case CR_WEAPON_SKILL:
+        case CR_UNUSED_1:
         case CR_DEFENSE_SKILL:
             break;
         case CR_DODGE:
@@ -5555,19 +5555,19 @@ void Player::UpdateRating(CombatRating cr)
             if (affectStats)
                 UpdateAllSpellCritChances();
             break;
-        case CR_HIT_TAKEN_MELEE:                            // Deprecated since Cataclysm
-        case CR_HIT_TAKEN_RANGED:                           // Deprecated since Cataclysm
-        case CR_HIT_TAKEN_SPELL:                            // Deprecated since Cataclysm
+        case CR_MULTISTRIKE:
+        case CR_READINESS:
+        case CR_SPEED:
         case CR_RESILIENCE_PLAYER_DAMAGE_TAKEN:
         case CR_RESILIENCE_CRIT_TAKEN:
-        case CR_CRIT_TAKEN_SPELL:                           // Deprecated since Cataclysm
+        case CR_LIFESTEAL:
             break;
         case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
         case CR_HASTE_RANGED:
         case CR_HASTE_SPELL:
             break;
-        case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
-        case CR_WEAPON_SKILL_OFFHAND:
+        case CR_AVOIDANCE:
+        case CR_UNUSED_2:
         case CR_WEAPON_SKILL_RANGED:
             break;
         case CR_EXPERTISE:
@@ -5583,6 +5583,11 @@ void Player::UpdateRating(CombatRating cr)
             break;
         case CR_MASTERY:
             UpdateMastery();
+            break;
+        case CR_UNUSED_3:
+        case CR_UNUSED_4:
+        case CR_VERSATILITY_DAMAGE_DONE:
+        case CR_VERSATILITY_DAMAGE_TAKEN:
             break;
     }
 }
@@ -8285,7 +8290,7 @@ void Player::CastItemCombatSpell(Unit* target, WeaponAttackType attType, uint32 
     }
 }
 
-void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8 castCount, uint32 misc)
+void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8 castCount, int32* misc)
 {
     ItemTemplate const* proto = item->GetTemplate();
     // special learning case
@@ -8335,7 +8340,8 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8
         Spell* spell = new Spell(this, spellInfo, (count > 0) ? TRIGGERED_FULL_MASK : TRIGGERED_NONE);
         spell->m_CastItem = item;
         spell->m_cast_count = castCount;                   // set count of casts
-        spell->m_misc.Data = misc;
+        spell->m_misc.Raw.Data[0] = misc[0];
+        spell->m_misc.Raw.Data[1] = misc[1];
         spell->prepare(&targets);
 
         ++count;
@@ -8363,7 +8369,8 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8
             Spell* spell = new Spell(this, spellInfo, (count > 0) ? TRIGGERED_FULL_MASK : TRIGGERED_NONE);
             spell->m_CastItem = item;
             spell->m_cast_count = castCount;                // set count of casts
-            spell->m_misc.Data = misc;                     // glyph index
+            spell->m_misc.Raw.Data[0] = misc[0];
+            spell->m_misc.Raw.Data[1] = misc[1];
             spell->prepare(&targets);
 
             ++count;

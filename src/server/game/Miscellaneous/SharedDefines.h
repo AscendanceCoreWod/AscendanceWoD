@@ -812,7 +812,7 @@ enum SpellAttr12
     SPELL_ATTR12_UNK24                            = 0x01000000, // 24
     SPELL_ATTR12_UNK25                            = 0x02000000, // 25
     SPELL_ATTR12_UNK26                            = 0x04000000, // 26
-    SPELL_ATTR12_UNK27                            = 0x08000000, // 27
+    SPELL_ATTR12_IS_READINESS_SPELL               = 0x08000000, // 27
     SPELL_ATTR12_UNK28                            = 0x10000000, // 28
     SPELL_ATTR12_UNK29                            = 0x20000000, // 29
     SPELL_ATTR12_UNK30                            = 0x40000000, // 30
@@ -1258,7 +1258,8 @@ enum SpellEffectName
     SPELL_EFFECT_FINISH_SHIPMENT                    = 248,
     SPELL_EFFECT_249                                = 249,
     SPELL_EFFECT_TAKE_SCREENSHOT                    = 250, // Serverside marker for selfie screenshot - achievement check
-    TOTAL_SPELL_EFFECTS                             = 251,
+    SPELL_EFFECT_SET_GARRISON_CACHE_SIZE            = 251,
+    TOTAL_SPELL_EFFECTS                             = 252,
 };
 
 enum SpellCastResult // 20201

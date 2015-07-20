@@ -1944,82 +1944,82 @@ float WorldObject::GetSightRange(const WorldObject* target) const
 	return 0.0f;
 }
 
-bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth, bool distanceCheck) const
+bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth, bool distanceCheck, bool checkAlert) const
 {
-	if (this == obj)
-		return true;
+    if (this == obj)
+        return true;
 
-	if (obj->IsNeverVisible() || CanNeverSee(obj))
-		return false;
+    if (obj->IsNeverVisible() || CanNeverSee(obj))
+        return false;
 
-	if (obj->IsAlwaysVisibleFor(this) || CanAlwaysSee(obj))
-		return true;
+    if (obj->IsAlwaysVisibleFor(this) || CanAlwaysSee(obj))
+        return true;
 
-	bool corpseVisibility = false;
-	if (distanceCheck)
-	{
-		bool corpseCheck = false;
-		if (Player const* thisPlayer = ToPlayer())
-		{
-			if (thisPlayer->isDead() && thisPlayer->GetHealth() > 0 && // Cheap way to check for ghost state
-				!(obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & GHOST_VISIBILITY_GHOST))
-			{
-				if (Corpse* corpse = thisPlayer->GetCorpse())
-				{
-					corpseCheck = true;
-					if (corpse->IsWithinDist(thisPlayer, GetSightRange(obj), false))
-						if (corpse->IsWithinDist(obj, GetSightRange(obj), false))
-							corpseVisibility = true;
-				}
-			}
-		}
+    bool corpseVisibility = false;
+    if (distanceCheck)
+    {
+        bool corpseCheck = false;
+        if (Player const* thisPlayer = ToPlayer())
+        {
+            if (thisPlayer->isDead() && thisPlayer->GetHealth() > 0 && // Cheap way to check for ghost state
+                !(obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & GHOST_VISIBILITY_GHOST))
+            {
+                if (Corpse* corpse = thisPlayer->GetCorpse())
+                {
+                    corpseCheck = true;
+                    if (corpse->IsWithinDist(thisPlayer, GetSightRange(obj), false))
+                        if (corpse->IsWithinDist(obj, GetSightRange(obj), false))
+                            corpseVisibility = true;
+                }
+            }
+        }
 
-		WorldObject const* viewpoint = this;
-		if (Player const* player = this->ToPlayer())
-			viewpoint = player->GetViewpoint();
+        WorldObject const* viewpoint = this;
+        if (Player const* player = this->ToPlayer())
+            viewpoint = player->GetViewpoint();
 
-		if (!viewpoint)
-			viewpoint = this;
+        if (!viewpoint)
+            viewpoint = this;
 
-		if (!corpseCheck && !viewpoint->IsWithinDist(obj, GetSightRange(obj), false))
-			return false;
-	}
+        if (!corpseCheck && !viewpoint->IsWithinDist(obj, GetSightRange(obj), false))
+            return false;
+    }
 
-	// GM visibility off or hidden NPC
-	if (!obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GM))
-	{
-		// Stop checking other things for GMs
-		if (m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GM))
-			return true;
-	}
-	else
-		return m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GM) >= obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GM);
+    // GM visibility off or hidden NPC
+    if (!obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GM))
+    {
+        // Stop checking other things for GMs
+        if (m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GM))
+            return true;
+    }
+    else
+        return m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GM) >= obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GM);
 
-	// Ghost players, Spirit Healers, and some other NPCs
-	if (!corpseVisibility && !(obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GHOST)))
-	{
-		// Alive players can see dead players in some cases, but other objects can't do that
-		if (Player const* thisPlayer = ToPlayer())
-		{
-			if (Player const* objPlayer = obj->ToPlayer())
-			{
-				if (thisPlayer->GetTeam() != objPlayer->GetTeam() || !thisPlayer->IsGroupVisibleFor(objPlayer))
-					return false;
-			}
-			else
-				return false;
-		}
-		else
-			return false;
-	}
+    // Ghost players, Spirit Healers, and some other NPCs
+    if (!corpseVisibility && !(obj->m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GHOST) & m_serverSideVisibilityDetect.GetValue(SERVERSIDE_VISIBILITY_GHOST)))
+    {
+        // Alive players can see dead players in some cases, but other objects can't do that
+        if (Player const* thisPlayer = ToPlayer())
+        {
+            if (Player const* objPlayer = obj->ToPlayer())
+            {
+                if (thisPlayer->GetTeam() != objPlayer->GetTeam() || !thisPlayer->IsGroupVisibleFor(objPlayer))
+                    return false;
+            }
+            else
+                return false;
+        }
+        else
+            return false;
+    }
 
-	if (obj->IsInvisibleDueToDespawn())
-		return false;
+    if (obj->IsInvisibleDueToDespawn())
+        return false;
 
-	if (!CanDetect(obj, ignoreStealth))
-		return false;
+    if (!CanDetect(obj, ignoreStealth, checkAlert))
+        return false;
 
-	return true;
+    return true;
 }
 
 bool WorldObject::CanNeverSee(WorldObject const* obj) const
@@ -2027,7 +2027,7 @@ bool WorldObject::CanNeverSee(WorldObject const* obj) const
 	return GetMap() != obj->GetMap() || !IsInPhase(obj);
 }
 
-bool WorldObject::CanDetect(WorldObject const* obj, bool ignoreStealth) const
+bool WorldObject::CanDetect(WorldObject const* obj, bool ignoreStealth, bool checkAlert) const
 {
 	const WorldObject* seer = this;
 
@@ -2042,8 +2042,8 @@ bool WorldObject::CanDetect(WorldObject const* obj, bool ignoreStealth) const
 	if (!ignoreStealth && !seer->CanDetectInvisibilityOf(obj))
 		return false;
 
-	if (!ignoreStealth && !seer->CanDetectStealthOf(obj))
-		return false;
+    if (!ignoreStealth && !seer->CanDetectStealthOf(obj, checkAlert))
+        return false;
 
 	return true;
 }
@@ -2072,7 +2072,7 @@ bool WorldObject::CanDetectInvisibilityOf(WorldObject const* obj) const
 	return true;
 }
 
-bool WorldObject::CanDetectStealthOf(WorldObject const* obj) const
+bool WorldObject::CanDetectStealthOf(WorldObject const* obj, bool checkAlert) const
 {
 	// Combat reach is the minimal distance (both in front and behind),
 	//   and it is also used in the range calculation.
@@ -2122,12 +2122,22 @@ bool WorldObject::CanDetectStealthOf(WorldObject const* obj) const
 		// Calculate max distance
 		float visibilityRange = float(detectionValue) * 0.3f + combatReach;
 
-		if (visibilityRange > MAX_PLAYER_STEALTH_DETECT_RANGE)
-			visibilityRange = MAX_PLAYER_STEALTH_DETECT_RANGE;
+        // If this unit is an NPC then player detect range doesn't apply
+        if (unit && unit->GetTypeId() == TYPEID_PLAYER && visibilityRange > MAX_PLAYER_STEALTH_DETECT_RANGE)
+            visibilityRange = MAX_PLAYER_STEALTH_DETECT_RANGE;
 
-		if (distance > visibilityRange)
-			return false;
-	}
+        // When checking for alert state, look 8% further, and then 1.5 yards more than that.
+        if (checkAlert)
+            visibilityRange += (visibilityRange * 0.08f) + 1.5f;
+
+        // If checking for alert, and creature's visibility range is greater than aggro distance, No alert
+        Unit const* tunit = obj->ToUnit();
+        if (checkAlert && unit && unit->ToCreature() && visibilityRange >= unit->ToCreature()->GetAttackDistance(tunit) + unit->ToCreature()->m_CombatDistance)
+            return false;
+
+        if (distance > visibilityRange)
+            return false;
+    }
 
 	return true;
 }

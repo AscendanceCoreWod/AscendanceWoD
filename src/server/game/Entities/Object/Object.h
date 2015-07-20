@@ -455,171 +455,171 @@ private:
 
 class WorldObject : public Object, public WorldLocation
 {
-protected:
-	explicit WorldObject(bool isWorldObject); //note: here it means if it is in grid object list or world object list
-public:
-	virtual ~WorldObject();
+    protected:
+        explicit WorldObject(bool isWorldObject); //note: here it means if it is in grid object list or world object list
+    public:
+        virtual ~WorldObject();
 
-	virtual void Update(uint32 /*time_diff*/) { }
+        virtual void Update (uint32 /*time_diff*/) { }
 
-	virtual void RemoveFromWorld() override;
+        virtual void RemoveFromWorld() override;
 
-	void GetNearPoint2D(float &x, float &y, float distance, float absAngle) const;
-	void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_size, float distance2d, float absAngle) const;
-	void GetClosePoint(float &x, float &y, float &z, float size, float distance2d = 0, float angle = 0) const;
-	void MovePosition(Position &pos, float dist, float angle);
-	Position GetNearPosition(float dist, float angle);
-	void MovePositionToFirstCollision(Position &pos, float dist, float angle);
-	Position GetFirstCollisionPosition(float dist, float angle);
-	Position GetRandomNearPosition(float radius);
-	void GetContactPoint(WorldObject const* obj, float &x, float &y, float &z, float distance2d = CONTACT_DISTANCE) const;
+        void GetNearPoint2D(float &x, float &y, float distance, float absAngle) const;
+        void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_size, float distance2d, float absAngle) const;
+        void GetClosePoint(float &x, float &y, float &z, float size, float distance2d = 0, float angle = 0) const;
+        void MovePosition(Position &pos, float dist, float angle);
+        Position GetNearPosition(float dist, float angle);
+        void MovePositionToFirstCollision(Position &pos, float dist, float angle);
+        Position GetFirstCollisionPosition(float dist, float angle);
+        Position GetRandomNearPosition(float radius);
+        void GetContactPoint(WorldObject const* obj, float &x, float &y, float &z, float distance2d = CONTACT_DISTANCE) const;
 
-	float GetObjectSize() const;
-	void UpdateGroundPositionZ(float x, float y, float &z) const;
-	void UpdateAllowedPositionZ(float x, float y, float &z) const;
+        float GetObjectSize() const;
+        void UpdateGroundPositionZ(float x, float y, float &z) const;
+        void UpdateAllowedPositionZ(float x, float y, float &z) const;
 
-	void GetRandomPoint(Position const &srcPos, float distance, float &rand_x, float &rand_y, float &rand_z) const;
-	Position GetRandomPoint(Position const &srcPos, float distance) const;
+        void GetRandomPoint(Position const &srcPos, float distance, float &rand_x, float &rand_y, float &rand_z) const;
+        Position GetRandomPoint(Position const &srcPos, float distance) const;
 
-	uint32 GetInstanceId() const { return m_InstanceId; }
+        uint32 GetInstanceId() const { return m_InstanceId; }
 
-	virtual void SetPhaseMask(uint32 newPhaseMask, bool update);
-	virtual bool SetInPhase(uint32 id, bool update, bool apply);
-	void CopyPhaseFrom(WorldObject* obj, bool update = false);
-	void UpdateAreaPhase();
-	void ClearPhases(bool update = false);
-	void RebuildTerrainSwaps();
-	void RebuildWorldMapAreaSwaps();
-	bool HasInPhaseList(uint32 phase);
-	uint32 GetPhaseMask() const { return m_phaseMask; }
-	bool IsInPhase(uint32 phase) const { return _phases.find(phase) != _phases.end(); }
-	bool IsInPhase(WorldObject const* obj) const;
-	bool IsInTerrainSwap(uint32 terrainSwap) const { return _terrainSwaps.find(terrainSwap) != _terrainSwaps.end(); }
-	std::set<uint32> const& GetPhases() const { return _phases; }
-	std::set<uint32> const& GetTerrainSwaps() const { return _terrainSwaps; }
-	std::set<uint32> const& GetWorldMapAreaSwaps() const { return _worldMapAreaSwaps; }
-	int32 GetDBPhase() { return _dbPhase; }
+        virtual void SetPhaseMask(uint32 newPhaseMask, bool update);
+        virtual bool SetInPhase(uint32 id, bool update, bool apply);
+        void CopyPhaseFrom(WorldObject* obj, bool update = false);
+        void UpdateAreaPhase();
+        void ClearPhases(bool update = false);
+        void RebuildTerrainSwaps();
+        void RebuildWorldMapAreaSwaps();
+        bool HasInPhaseList(uint32 phase);
+        uint32 GetPhaseMask() const { return m_phaseMask; }
+        bool IsInPhase(uint32 phase) const { return _phases.find(phase) != _phases.end(); }
+        bool IsInPhase(WorldObject const* obj) const;
+        bool IsInTerrainSwap(uint32 terrainSwap) const { return _terrainSwaps.find(terrainSwap) != _terrainSwaps.end(); }
+        std::set<uint32> const& GetPhases() const { return _phases; }
+        std::set<uint32> const& GetTerrainSwaps() const { return _terrainSwaps; }
+        std::set<uint32> const& GetWorldMapAreaSwaps() const { return _worldMapAreaSwaps; }
+        int32 GetDBPhase() { return _dbPhase; }
 
-	// if negative it is used as PhaseGroupId
-	void SetDBPhase(int32 p) { _dbPhase = p; }
+        // if negative it is used as PhaseGroupId
+        void SetDBPhase(int32 p) { _dbPhase = p; }
 
-	uint32 GetZoneId() const;
-	uint32 GetAreaId() const;
-	void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
+        uint32 GetZoneId() const;
+        uint32 GetAreaId() const;
+        void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
 
-	InstanceScript* GetInstanceScript();
+        InstanceScript* GetInstanceScript();
 
-	std::string const& GetName() const { return m_name; }
-	void SetName(std::string const& newname) { m_name = newname; }
+        std::string const& GetName() const { return m_name; }
+        void SetName(std::string const& newname) { m_name=newname; }
 
-	virtual std::string const& GetNameForLocaleIdx(LocaleConstant /*locale_idx*/) const { return m_name; }
+        virtual std::string const& GetNameForLocaleIdx(LocaleConstant /*locale_idx*/) const { return m_name; }
 
-	float GetDistance(WorldObject const* obj) const;
-	float GetDistance(Position const &pos) const;
-	float GetDistance(float x, float y, float z) const;
-	float GetDistance2d(WorldObject const* obj) const;
-	float GetDistance2d(float x, float y) const;
-	float GetDistanceZ(WorldObject const* obj) const;
+        float GetDistance(WorldObject const* obj) const;
+        float GetDistance(Position const &pos) const;
+        float GetDistance(float x, float y, float z) const;
+        float GetDistance2d(WorldObject const* obj) const;
+        float GetDistance2d(float x, float y) const;
+        float GetDistanceZ(WorldObject const* obj) const;
 
-	bool IsSelfOrInSameMap(WorldObject const* obj) const;
-	bool IsInMap(WorldObject const* obj) const;
-	bool IsWithinDist3d(float x, float y, float z, float dist) const;
-	bool IsWithinDist3d(Position const* pos, float dist) const;
-	bool IsWithinDist2d(float x, float y, float dist) const;
-	bool IsWithinDist2d(Position const* pos, float dist) const;
-	// use only if you will sure about placing both object at same map
-	bool IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D = true) const;
-	bool IsWithinDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true) const;
-	bool IsWithinLOS(float x, float y, float z) const;
-	bool IsWithinLOSInMap(WorldObject const* obj) const;
-	bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true) const;
-	bool IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D = true) const;
-	bool IsInRange2d(float x, float y, float minRange, float maxRange) const;
-	bool IsInRange3d(float x, float y, float z, float minRange, float maxRange) const;
-	bool isInFront(WorldObject const* target, float arc = float(M_PI)) const;
-	bool isInBack(WorldObject const* target, float arc = float(M_PI)) const;
+        bool IsSelfOrInSameMap(WorldObject const* obj) const;
+        bool IsInMap(WorldObject const* obj) const;
+        bool IsWithinDist3d(float x, float y, float z, float dist) const;
+        bool IsWithinDist3d(Position const* pos, float dist) const;
+        bool IsWithinDist2d(float x, float y, float dist) const;
+        bool IsWithinDist2d(Position const* pos, float dist) const;
+        // use only if you will sure about placing both object at same map
+        bool IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D = true) const;
+        bool IsWithinDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true) const;
+        bool IsWithinLOS(float x, float y, float z) const;
+        bool IsWithinLOSInMap(WorldObject const* obj) const;
+        bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true) const;
+        bool IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D = true) const;
+        bool IsInRange2d(float x, float y, float minRange, float maxRange) const;
+        bool IsInRange3d(float x, float y, float z, float minRange, float maxRange) const;
+        bool isInFront(WorldObject const* target, float arc = float(M_PI)) const;
+        bool isInBack(WorldObject const* target, float arc = float(M_PI)) const;
 
-	bool IsInBetween(WorldObject const* obj1, WorldObject const* obj2, float size = 0) const;
+        bool IsInBetween(WorldObject const* obj1, WorldObject const* obj2, float size = 0) const;
 
-	virtual void CleanupsBeforeDelete(bool finalCleanup = true);  // used in destructor or explicitly before mass creature delete to remove cross-references to already deleted units
+        virtual void CleanupsBeforeDelete(bool finalCleanup = true);  // used in destructor or explicitly before mass creature delete to remove cross-references to already deleted units
 
-	virtual void SendMessageToSet(WorldPacket const* data, bool self);
-	virtual void SendMessageToSetInRange(WorldPacket const* data, float dist, bool self);
-	virtual void SendMessageToSet(WorldPacket const* data, Player const* skipped_rcvr);
+        virtual void SendMessageToSet(WorldPacket const* data, bool self);
+        virtual void SendMessageToSetInRange(WorldPacket const* data, float dist, bool self);
+        virtual void SendMessageToSet(WorldPacket const* data, Player const* skipped_rcvr);
 
-	virtual uint8 getLevelForTarget(WorldObject const* /*target*/) const { return 1; }
+        virtual uint8 getLevelForTarget(WorldObject const* /*target*/) const { return 1; }
 
-	void PlayDistanceSound(uint32 sound_id, Player* target = NULL);
-	void PlayDirectSound(uint32 sound_id, Player* target = NULL);
+        void PlayDistanceSound(uint32 sound_id, Player* target = NULL);
+        void PlayDirectSound(uint32 sound_id, Player* target = NULL);
 
-	void SendObjectDeSpawnAnim(ObjectGuid guid);
+        void SendObjectDeSpawnAnim(ObjectGuid guid);
 
-	virtual void SaveRespawnTime() { }
-	void AddObjectToRemoveList();
+        virtual void SaveRespawnTime() { }
+        void AddObjectToRemoveList();
 
-	float GetGridActivationRange() const;
-	float GetVisibilityRange() const;
-	float GetSightRange(WorldObject const* target = NULL) const;
-	bool CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth = false, bool distanceCheck = false) const;
+        float GetGridActivationRange() const;
+        float GetVisibilityRange() const;
+        float GetSightRange(WorldObject const* target = NULL) const;
+        bool CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth = false, bool distanceCheck = false, bool checkAlert = false) const;
 
-	FlaggedValuesArray32<int32, uint32, StealthType, TOTAL_STEALTH_TYPES> m_stealth;
-	FlaggedValuesArray32<int32, uint32, StealthType, TOTAL_STEALTH_TYPES> m_stealthDetect;
+        FlaggedValuesArray32<int32, uint32, StealthType, TOTAL_STEALTH_TYPES> m_stealth;
+        FlaggedValuesArray32<int32, uint32, StealthType, TOTAL_STEALTH_TYPES> m_stealthDetect;
 
-	FlaggedValuesArray32<int32, uint32, InvisibilityType, TOTAL_INVISIBILITY_TYPES> m_invisibility;
-	FlaggedValuesArray32<int32, uint32, InvisibilityType, TOTAL_INVISIBILITY_TYPES> m_invisibilityDetect;
+        FlaggedValuesArray32<int32, uint32, InvisibilityType, TOTAL_INVISIBILITY_TYPES> m_invisibility;
+        FlaggedValuesArray32<int32, uint32, InvisibilityType, TOTAL_INVISIBILITY_TYPES> m_invisibilityDetect;
 
-	FlaggedValuesArray32<int32, uint32, ServerSideVisibilityType, TOTAL_SERVERSIDE_VISIBILITY_TYPES> m_serverSideVisibility;
-	FlaggedValuesArray32<int32, uint32, ServerSideVisibilityType, TOTAL_SERVERSIDE_VISIBILITY_TYPES> m_serverSideVisibilityDetect;
+        FlaggedValuesArray32<int32, uint32, ServerSideVisibilityType, TOTAL_SERVERSIDE_VISIBILITY_TYPES> m_serverSideVisibility;
+        FlaggedValuesArray32<int32, uint32, ServerSideVisibilityType, TOTAL_SERVERSIDE_VISIBILITY_TYPES> m_serverSideVisibilityDetect;
 
-	virtual void SetMap(Map* map);
-	virtual void ResetMap();
-	Map* GetMap() const { ASSERT(m_currMap); return m_currMap; }
-	Map* FindMap() const { return m_currMap; }
-	//used to check all object's GetMap() calls when object is not in world!
+        virtual void SetMap(Map* map);
+        virtual void ResetMap();
+        Map* GetMap() const { ASSERT(m_currMap); return m_currMap; }
+        Map* FindMap() const { return m_currMap; }
+        //used to check all object's GetMap() calls when object is not in world!
 
-	//this function should be removed in nearest time...
-	Map const* GetBaseMap() const;
+        //this function should be removed in nearest time...
+        Map const* GetBaseMap() const;
 
-	void SetZoneScript();
-	ZoneScript* GetZoneScript() const { return m_zoneScript; }
+        void SetZoneScript();
+        ZoneScript* GetZoneScript() const { return m_zoneScript; }
 
-	TempSummon* SummonCreature(uint32 id, Position const &pos, TempSummonType spwtype = TEMPSUMMON_MANUAL_DESPAWN, uint32 despwtime = 0, uint32 vehId = 0) const;
-	TempSummon* SummonCreature(uint32 id, float x, float y, float z, float ang = 0, TempSummonType spwtype = TEMPSUMMON_MANUAL_DESPAWN, uint32 despwtime = 0) const;
-	GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime /* s */);
-	Creature*   SummonTrigger(float x, float y, float z, float ang, uint32 dur, CreatureAI* (*GetAI)(Creature*) = NULL);
-	void SummonCreatureGroup(uint8 group, std::list<TempSummon*>* list = NULL);
+        TempSummon* SummonCreature(uint32 id, Position const &pos, TempSummonType spwtype = TEMPSUMMON_MANUAL_DESPAWN, uint32 despwtime = 0, uint32 vehId = 0) const;
+        TempSummon* SummonCreature(uint32 id, float x, float y, float z, float ang = 0, TempSummonType spwtype = TEMPSUMMON_MANUAL_DESPAWN, uint32 despwtime = 0) const;
+        GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime /* s */);
+        Creature*   SummonTrigger(float x, float y, float z, float ang, uint32 dur, CreatureAI* (*GetAI)(Creature*) = NULL);
+        void SummonCreatureGroup(uint8 group, std::list<TempSummon*>* list = NULL);
 
-	Creature*   FindNearestCreature(uint32 entry, float range, bool alive = true) const;
-	GameObject* FindNearestGameObject(uint32 entry, float range) const;
-	GameObject* FindNearestGameObjectOfType(GameobjectTypes type, float range) const;
+        Creature*   FindNearestCreature(uint32 entry, float range, bool alive = true) const;
+        GameObject* FindNearestGameObject(uint32 entry, float range) const;
+        GameObject* FindNearestGameObjectOfType(GameobjectTypes type, float range) const;
 
-	void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& lList, uint32 uiEntry, float fMaxSearchRange) const;
-	void GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange) const;
-	void GetPlayerListInGrid(std::list<Player*>& lList, float fMaxSearchRange) const;
+        void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& lList, uint32 uiEntry, float fMaxSearchRange) const;
+        void GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange) const;
+        void GetPlayerListInGrid(std::list<Player*>& lList, float fMaxSearchRange) const;
 
-	void DestroyForNearbyPlayers();
-	virtual void UpdateObjectVisibility(bool forced = true);
-	void BuildUpdate(UpdateDataMapType&) override;
-	void AddToObjectUpdate() override;
-	void RemoveFromObjectUpdate() override;
+        void DestroyForNearbyPlayers();
+        virtual void UpdateObjectVisibility(bool forced = true);
+        void BuildUpdate(UpdateDataMapType&) override;
+        void AddToObjectUpdate() override;
+        void RemoveFromObjectUpdate() override;
 
-	//relocation and visibility system functions
-	void AddToNotify(uint16 f) { m_notifyflags |= f; }
-	bool isNeedNotify(uint16 f) const { return (m_notifyflags & f) != 0; }
-	uint16 GetNotifyFlags() const { return m_notifyflags; }
-	bool NotifyExecuted(uint16 f) const { return (m_executed_notifies & f) != 0; }
-	void SetNotified(uint16 f) { m_executed_notifies |= f; }
-	void ResetAllNotifies() { m_notifyflags = 0; m_executed_notifies = 0; }
+        //relocation and visibility system functions
+        void AddToNotify(uint16 f) { m_notifyflags |= f;}
+        bool isNeedNotify(uint16 f) const { return (m_notifyflags & f) != 0; }
+        uint16 GetNotifyFlags() const { return m_notifyflags; }
+        bool NotifyExecuted(uint16 f) const { return (m_executed_notifies & f) != 0; }
+        void SetNotified(uint16 f) { m_executed_notifies |= f;}
+        void ResetAllNotifies() { m_notifyflags = 0; m_executed_notifies = 0; }
 
-	bool isActiveObject() const { return m_isActive; }
-	void setActive(bool isActiveObject);
-	void SetWorldObject(bool apply);
-	bool IsPermanentWorldObject() const { return m_isWorldObject; }
-	bool IsWorldObject() const;
+        bool isActiveObject() const { return m_isActive; }
+        void setActive(bool isActiveObject);
+        void SetWorldObject(bool apply);
+        bool IsPermanentWorldObject() const { return m_isWorldObject; }
+        bool IsWorldObject() const;
 
-	template<class NOTIFIER> void VisitNearbyObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitAll(GetPositionX(), GetPositionY(), radius, notifier); }
-	template<class NOTIFIER> void VisitNearbyGridObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitGrid(GetPositionX(), GetPositionY(), radius, notifier); }
-	template<class NOTIFIER> void VisitNearbyWorldObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitWorld(GetPositionX(), GetPositionY(), radius, notifier); }
+        template<class NOTIFIER> void VisitNearbyObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitAll(GetPositionX(), GetPositionY(), radius, notifier); }
+        template<class NOTIFIER> void VisitNearbyGridObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitGrid(GetPositionX(), GetPositionY(), radius, notifier); }
+        template<class NOTIFIER> void VisitNearbyWorldObject(float const& radius, NOTIFIER& notifier) const { if (IsInWorld()) GetMap()->VisitWorld(GetPositionX(), GetPositionY(), radius, notifier); }
 
 #ifdef MAP_BASED_RAND_GEN
 	int32 irand(int32 min, int32 max) const     { return int32(GetMap()->mtRand.randInt(max - min)) + min; }
@@ -693,9 +693,9 @@ public:
 
         bool CanNeverSee(WorldObject const* obj) const;
         virtual bool CanAlwaysSee(WorldObject const* /*obj*/) const { return false; }
-        bool CanDetect(WorldObject const* obj, bool ignoreStealth) const;
+        bool CanDetect(WorldObject const* obj, bool ignoreStealth, bool checkAlert = false) const;
         bool CanDetectInvisibilityOf(WorldObject const* obj) const;
-        bool CanDetectStealthOf(WorldObject const* obj) const;
+        bool CanDetectStealthOf(WorldObject const* obj, bool checkAlert = false) const;
 
         uint16 m_aiAnimKitId;
         uint16 m_movementAnimKitId;

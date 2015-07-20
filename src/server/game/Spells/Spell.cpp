@@ -643,7 +643,8 @@ m_spellValue(new SpellValue(caster->GetMap()->GetDifficultyID(), m_spellInfo)), 
     m_procEx = 0;
     focusObject = NULL;
     m_cast_count = 0;
-    m_misc.Data = 0;
+    memset(m_misc.Raw.Data, 0, sizeof(m_misc.Raw.Data));
+    m_SpellVisual = m_spellInfo->GetSpellXSpellVisualId(caster->GetMap()->GetDifficultyID());
     m_preCastSpell = 0;
     m_triggeredByAuraSpell  = NULL;
     m_spellAura = NULL;
@@ -2996,6 +2997,14 @@ void Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggered
             triggeredByAura->GetBase()->SetDuration(0);
         }
 
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            m_caster->ToPlayer()->RestoreSpellMods(this);
+            // cleanup after mod system
+            // triggered spell pointer can be not removed in some cases
+            m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
+        }
+
         SendCastResult(result);
 
         finish(false);
@@ -3704,7 +3713,7 @@ void Spell::SendCastResult(SpellCastResult result)
     if (m_caster->ToPlayer()->GetSession()->PlayerLoading())  // don't send cast results at loading time
         return;
 
-    SendCastResult(m_caster->ToPlayer(), m_spellInfo, m_cast_count, result, m_customError, SMSG_CAST_FAILED, m_misc.Data);
+    SendCastResult(m_caster->ToPlayer(), m_spellInfo, m_cast_count, result, m_customError, SMSG_CAST_FAILED, m_misc.Raw.Data);
 }
 
 void Spell::SendPetCastResult(SpellCastResult result)
@@ -3716,10 +3725,10 @@ void Spell::SendPetCastResult(SpellCastResult result)
     if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    SendCastResult(owner->ToPlayer(), m_spellInfo, m_cast_count, result, SPELL_CUSTOM_ERROR_NONE, SMSG_PET_CAST_FAILED, m_misc.Data);
+    SendCastResult(owner->ToPlayer(), m_spellInfo, m_cast_count, result, SPELL_CUSTOM_ERROR_NONE, SMSG_PET_CAST_FAILED, m_misc.Raw.Data);
 }
 
-void Spell::SendCastResult(Player* caster, SpellInfo const* spellInfo, uint8 cast_count, SpellCastResult result, SpellCustomErrors customError /*= SPELL_CUSTOM_ERROR_NONE*/, OpcodeServer opcode /*= SMSG_CAST_FAILED*/, uint32 misc /*= 0*/)
+void Spell::SendCastResult(Player* caster, SpellInfo const* spellInfo, uint8 cast_count, SpellCastResult result, SpellCustomErrors customError /*= SPELL_CUSTOM_ERROR_NONE*/, OpcodeServer opcode /*= SMSG_CAST_FAILED*/, uint32* misc /*= nullptr*/)
 {
     if (result == SPELL_CAST_OK)
         return;
@@ -3830,10 +3839,11 @@ void Spell::SendCastResult(Player* caster, SpellInfo const* spellInfo, uint8 cas
             packet.FailedArg1 = missingItem;  // first missing item
             break;
         }
-        case  SPELL_FAILED_CANT_UNTALENT:
+        case SPELL_FAILED_CANT_UNTALENT:
         {
-            if (TalentEntry const* talent = sTalentStore.LookupEntry(misc))
-                packet.FailedArg1 = talent->SpellID;
+            if (misc)
+                if (TalentEntry const* talent = sTalentStore.LookupEntry(misc[0]))
+                    packet.FailedArg1 = talent->SpellID;
             break;
         }
         // TODO: SPELL_FAILED_NOT_STANDING
@@ -3880,6 +3890,7 @@ void Spell::SendSpellStart()
     castData.CasterUnit = m_caster->GetGUID();
     castData.CastID = m_cast_count; // pending spell cast?
     castData.SpellID = m_spellInfo->Id;
+    castData.SpellXSpellVisualID = m_SpellVisual;
     castData.CastFlags = castFlags;
     castData.CastTime = m_casttime;
 
@@ -3995,6 +4006,7 @@ void Spell::SendSpellGo()
     castData.CasterUnit = m_caster->GetGUID();
     castData.CastID = m_cast_count; // pending spell cast?
     castData.SpellID = m_spellInfo->Id;
+    castData.SpellXSpellVisualID = m_SpellVisual;
     castData.CastFlags = castFlags;
     castData.CastTime = getMSTime();
 
@@ -4236,6 +4248,7 @@ void Spell::SendInterrupted(uint8 result)
     failurePacket.CasterUnit = m_caster->GetGUID();
     failurePacket.CastID = m_cast_count;
     failurePacket.SpellID = m_spellInfo->Id;
+    failurePacket.SpelXSpellVisualID = m_SpellVisual;
     failurePacket.Reason = result;
     m_caster->SendMessageToSet(failurePacket.Write(), true);
 
@@ -4273,6 +4286,16 @@ void Spell::SendChannelStart(uint32 duration)
     spellChannelStart.SpellID = m_spellInfo->Id;
     spellChannelStart.ChannelDuration = duration;
     m_caster->SendMessageToSet(spellChannelStart.Write(), true);
+
+    uint32 schoolImmunityMask = m_caster->GetSchoolImmunityMask();
+    uint32 mechanicImmunityMask = m_caster->GetMechanicImmunityMask();
+
+    if (schoolImmunityMask || mechanicImmunityMask)
+    {
+        spellChannelStart.InterruptImmunities = boost::in_place();
+        spellChannelStart.InterruptImmunities->SchoolImmunities = schoolImmunityMask;
+        spellChannelStart.InterruptImmunities->Immunities = mechanicImmunityMask;
+    }
 
     m_timer = duration;
     if (!channelTarget.IsEmpty())
